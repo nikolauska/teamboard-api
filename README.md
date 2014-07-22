@@ -1,26 +1,45 @@
 # Teamboard API
 
-This package contains the RESTful service of the Teamboard product.
+`teamboard-api` is the API Teamboard uses.
+
+## Dependencies
+
+The API depends on having [MongoDB](http://mongodb.org) and
+[Redis](http://redis.io) up and running.
 
 ## Installation
-
-Run the following command
 ```
-npm install && npm start
+npm install N4SJAMK/teamboard-api
+```
+
+### Setup
+
+Set `NODE_ENV` to `development` for local development, assuming you have
+development dependencies installed locally. If you are running in `production`
+environment, you must specify the required environmental variables.
+
+- `MONGODB_HOST` is actually the connection string passed to `mongoose`, for
+  example: `mongodb://localhost:27017/teamboard-dev`.
+- `REDIS_HOST` and `REDIS_PORT` corresponding to your running `redis-server`.
+- `TOKEN_SECRET` is the secret used with `jsonwebtoken`.
+
+You can also specify the `PORT` variable to change the default port of `9002`.
+
+### Running
+
+Once you've set the required variables, run:
+```
+npm start
 ```
 
 ## Testing
-
-Run the following command
 ```
 npm test
 ```
-Or alternatively
-```
-gulp test
-```
 
 ## API Docs
+
+**TODO** Clean up this documentation!
 
 The root path for the API is `/api/v1`, where `v1` stands for the version.
 
