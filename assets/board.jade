@@ -1,0 +1,8 @@
+doctype html
+html(lang="en")
+	head
+		style(type="text/css"): include board.css
+	body
+		#board
+			each ticket in tickets
+				.ticket(style="left: #{ticket.position.x}px; top: #{ticket.position.y}px;")

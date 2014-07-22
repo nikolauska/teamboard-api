@@ -1,0 +1,25 @@
+/**
+ * Styles for screenshot templates.
+ */
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: Helvetica;
+}
+
+#board {
+	width: 1024px; /* Should match with the actual board width. */
+	height: 720px; /* Should match with the actual board height. */
+	background-color: rgb(250, 250, 250);
+}
+
+.ticket {
+	position: absolute;
+	width: 200px;
+	height: 110px;
+	background-color: rgb(220, 220, 220);
+}
