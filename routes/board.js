@@ -278,7 +278,10 @@ router.route('/:board_id/tickets')
 		board.tickets.push(ticket);
 		board.save(utils.err(next, function() {
 			emitter.to(board.id)
-				.emit('ticket:create', ticket.toObject())
+				.emit('ticket:create', {
+					user:   req.user,
+					ticket: ticket.toObject()
+				});
 			return res.json(201, ticket);
 		}));
 	});
@@ -316,7 +319,10 @@ router.route('/:board_id/tickets/:ticket_id')
 		board.save(utils.err(next, function(board) {
 			var updated = board.tickets.id(ticket.id);
 			emitter.to(board.id)
-				.emit('ticket:update', updated.toObject())
+				.emit('ticket:update', {
+					user:   req.user,
+					ticket: updated.toObject()
+				});
 			return res.json(200, updated);
 		}));
 	})
@@ -334,7 +340,10 @@ router.route('/:board_id/tickets/:ticket_id')
 		ticket.remove();
 		board.save(utils.err(next, function() {
 			emitter.to(board.id)
-				.emit('ticket:remove', ticket.toObject());
+				.emit('ticket:remove', {
+					user:   req.user,
+					ticket: ticket.toObject()
+				});
 			return res.json(200, ticket);
 		}));
 	});
