@@ -18,7 +18,7 @@ Set `NODE_ENV` to `development` for local development, assuming you have
 development dependencies installed locally. If you are running in `production`
 environment, you must specify the required environmental variables.
 
-- `MONGODB_HOST` is actually the connection string passed to `mongoose`, for
+- `MONGODB_URL` is actually the connection string passed to `mongoose`, for
   example: `mongodb://localhost:27017/teamboard-dev`.
 - `REDIS_HOST` and `REDIS_PORT` corresponding to your running `redis-server`.
 - `TOKEN_SECRET` is the secret used with `jsonwebtoken`.
