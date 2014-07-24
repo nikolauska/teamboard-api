@@ -16,7 +16,7 @@ before(function(done) {
 	this.seppo = { email: 'seppo@taalas.maa', password: 'talkkari' }
 
 	console.log('connecting to mongoose, using:', JSON.stringify(config.mongo));
-	mongoose.connect(config.mongo.host, config.mongo.options, done);
+	mongoose.connect(config.mongo.url, config.mongo.options, done);
 });
 
 /**

@@ -64,7 +64,7 @@ module.exports.listen = function(onListen) {
 	var config = require('./config');
 
 	// establish mongoose connection
-	mongoose.connect(config.mongo.host, config.mongo.options);
+	mongoose.connect(config.mongo.url, config.mongo.options);
 
 	// start the server on configured port
 	this.server = app.listen(config.port, onListen || function() {

@@ -38,7 +38,7 @@ var config = {
         },
 
         mongo: {
-			host: 'mongodb://localhost/teamboard-dev'
+			url: 'mongodb://localhost/teamboard-dev'
 		},
 
         redis: {
@@ -54,7 +54,7 @@ var config = {
         },
 
 		mongo: {
-			host: process.env.MONGODB_HOST
+			url: process.env.MONGODB_URL
 		},
 
 		redis: {
