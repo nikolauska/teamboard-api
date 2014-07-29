@@ -22,13 +22,7 @@ var config = {
 
         mongo: {
 			options: { safe: true }
-		},
-
-        staticContent: {
-            dir:      'static/',
-            template: 'assets/board.jade',
-            interval: 5
-        }
+		}
 	},
 
     development: {
@@ -44,7 +38,12 @@ var config = {
         redis: {
 			host: 'localhost',
             port: 6379
-		}
+		},
+
+        static: {
+            url:  'http://localhost',
+            port: 9003
+        }
 	},
 
 	production: {
@@ -60,7 +59,12 @@ var config = {
 		redis: {
 			host: process.env.REDIS_HOST,
             port: process.env.REDIS_PORT
-		}
+		},
+
+        static: {
+            url:  process.env.STATIC_URL,
+            port: process.env.STATIC_PORT
+        }
 	}
 }
 

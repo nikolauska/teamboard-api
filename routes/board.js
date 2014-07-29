@@ -5,10 +5,12 @@ var User  = require('mongoose').model('user');
 var Board = require('mongoose').model('board');
 
 var utils      = require('../utils');
+var config     = require('../config');
 var emitter    = require('../config/emitter');
 var middleware = require('../middleware');
 
-var router = require('express').Router();
+var router  = require('express').Router();
+var request = require('request');
 
 // automagically fetch documents matching id
 router.param('user_id',   middleware.resolve.user());
@@ -354,7 +356,19 @@ router.route('/:board_id/screenshot')
 	 * GET /boards/:board_id/screenshot
 	 */
 	.get(function(req, res, next) {
-
+		console.log(req.headers);
+		return next();
+	})
+	.get(middleware.authenticate('user', 'anonymous'))
+	.get(function(req, res, next) {
+		console.log(req.user);
+		return next();
+	})
+	.get(middleware.relation('*'))
+	.get(function(req, res, next) {
+		var url = config.static.url + ':' + config.static.port +
+			'/boards' + req.path;
+		return request.get(url).pipe(res);
 	});
 
 

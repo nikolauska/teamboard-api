@@ -115,7 +115,7 @@ describe('routes/board', function() {
 
 					res.body.should.be.an.Object;
 					res.body.should.have.properties([
-						'id', 'name', 'info', 'owner', 'members', 'screenshot'
+						'id', 'name', 'info', 'owner', 'members'
 					]);
 
 					return done();
