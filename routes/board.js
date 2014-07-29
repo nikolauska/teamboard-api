@@ -1,21 +1,22 @@
 'use strict';
 
-var User   = require('mongoose').model('user');
-var Board  = require('mongoose').model('board');
-var router = require('express').Router();
+
+var User  = require('mongoose').model('user');
+var Board = require('mongoose').model('board');
 
 var utils      = require('../utils');
-var middleware = require('../middleware');
 var emitter    = require('../config/emitter');
+var middleware = require('../middleware');
+
+var router = require('express').Router();
 
 // automagically fetch documents matching id
 router.param('user_id',   middleware.resolve.user());
 router.param('board_id',  middleware.resolve.board());
-router.param('guest_id',  middleware.resolve.guest());
 router.param('ticket_id', middleware.resolve.ticket());
 
 // invoke screenshot refresh when board_id is present in the request
-router.param('board_id', middleware.screenshot());
+// router.param('board_id', middleware.screenshot());
 
 /**
  * boards
@@ -25,12 +26,12 @@ router.route('/')
 	/**
 	 * GET /boards
 	 */
-	.get(middleware.anonymous())
+	.get(middleware.authenticate('user', 'anonymous'))
 	.get(function(req, res, next) {
 
 		var bquery = null;
 
-		if(req.anonymous) {
+		if(!req.user) {
 			bquery = Board.find({ isPublic: true });
 		}
 		else {
@@ -49,8 +50,7 @@ router.route('/')
 	/**
 	 * POST /boards
 	 */
-	.post(middleware.authenticate())
-	.post(middleware.registered())
+	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
 
 		var board = new Board({
@@ -74,7 +74,7 @@ router.route('/:board_id')
 	/**
 	 * GET /boards/:board_id
 	 */
-	.get(middleware.anonymous())
+	.get(middleware.authenticate('user', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
 		Board.populate(req.resolved.board, 'owner members',
@@ -86,7 +86,7 @@ router.route('/:board_id')
 	/**
 	 * PUT /boards/:board_id
 	 */
-	.put(middleware.authenticate())
+	.put(middleware.authenticate('user'))
 	.put(middleware.relation('owner'))
 	.put(function(req, res, next) {
 
@@ -105,7 +105,7 @@ router.route('/:board_id')
 	/**
 	 * DELETE /boards/:board_id
 	 */
-	.delete(middleware.authenticate())
+	.delete(middleware.authenticate('user'))
 	.delete(middleware.relation('owner'))
 	.delete(function(req, res, next) {
 		req.resolved.board.remove(utils.err(next, function() {
@@ -121,7 +121,7 @@ router.route('/:board_id/users')
 	/**
 	 * GET /boards/:board_id/users
 	 */
-	.get(middleware.anonymous())
+	.get(middleware.authenticate('user', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
 		Board.populate(req.resolved.board, 'owner members',
@@ -136,7 +136,7 @@ router.route('/:board_id/users')
 	/**
 	 * POST /boards/:board_id/users
 	 */
-	.post(middleware.authenticate())
+	.post(middleware.authenticate('user'))
 	.post(middleware.relation('owner'))
 	.post(function(req, res, next) {
 
@@ -171,7 +171,7 @@ router.route('/:board_id/users/:user_id')
 	/**
 	 * GET /boards/:board_id/users/:user_id
 	 */
-	.get(middleware.anonymous())
+	.get(middleware.authenticate('user', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
 
@@ -188,7 +188,7 @@ router.route('/:board_id/users/:user_id')
 	/**
 	 * DELETE /boards/:board_id/users/:user_id
 	 */
-	.delete(middleware.authenticate())
+	.delete(middleware.authenticate('user'))
 	.delete(middleware.relation('owner'))
 	.delete(function(req, res, next) {
 
@@ -208,7 +208,7 @@ router.route('/:board_id/users/:user_id')
  */
 router.route('/:board_id/guests')
 
-	.post(middleware.authenticate())
+	.post(middleware.authenticate('user'))
 	.post(middleware.relation('owner'))
 	.post(function(req, res, next) {
 
@@ -228,7 +228,7 @@ router.route('/:board_id/guests')
  */
 router.route('/:board_id/guests/:guest_id')
 
-	.delete(middleware.authenticate())
+	.delete(middleware.authenticate('user'))
 	.delete(middleware.relation('owner'))
 	.delete(function(req, res, next) {
 
@@ -251,7 +251,7 @@ router.route('/:board_id/tickets')
 	/**
 	 * GET /boards/:board_id/tickets
 	 */
-	.get(middleware.anonymous())
+	.get(middleware.authenticate('user', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res) {
 		return res.json(200, req.resolved.board.tickets);
@@ -260,8 +260,8 @@ router.route('/:board_id/tickets')
 	/**
 	 * POST /boards/:board_id/tickets
 	 */
-	.post(middleware.authenticate())
-	.post(middleware.relation('guest', 'member', 'owner'))
+	.post(middleware.authenticate('user'))
+	.post(middleware.relation('member', 'owner'))
 	.post(function(req, res, next) {
 
 		var board  = req.resolved.board;
@@ -294,7 +294,7 @@ router.route('/:board_id/tickets/:ticket_id')
 	/**
 	 * GET /boards/:board_id/tickets/:ticket_id
 	 */
-	.get(middleware.anonymous())
+	.get(middleware.authenticate('user', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res) {
 		return res.json(200, req.resolved.ticket);
@@ -303,8 +303,8 @@ router.route('/:board_id/tickets/:ticket_id')
 	/**
 	 * PUT /boards/:board_id/tickets/:ticket_id
 	 */
-	.put(middleware.authenticate())
-	.put(middleware.relation('guest', 'member', 'owner'))
+	.put(middleware.authenticate('user'))
+	.put(middleware.relation('member', 'owner'))
 	.put(function(req, res, next) {
 
 		var board  = req.resolved.board;
@@ -330,8 +330,8 @@ router.route('/:board_id/tickets/:ticket_id')
 	/**
 	 * DELETE /boards/:board_id/tickets/:ticket_id
 	 */
-	.delete(middleware.authenticate())
-	.delete(middleware.relation('guest', 'member', 'owner'))
+	.delete(middleware.authenticate('user'))
+	.delete(middleware.relation('member', 'owner'))
 	.delete(function(req, res, next) {
 
 		var board  = req.resolved.board;
@@ -346,6 +346,15 @@ router.route('/:board_id/tickets/:ticket_id')
 				});
 			return res.json(200, ticket);
 		}));
+	});
+
+router.route('/:board_id/screenshot')
+
+	/**
+	 * GET /boards/:board_id/screenshot
+	 */
+	.get(function(req, res, next) {
+
 	});
 
 

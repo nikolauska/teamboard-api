@@ -1,21 +1,16 @@
 'use strict';
 
 
-var router = require('express').Router();
+var User = require('mongoose').model('user');
 
 var utils      = require('../utils');
 var middleware = require('../middleware');
 
-var User = require('mongoose').model('user');
+var router = require('express').Router();
 
-// protect this resource behind authentication
-router.use(middleware.authenticate());
-
-// find the user matching the id
-// make user available to following middleware
+router.use(middleware.authenticate('user'));
 router.param('user_id', middleware.resolve.user());
 
-// setup http-methods for route /users
 router.route('/')
 	.get(function(req, res, next) {
 		User.find(utils.err(next, function(users) {
@@ -23,7 +18,6 @@ router.route('/')
 		}));
 	});
 
-// setup http-methods for route /users/user_id
 router.route('/:user_id')
 	.get(function(req, res) {
 		return res.json(200, req.resolved.user)

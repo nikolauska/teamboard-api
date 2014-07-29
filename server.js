@@ -33,8 +33,6 @@ app.use(function(err, req, res, next) {
 	var statusCode = err.status || res.statusCode || 500;
 
 	if(statusCode < 400) {
-		console.log('ERROR: Invalid ErrorCode:', statusCode);
-		console.log('ERROR: Request:', req);
 		statusCode = 500;
 	}
 

@@ -65,36 +65,18 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	members: [ { type: mongoose.Schema.Types.ObjectId, ref: 'user' } ],
 
 	/**
-	 * The guests that can perform some limited actions on the board.
-	 *
-	 * @name  Board#guests
-	 * @type  {array<Guest>}
-	 */
-	guests: [ require('./guest') ],
-
-	/**
 	 * Embedded 'ticket' models / documents. Tickets are not in their own
 	 * collection and live directly inside a board.
 	 *
 	 * @name  Board#tickets
 	 * @type  {array<Ticket>}
 	 */
-	tickets: [ require('./ticket') ],
-
-	/**
-	 * Screenshot information.
-	 * @name  Board#tickets
-	 * @type  {Screenshot}
-	 */
-	screenshot: {
-		path:      { type: String },
-		timestamp: { type: Date, default: Date.now }
-	}
+	tickets: [ require('./ticket') ]
 });
 
 // setup transformations
-if(!BoardSchema.options.toJSON) BoardSchema.options.toJSON = {};
-if(!BoardSchema.options.toObject) BoardSchema.options.toObject = {};
+if(!BoardSchema.options.toJSON) BoardSchema.options.toJSON     = { }
+if(!BoardSchema.options.toObject) BoardSchema.options.toObject = { }
 
 // toJSON transformation
 BoardSchema.options.toJSON.transform = function(doc, ret) {
@@ -110,18 +92,6 @@ BoardSchema.options.toJSON.transform = function(doc, ret) {
 // toObject transformation is the same as toJSON
 BoardSchema.options.toObject.transform = BoardSchema.options.toJSON.transform;
 
-// post updates to socket.io service
-BoardSchema.post('save', function() {
-	if(!this.isModified('tickets')) {
-		io.to(this.id).emit('board:update', this.toObject());
-	}
-});
-
-// post updates to socket.io service
-BoardSchema.post('remove', function() {
-	io.to(this.id).emit('board:remove', this.toObject());
-});
-
 BoardSchema.methods.isOwner = function(user) {
 	var owner = this.populated('owner') || this.owner;
 	return owner == user.id;
@@ -133,46 +103,4 @@ BoardSchema.methods.isMember = function(user) {
 		return member == user.id;
 	});
 	return isMember != undefined && isMember != null;
-}
-
-BoardSchema.methods.isGuest = function(user) {
-	var guests = this.populated('guests') || this.guests;
-	var isGuest = _.find(guests, function(guest) {
-		return guest == user.id;
-	});
-	return isGuest != undefined && isGuest != null;
-}
-
-BoardSchema.methods.updateScreenShot = function(callback) {
-
-	var utils  = require('../../utils');
-	var config = require('../index');
-
-	var board = this;
-
-	var now         = Date.now();
-	var lastUpdated = board.screenshot.timestamp;
-
-	if((now - lastUpdated) < config.staticContent.interval) {
-		return callback();
-	}
-
-	utils.screenshot(board.id, board.tickets, function(err, path) {
-
-		if(err) {
-			return callback(err);
-		}
-
-		board.screenshot.path      = path;
-		board.screenshot.timestamp = now;
-
-		board.save(function(err, board) {
-
-			if(err) {
-				return callback(err);
-			}
-
-			return callback();
-		});
-	});
 }

@@ -76,13 +76,6 @@ describe('routes/board', function() {
 				.expect(400, done);
 		});
 
-		it('should require \'info\' attribute', function(done) {
-			this.request.post('/api/v1/boards')
-				.send({ access_token: this.seppo.access_token })
-				.send({ name: 'toimi' })
-				.expect(400, done);
-		});
-
 		it('should set user as the owner', function(done) {
 
 			var self = this;

@@ -11,7 +11,7 @@ var middleware = require('../middleware');
 
 // setup http-methods for route /auth
 router.route('/')
-	.all(middleware.authenticate())
+	.all(middleware.authenticate('bearer'))
 	.get(function(req, res) {
 		return res.json(200, req.user);
 	});
@@ -45,7 +45,7 @@ router.route('/login')
 
 // setup http-methods for route /auth/logout
 router.route('/logout')
-	.all(middleware.authenticate())
+	.all(middleware.authenticate('bearer'))
 	.post(function(req, res, next) {
 
 		// remove the stored token, causing subsequent
