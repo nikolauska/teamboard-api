@@ -355,15 +355,7 @@ router.route('/:board_id/screenshot')
 	/**
 	 * GET /boards/:board_id/screenshot
 	 */
-	.get(function(req, res, next) {
-		console.log(req.headers);
-		return next();
-	})
 	.get(middleware.authenticate('user', 'anonymous'))
-	.get(function(req, res, next) {
-		console.log(req.user);
-		return next();
-	})
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
 		var url = config.static.url + ':' + config.static.port +
