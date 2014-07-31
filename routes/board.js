@@ -367,7 +367,13 @@ router.route('/:board_id/screenshot')
 	.get(function(req, res, next) {
 		var url = config.static.url + ':' + config.static.port +
 			'/boards' + req.path;
-		return request.get(url).pipe(res);
+		return request.get(url,
+			function(err) {
+				if(err) {
+					return res.send(503, "screenshot-service unavailable");
+				}
+			})
+			.pipe(res);
 	});
 
 
