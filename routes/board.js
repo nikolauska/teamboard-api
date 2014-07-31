@@ -206,46 +206,6 @@ router.route('/:board_id/users/:user_id')
 	});
 
 /**
- * boards/:board_id/guests
- */
-router.route('/:board_id/guests')
-
-	.post(middleware.authenticate('user'))
-	.post(middleware.relation('owner'))
-	.post(function(req, res, next) {
-
-		var board = req.resolved.board;
-		var guest = board.guests.create({ email: req.body.email });
-
-		res.status(400);
-
-		board.guests.push(guest);
-		board.save(utils.err(next, function() {
-			return res.json(201, guest);
-		}));
-	});
-
-/**
- * boards/:board_id/guests/:guest_id
- */
-router.route('/:board_id/guests/:guest_id')
-
-	.delete(middleware.authenticate('user'))
-	.delete(middleware.relation('owner'))
-	.delete(function(req, res, next) {
-
-		var board = req.resolved.board;
-		var guest = req.resolved.guest;
-
-		res.status(400);
-
-		board.guests.pull(guest.id);
-		board.save(utils.err(next, function() {
-			return res.json(200, guest);
-		}));
-	});
-
-/**
  * boards/:board_id/tickets
  */
 router.route('/:board_id/tickets')
@@ -281,11 +241,52 @@ router.route('/:board_id/tickets')
 		board.save(utils.err(next, function() {
 			emitter.to(board.id)
 				.emit('ticket:create', {
-					user:   req.user,
-					ticket: ticket.toObject()
+					user:    req.user,
+					tickets: [ ticket.toObject() ]
 				});
 			return res.json(201, ticket);
 		}));
+	})
+
+	/**
+	 * DELETE /boards/:board_id/tickets?tickets=123,124,126
+	 */
+	.delete(middleware.authenticate('user'))
+	.delete(middleware.relation('member', 'owner'))
+	.delete(function(req, res, next) {
+
+		var ids     = [ ]
+		var removed = [ ]
+
+		var board = req.resolved.board;
+
+		if(req.query.tickets) {
+			ids = req.query.tickets.split(',');
+		}
+
+		for(var i = 0; i < ids.length; i++) {
+			var ticket = board.tickets.id(ids[i]);
+
+			if(ticket) {
+				ticket.remove();
+				removed.push(ticket.toObject());
+			}
+			else return next(utils.error(400, 'Invalid parameters'));
+		}
+
+		board.save(function(err, board) {
+			if(err) {
+				if(err.name == 'VersionError') {
+					return next(utils.error(409, 'Conflict!'));
+				}
+				return next(err);
+			}
+			emitter.to(board.id).emit('ticket:remove', {
+				user:    req.user,
+				tickets: removed
+			});
+			return res.json(200, removed);
+		});
 	});
 
 /**
@@ -322,8 +323,8 @@ router.route('/:board_id/tickets/:ticket_id')
 			var updated = board.tickets.id(ticket.id);
 			emitter.to(board.id)
 				.emit('ticket:update', {
-					user:   req.user,
-					ticket: updated.toObject()
+					user:    req.user,
+					tickets: [ updated.toObject() ]
 				});
 			return res.json(200, updated);
 		}));
@@ -339,15 +340,21 @@ router.route('/:board_id/tickets/:ticket_id')
 		var board  = req.resolved.board;
 		var ticket = req.resolved.ticket;
 
-		ticket.remove();
-		board.save(utils.err(next, function() {
+		board.tickets.remove({ _id: ticket.id });
+		board.save(function(err, board) {
+			if(err) {
+				if(err.name == 'VersionError') {
+					return next(utils.error(409, "Conflict!"));
+				}
+				return next(err);
+			}
 			emitter.to(board.id)
 				.emit('ticket:remove', {
-					user:   req.user,
-					ticket: ticket.toObject()
+					user:    req.user,
+					tickets: [ ticket.toObject() ]
 				});
 			return res.json(200, ticket);
-		}));
+		});
 	});
 
 router.route('/:board_id/screenshot')

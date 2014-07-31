@@ -63,25 +63,6 @@ module.exports.board = function() {
 	}
 }
 
-module.exports.guest = function() {
-	return function(req, res, next, id) {
-
-		if(!req.resolved || !req.resolved.board) {
-			return next(error(404, 'Board not found'));
-		}
-
-		var guest = req.resolved.board.guests.id(id);
-
-		if(!guest) {
-			return next(error(404, 'Guest not found'));
-		}
-
-		req.resolved.guest = guest;
-
-		return next();
-	}
-}
-
 module.exports.ticket = function() {
 	return function(req, res, next, id) {
 
