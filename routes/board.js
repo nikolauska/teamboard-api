@@ -66,6 +66,41 @@ router.route('/')
 		board.save(utils.err(next, function(boards) {
 			return res.json(201, board);
 		}));
+	})
+
+	/**
+	 * DELETE /boards?boards=123,124,125
+	 */
+	.delete(middleware.authenticate('user'))
+	.delete(function(req, res, next) {
+		var ObjectId = require('mongoose').Types.ObjectId;
+		// make sure we receive correct parameters
+		if(!req.query.boards) {
+			return next(utils.error(400, 'No boards specified'));
+		}
+		// validate that passed values are valid ObjectIDs
+		var ids = req.query.boards.split(',');
+		for (var i = 0; i < ids.length; i++) {
+			if(!ObjectId.isValid(ids[i])) {
+				return next(utils.error(400, 'Valid ObjectID required'));
+			}
+		}
+		// MongoDB operations such as $in seem to require ObjectIDs
+		var objids = ids.map(function(id) { return new ObjectId(id); });
+		var bquery = Board.find({ '_id': { $in: objids } });
+
+		// all boards in request must be owned by the user in order
+		// for the request to complete
+		bquery.exec(utils.err(next, function(boards) {
+			for(var i = 0; i < boards.length; i++) {
+				if(!boards[i].isOwner(req.user)) {
+					return next(utils.error(403, 'Ownership required'));
+				}
+			}
+			bquery.remove(utils.err(next, function() {
+				return res.json(200, boards);
+			}));
+		}));
 	});
 
 /**
@@ -339,7 +374,7 @@ router.route('/:board_id/tickets/:ticket_id')
 		board.save(function(err, board) {
 			if(err) {
 				if(err.name == 'VersionError') {
-					return next(utils.error(409, "Conflict!"));
+					return next(utils.error(409, 'Conflict!'));
 				}
 				return next(err);
 			}
@@ -365,7 +400,7 @@ router.route('/:board_id/screenshot')
 		return request.get(url,
 			function(err) {
 				if(err) {
-					return res.send(503, "screenshot-service unavailable");
+					return res.send(503, 'screenshot-service unavailable');
 				}
 			})
 			.pipe(res);

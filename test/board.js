@@ -97,6 +97,74 @@ describe('routes/board', function() {
 		});
 	});
 
+	describe('DELETE /boards?boards=123,124,125...', function() {
+		var boardsToDelete = [ ]
+		var cantDelete     = [ ]
+
+		before(function(done) {
+			var Board = require('mongoose').model('board');
+			new Board({ name: 'delete', info: 'me', owner: this.kari.id })
+				.save(function(err, board) {
+					if(err) {
+						return done(err);
+					}
+					boardsToDelete.push(board.id);
+					return done();
+				});
+		});
+
+		before(function(done) {
+			var Board = require('mongoose').model('board');
+			new Board({ name: 'delete2', info: 'me2', owner: this.kari.id })
+				.save(function(err, board) {
+					if(err) {
+						return done(err);
+					}
+					boardsToDelete.push(board.id);
+					return done();
+				});
+		});
+
+		before(function(done) {
+			var Board = require('mongoose').model('board');
+			new Board({ name: 'cant', info: 'deleteme', owner: this.seppo.id })
+				.save(function(err, board) {
+					if(err) {
+						return done(err);
+					}
+					cantDelete.push(board.id);
+					return done();
+				});
+		});
+
+		it('should require authentication', function(done) {
+			this.request.delete(
+					'/api/v1/boards?boards=' + boardsToDelete.join(',') + '')
+				.expect(401, done);
+		});
+
+		it('should allow owner to delete boards', function(done) {
+			this.request.delete(
+					'/api/v1/boards?boards=' + boardsToDelete.join(',') + '')
+				.send({ access_token: this.kari.access_token })
+				.expect(200, function(err, res) {
+					if(err) {
+						return done(err);
+					}
+					res.body.should.be.an.Array;
+					res.body.length.should.equal(boardsToDelete.length);
+					return done();
+				});
+		});
+
+		it('should not allow deletion of non-owned boards', function(done) {
+			this.request.delete(
+					'/api/v1/boards?boards=' + cantDelete.join(',') + '')
+				.send({ access_token: this.kari.access_token })
+				.expect(403, done);
+		});
+	});
+
 	describe('GET /boards/:board_id', function() {
 
 		it.skip('should require authentication', function(done) {
