@@ -94,9 +94,9 @@ router.route('/:board_id')
 
 		var board = req.resolved.board;
 
-		board.name     = req.body.name     || board.name;
-		board.info     = req.body.info     || board.info;
-		board.isPublic = req.body.isPublic || board.isPublic;
+		board.name     = req.body.name;
+		board.info     = req.body.info;
+		board.isPublic = req.body.isPublic;
 
 		res.status(400);
 		board.save(utils.err(next, function(board) {
@@ -141,19 +141,14 @@ router.route('/:board_id/users')
 	.post(middleware.authenticate('user'))
 	.post(middleware.relation('owner'))
 	.post(function(req, res, next) {
-
 		res.status(400);
-
 		User.find({ _id: req.body.id }, utils.err(next, function(users) {
-
 			var user = users[0];
-
 			if(!user) {
 				return next(new Error('User not found'));
 			}
 
 			var board = req.resolved.board;
-
 			if(board.isOwner(user) || board.isMember(user)) {
 				return next(new Error('User already exists on board'));
 			}
