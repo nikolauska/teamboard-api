@@ -13,18 +13,16 @@ module.exports = new BearerStrategy(function(token, done) {
 		var user = users[0];
 
 		if(!user) {
-			return done(new Error('User not found'));
+			return done(utils.error(401, 'User not found'));
 		}
 
 		var jwt    = require('jsonwebtoken');
 		var config = require('../index');
 
-		jwt.verify(user.token, config.token.secret, function(err) {
-
+		jwt.verify(user.token, config.token.secret, function(err, decoded) {
 			if(err) {
-				return done(err);
+				return done(utils.error(401, err));
 			}
-
 			return done(null, user);
 		});
 	}));
