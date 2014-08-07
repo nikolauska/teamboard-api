@@ -58,7 +58,7 @@ module.exports.app = app;
  */
 module.exports.listen = function(onListen) {
 	// setup maxSockets for http requests
-	require('http').globalAgent.maxSockets = 512;
+	require('http').globalAgent.maxSockets = 128;
 
 	// load common configuration
 	var config = require('./config');
