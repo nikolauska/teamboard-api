@@ -19,7 +19,7 @@ module.exports = new BearerStrategy(function(token, done) {
 		var jwt    = require('jsonwebtoken');
 		var config = require('../index');
 
-		jwt.verify(user.token, config.token.secret, function(err, decoded) {
+		jwt.verify(user.token, config.token.secret, function(err) {
 			if(err) {
 				return done(utils.error(401, err));
 			}

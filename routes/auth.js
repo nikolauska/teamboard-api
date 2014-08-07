@@ -27,15 +27,34 @@ router.route('/login')
 				return next(utils.error(401, err));
 			}
 
-			// generate unique token for the user
-			user.token = jwt.sign({ id: user.id }, config.token.secret,
-				{ expiresInMinutes: config.token.expiration });
+			var gentoken = function(user, callback) {
+				// generate unique token for the user
+				user.token = jwt.sign({ id: user.id }, config.token.secret,
+					{ expiresInMinutes: config.token.expiration });
+				// store generated token in db for further authentication
+				user.save(utils.err(next, callback));
+			}
 
-			// store generated token in db for further authentication
-			user.save(utils.err(next, function(user) {
+			var onlogin = function(user) {
 				res.set('x-access-token', user.token);
-				return res.json(200, user);
-			}));
+				res.json(200, user);
+			}
+
+			if(user.token) {
+				jwt.verify(user.token, config.token.secret, function(err) {
+					if(err) {
+						// there is an error with verifying the existing token,
+						// generate new token and login
+						return gentoken(user, onlogin);
+					}
+					// existing token still valid, use it
+					return onlogin(user);
+				});
+			}
+			else {
+				// there is no token to begin with
+				return gentoken(user, onlogin);
+			}
 		}
 
 		// authenticate using the passport local strategy

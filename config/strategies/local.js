@@ -11,7 +11,10 @@ var options = {
 
 module.exports = new LocalStrategy(options, function(email, password, done) {
 	var User  = require('mongoose').model('user');
-	User.findOne({ email: email }, utils.err(done, function(user) {
+	User.findOne({ email: email }, function(err, user) {
+		if(err) {
+			return done(err);
+		}
 		if(!user) {
 			return done(utils.error(401, 'User not found'));
 		}
@@ -24,5 +27,5 @@ module.exports = new LocalStrategy(options, function(email, password, done) {
 			}
 			return done(null, user);
 		});
-	}));
+	});
 });
