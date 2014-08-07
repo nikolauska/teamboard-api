@@ -7,6 +7,10 @@
 The API depends on having [MongoDB](http://mongodb.org) and
 [Redis](http://redis.io) up and running.
 
+In order for authentication to work, you have to have a running
+`teamboard-crypt` service running. For screenshots to work, you need to have a
+running `teamboard-img` service.
+
 ## Installation
 ```
 npm install N4SJAMK/teamboard-api
@@ -18,6 +22,10 @@ Set `NODE_ENV` to `development` for local development, assuming you have
 development dependencies installed locally. If you are running in `production`
 environment, you must specify the required environmental variables.
 
+- `CRYPTO_URL` and `CRYPTO_PORT` should correspond to a running instance of
+  `teamboard-crypt` service.
+- `STATIC_URL` and `STATIC_PORT` should correspond to a running instance of
+  `teamboard-img` service.
 - `MONGODB_URL` is actually the connection string passed to `mongoose`, for
   example: `mongodb://localhost:27017/teamboard-dev`.
 - `REDIS_HOST` and `REDIS_PORT` corresponding to your running `redis-server`.

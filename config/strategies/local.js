@@ -1,6 +1,7 @@
 'use strict';
 
 
+var utils         = require('../../utils');
 var LocalStrategy = require('passport-local').Strategy;
 
 var options = {
@@ -9,28 +10,18 @@ var options = {
 }
 
 module.exports = new LocalStrategy(options, function(email, password, done) {
-
 	var User  = require('mongoose').model('user');
-	var utils = require('../../utils');
-
-	User.find({ email: email }, utils.err(done, function(users) {
-
-		var user = users[0];
-
+	User.findOne({ email: email }, utils.err(done, function(user) {
 		if(!user) {
-			return done(new Error('User not found'));
+			return done(utils.error(401, 'User not found'));
 		}
-
 		user.comparePassword(password, function(err, isMatch) {
-
 			if(err) {
 				return done(err);
 			}
-
 			if(!isMatch) {
-				return done(new Error('Invalid password'));
+				return done(utils.error(401, 'Invalid password'));
 			}
-
 			return done(null, user);
 		});
 	}));

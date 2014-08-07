@@ -1,8 +1,14 @@
 'use strict';
 
 
-var bcrypt   = require('bcrypt');
+var utils  = require('../../utils');
+var config = require('../index');
+
+var request  = require('request');
 var mongoose = require('mongoose');
+
+// url used to access hash/crypt service
+var cryptourl = config.crypto.url + ':' + config.crypto.port;
 
 /**
  * @class      User
@@ -69,7 +75,6 @@ UserSchema.options.toObject.transform = UserSchema.options.toJSON.transform;
 
 // check for duplicates
 UserSchema.pre('save', function(next) {
-
 	if(!this.isNew) {
 		return next();
 	}
@@ -87,31 +92,25 @@ UserSchema.pre('save', function(next) {
 
 // only save the hash of user's password...
 UserSchema.pre('save', function(next) {
-
 	var user = this;
 
 	if(!user.isModified('password')) {
 		return next();
 	}
 
-	// generate salt
-	bcrypt.genSalt(10, function(err, salt) {
-
-		if(err) {
-			return next(err);
+	var opts = {
+		url: cryptourl + '/hash',
+		json: {
+			plain: this.password
 		}
+	}
 
-		// hash password
-		bcrypt.hash(user.password, salt, function(err, hash) {
-
-			if(err) {
-				return next(err);
-			}
-
-			user.password = hash;
-
-			return next();
-		});
+	return request.post(opts, function(err, res, body) {
+		if(err) {
+			return next(utils.error(503, "Login service down"));
+		}
+		user.password = body.hash;
+		return next();
 	});
 });
 
@@ -122,15 +121,17 @@ UserSchema.pre('save', function(next) {
  * @param  {function}  callback  invoked on completion
  */
 UserSchema.methods.comparePassword = function(password, callback) {
-
-	var user = this;
-
-	bcrypt.compare(password, user.password, function(err, isMatch) {
-
-		if(err) {
-			return callback(err);
+	var opts = {
+		url: cryptourl + '/compare',
+		json: {
+			hash:  this.password,
+			plain: password
 		}
-
-		return callback(null, isMatch);
+	}
+	return request.post(opts, function(err, res, body) {
+		if(err) {
+			return callback(utils.error(503, "Login service down"));
+		}
+		return callback(null, body.match);
 	});
 }
