@@ -107,6 +107,7 @@ UserSchema.pre('save', function(next) {
 
 	return request.post(opts, function(err, res, body) {
 		if(err) {
+			console.log(err);
 			return next(utils.error(503, "Login service down"));
 		}
 		user.password = body.hash;
@@ -130,6 +131,7 @@ UserSchema.methods.comparePassword = function(password, callback) {
 	}
 	return request.post(opts, function(err, res, body) {
 		if(err) {
+			console.log(err);
 			return callback(utils.error(503, "Login service down"));
 		}
 		return callback(null, body.match);
