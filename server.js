@@ -57,6 +57,8 @@ module.exports.app = app;
  * });
  */
 module.exports.listen = function(onListen) {
+	// setup maxSockets for http requests
+	require('http').globalAgent.maxSockets = 512;
 
 	// load common configuration
 	var config = require('./config');
@@ -81,7 +83,6 @@ module.exports.listen = function(onListen) {
  * });
  */
 module.exports.shutdown = function(onShutdown) {
-
 	// close the server and disconnect from mongoose
 	return this.server.close(function() {
 		mongoose.disconnect(onShutdown || function() {});
