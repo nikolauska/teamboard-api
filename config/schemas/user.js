@@ -104,15 +104,27 @@ UserSchema.pre('save', function(next) {
 			plain: this.password
 		}
 	}
-
-	return request.post(opts, function(err, res, body) {
-		if(err) {
-			console.log('hash', err);
-			return next(utils.error(503, 'Login service down'));
-		}
-		user.password = body.hash;
-		return next();
-	});
+	var hash = function(tries) {
+		return request.post(opts, function(err, res, body) {
+			if(err) {
+				console.log('hash', err);
+				tries = tries - 1;
+				if(tries) {
+					console.log('retrying...');
+					hash(tries);
+				}
+				else {
+					console.log('max retries exceeded...');
+					next(utils.error(503, 'Login service down'));
+				}
+			}
+			else {
+				user.password = body.hash;
+				return next();
+			}
+		});
+	}
+	return hash(5);
 });
 
 /**
@@ -129,11 +141,24 @@ UserSchema.methods.comparePassword = function(password, callback) {
 			plain: password
 		}
 	}
-	return request.post(opts, function(err, res, body) {
-		if(err) {
-			console.log('compare', err);
-			return callback(utils.error(503, 'Login service down'));
-		}
-		return callback(null, body.match);
-	});
+	var compare = function(tries) {
+		return request.post(opts, function(err, res, body) {
+			if(err) {
+				console.log('compare:', err);
+				tries = tries - 1;
+				if(tries) {
+					console.log('retrying...');
+					compare(tries);
+				}
+				else {
+					console.log('max retries exceeded...');
+					callback(utils.error(503, 'Login service down'));
+				}
+			}
+			else {
+				callback(null, body.match);
+			}
+		});
+	}
+	return compare(5);
 }
