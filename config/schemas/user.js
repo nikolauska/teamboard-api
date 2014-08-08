@@ -110,15 +110,18 @@ UserSchema.pre('save', function(next) {
 				console.log('hash', err);
 				tries = tries - 1;
 				if(tries > 0) {
-					console.log('retrying...');
+					console.log('hash: retrying...');
 					hash(tries);
 				}
 				else {
-					console.log('max retries exceeded...');
+					console.log('hash: max retries exceeded...');
 					next(utils.error(503, 'Login service down'));
 				}
 			}
 			else {
+				if(tries < 5) {
+					console.log('hash: succeeded');
+				}
 				user.password = body.hash;
 				return next();
 			}
@@ -147,15 +150,18 @@ UserSchema.methods.comparePassword = function(password, callback) {
 				console.log('compare:', err);
 				tries = tries - 1;
 				if(tries > 0) {
-					console.log('retrying...');
+					console.log('compare: retrying...');
 					compare(tries);
 				}
 				else {
-					console.log('max retries exceeded...');
+					console.log('compare: max retries exceeded...');
 					callback(utils.error(503, 'Login service down'));
 				}
 			}
 			else {
+				if(tries < 5) {
+					console.log('compare: succeeded');
+				}
 				callback(null, body.match);
 			}
 		});
