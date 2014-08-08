@@ -109,7 +109,7 @@ UserSchema.pre('save', function(next) {
 			if(err) {
 				console.log('hash', err);
 				tries = tries - 1;
-				if(tries) {
+				if(tries > 0) {
 					console.log('retrying...');
 					hash(tries);
 				}
@@ -146,7 +146,7 @@ UserSchema.methods.comparePassword = function(password, callback) {
 			if(err) {
 				console.log('compare:', err);
 				tries = tries - 1;
-				if(tries) {
+				if(tries > 0) {
 					console.log('retrying...');
 					compare(tries);
 				}
