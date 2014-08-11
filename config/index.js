@@ -43,11 +43,6 @@ var config = {
         static: {
             url:  'http://localhost',
             port: 9003
-        },
-
-        crypto: {
-            url:  'http://localhost',
-            port: 9004
         }
 	},
 
@@ -69,11 +64,6 @@ var config = {
         static: {
             url:  process.env.STATIC_URL,
             port: process.env.STATIC_PORT
-        },
-
-        crypto: {
-            url:  process.env.CRYPTO_URL,
-            port: process.env.CRYPTO_PORT
         }
 	}
 }
