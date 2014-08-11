@@ -1,7 +1,14 @@
 'use strict';
 
-var bcrypt   = require('bcrypt');
+
+var utils  = require('../../utils');
+var config = require('../index');
+
+var request  = require('request');
 var mongoose = require('mongoose');
+
+// url used to access hash/crypt service
+var cryptourl = config.crypto.url + ':' + config.crypto.port;
 
 /**
  * @class      User
@@ -86,21 +93,41 @@ UserSchema.pre('save', function(next) {
 // only save the hash of user's password...
 UserSchema.pre('save', function(next) {
 	var user = this;
+
 	if(!user.isModified('password')) {
 		return next();
 	}
-	bcrypt.genSalt(10, function(err, salt) {
-		if(err) {
-			return next(err);
+
+	var opts = {
+		url: cryptourl + '/hash',
+		json: {
+			plain: this.password
 		}
-		bcrypt.hash(user.password, salt, function(err, hash) {
+	}
+	var hash = function(tries) {
+		return request.post(opts, function(err, res, body) {
 			if(err) {
-				return next(err);
+				console.log('hash', err);
+				tries = tries - 1;
+				if(tries > 0) {
+					console.log('hash: retrying...');
+					hash(tries);
+				}
+				else {
+					console.log('hash: max retries exceeded...');
+					next(utils.error(503, 'Login service down'));
+				}
 			}
-			user.password = hash;
-			return next();
+			else {
+				if(tries < 5) {
+					console.log('hash: succeeded');
+				}
+				user.password = body.hash;
+				return next();
+			}
 		});
-	});
+	}
+	return hash(5);
 });
 
 /**
@@ -110,10 +137,34 @@ UserSchema.pre('save', function(next) {
  * @param  {function}  callback  invoked on completion
  */
 UserSchema.methods.comparePassword = function(password, callback) {
-	bcrypt.compare(password, this.password, function(err, match) {
-		if(err) {
-			return callback(err);
+	var opts = {
+		url: cryptourl + '/compare',
+		json: {
+			hash:  this.password,
+			plain: password
 		}
-		return callback(null, match);
-	});
+	}
+	var compare = function(tries) {
+		return request.post(opts, function(err, res, body) {
+			if(err) {
+				console.log('compare:', err);
+				tries = tries - 1;
+				if(tries > 0) {
+					console.log('compare: retrying...');
+					compare(tries);
+				}
+				else {
+					console.log('compare: max retries exceeded...');
+					callback(utils.error(503, 'Login service down'));
+				}
+			}
+			else {
+				if(tries < 5) {
+					console.log('compare: succeeded');
+				}
+				callback(null, body.match);
+			}
+		});
+	}
+	return compare(5);
 }
