@@ -93,41 +93,22 @@ UserSchema.pre('save', function(next) {
 // only save the hash of user's password...
 UserSchema.pre('save', function(next) {
 	var user = this;
-
 	if(!user.isModified('password')) {
 		return next();
 	}
-
 	var opts = {
 		url: cryptourl + '/hash',
 		json: {
 			plain: this.password
 		}
 	}
-	var hash = function(tries) {
-		return request.post(opts, function(err, res, body) {
-			if(err) {
-				console.log('hash', err);
-				tries = tries - 1;
-				if(tries > 0) {
-					console.log('hash: retrying...');
-					hash(tries);
-				}
-				else {
-					console.log('hash: max retries exceeded...');
-					next(utils.error(503, 'Login service down'));
-				}
-			}
-			else {
-				if(tries < 5) {
-					console.log('hash: succeeded');
-				}
-				user.password = body.hash;
-				return next();
-			}
-		});
-	}
-	return hash(5);
+	return request.post(opts, function(err, res, body) {
+		if(err) {
+			return next(utils.error(503, 'Login service down'));
+		}
+		user.password = body.hash;
+		return next();
+	});
 });
 
 /**
@@ -144,27 +125,10 @@ UserSchema.methods.comparePassword = function(password, callback) {
 			plain: password
 		}
 	}
-	var compare = function(tries) {
-		return request.post(opts, function(err, res, body) {
-			if(err) {
-				console.log('compare:', err);
-				tries = tries - 1;
-				if(tries > 0) {
-					console.log('compare: retrying...');
-					compare(tries);
-				}
-				else {
-					console.log('compare: max retries exceeded...');
-					callback(utils.error(503, 'Login service down'));
-				}
-			}
-			else {
-				if(tries < 5) {
-					console.log('compare: succeeded');
-				}
-				callback(null, body.match);
-			}
-		});
-	}
-	return compare(5);
+	return request.post(opts, function(err, res, body) {
+		if(err) {
+			return callback(utils.error(503, 'Login service down'));
+		}
+		return callback(null, body.match);
+	});
 }
