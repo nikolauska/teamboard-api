@@ -1,6 +1,6 @@
 'use strict';
 
-var utils      = require('../utils');
+var error      = require('../utils/error');
 var middleware = require('../middleware');
 
 var User   = require('mongoose').model('user');
@@ -13,7 +13,7 @@ Router.route('/')
 	.get(function(req, res, next) {
 		User.find(function(err, users) {
 			if(err) {
-				return next(utils.error(500, err));
+				return next(error(500, err));
 			}
 			return res.json(200, users);
 		});

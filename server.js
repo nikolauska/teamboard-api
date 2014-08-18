@@ -7,7 +7,7 @@ var passport = require('./config/passport');
 // use authentication
 app.use(passport.initialize());
 
-// allow CORS
+// allow CORS for everything
 app.all('*', require('cors')({
 	exposedHeaders: ['x-access-token']
 }));
@@ -17,62 +17,31 @@ app.use('/api/v1/auth',   require('./routes/auth'));
 app.use('/api/v1/users',  require('./routes/user'));
 app.use('/api/v1/boards', require('./routes/board'));
 
-// handle errors with ~grace~
+// catch errors and format them properly
 app.use(function(err, req, res, next) {
-	var statusCode = err.status || res.statusCode || 500;
-
-	if(statusCode < 400) {
-		statusCode = 500;
+	var boom = require('boom');
+	    err  = boom.wrap(err, err.status);
+	if(err.status >= 500) {
+		console.error(err);
 	}
-
-	err = require('boom').wrap(err, statusCode, err.message);
 	return res.status(err.output.statusCode).send(err.output.payload);
 });
 
-
-/**
- * The ExpressJS application.
- */
 module.exports.app = app;
 
-/**
- * Starts listening to incoming connections.
- *
- * @param  {function}  onListen
- *
- * @example
- * var server = app.listen(function() {
- *   // server listening...
- * });
- */
 module.exports.listen = function(onListen) {
-	// setup maxSockets for http requests
-	require('http').globalAgent.maxSockets = 128;
-
-	// load common configuration
 	var config = require('./config');
 
-	// establish mongoose connection
-	mongoose.connect(config.mongo.url, config.mongo.options);
+	mongoose.connect(
+		config.mongo.url,
+		config.mongo.options);
 
-	// start the server on configured port
 	this.server = app.listen(config.port, onListen || function() {
 		console.log('server listening at', config.port);
 	});
 }
 
-/**
- * Shuts the server down.
- *
- * @param  {function}  onShutdown
- *
- * @example
- * app.shutdown(function() {
- *   // cleanup here...
- * });
- */
 module.exports.shutdown = function(onShutdown) {
-	// close the server and disconnect from mongoose
 	return this.server.close(function() {
 		mongoose.disconnect(onShutdown || function() {});
 	});

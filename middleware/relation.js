@@ -1,7 +1,7 @@
 'use strict';
 
 var _     = require('lodash');
-var utils = require('../utils');
+var error = require('../utils/error');
 
 var _roles = {
 	anonymous: function(req) {
@@ -40,7 +40,7 @@ module.exports = function() {
 				return next();
 			}
 		}
-		return next(utils.error(403,
-			'User did not match any role: ' + roles.join(', ') + '.'));
+		return next(error(403, 'User did not match any role: ' +
+			roles.join(', ') + '.'));
 	}
 }
