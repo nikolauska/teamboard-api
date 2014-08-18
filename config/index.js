@@ -1,13 +1,6 @@
  'use strict';
 
-/**
- * The common environmental configuration of the server application.
- *
- * @module  config/common
- */
-
-var _    = require('lodash');
-var path = require('path');
+var _ = require('lodash');
 
 var config = {
 	common: {

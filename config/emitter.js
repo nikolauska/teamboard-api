@@ -1,4 +1,6 @@
 'use strict';
 
+var config  = require('./index');
+var emitter = require('socket.io-emitter');
 
-module.exports = require('socket.io-emitter')(require('./index').redis);
+module.exports = emitter(config.redis);

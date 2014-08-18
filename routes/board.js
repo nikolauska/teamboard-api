@@ -1,79 +1,62 @@
 'use strict';
 
-
-var User  = require('mongoose').model('user');
-var Board = require('mongoose').model('board');
-
 var utils      = require('../utils');
 var config     = require('../config');
 var emitter    = require('../config/emitter');
 var middleware = require('../middleware');
 
-var router  = require('express').Router();
-var request = require('request');
+var User     = require('mongoose').model('user');
+var Board    = require('mongoose').model('board');
+var Router   = require('express').Router();
+var ObjectId = require('mongoose').Types.ObjectId;
 
-// automagically fetch documents matching id
-router.param('user_id',   middleware.resolve.user());
-router.param('board_id',  middleware.resolve.board());
-router.param('ticket_id', middleware.resolve.ticket());
+Router.param('user_id',   middleware.resolve.user());
+Router.param('board_id',  middleware.resolve.board());
+Router.param('ticket_id', middleware.resolve.ticket());
 
-// invoke screenshot refresh when board_id is present in the request
-// router.param('board_id', middleware.screenshot());
-
-/**
- * boards
- */
-router.route('/')
-
-	/**
-	 * GET /boards
-	 */
-	.get(middleware.authenticate('user', 'anonymous'))
+Router.route('/')
+	.get(middleware.authenticate('bearer', 'anonymous'))
 	.get(function(req, res, next) {
-
 		var bquery = null;
-
 		if(!req.user) {
+			// anonymous users can only see public boards
 			bquery = Board.find({ isPublic: true });
 		}
 		else {
+			// registered users can see the boards they own or they
+			// are a member of in addition to public boards
 			bquery = Board.find().or([
 				{ owner: req.user.id },
 				{ members: req.user.id },
 				{ isPublic: true }
 			]);
 		}
-
-		bquery.select('-tickets').exec(utils.err(next, function(boards) {
-			return res.json(200, boards);
-		}));
+		bquery.select('-tickets')
+			.populate('owner members')
+			.exec(function(err, boards) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
+				return res.json(200, boards);
+			});
 	})
-
-	/**
-	 * POST /boards
-	 */
-	.post(middleware.authenticate('user'))
+	.post(middleware.authenticate('bearer'))
 	.post(function(req, res, next) {
-
 		var board = new Board({
 			name:     req.body.name,
 			info:     req.body.info,
 			isPublic: req.body.isPublic,
 			owner:    req.user.id
 		});
-
-		res.status(400);
-		board.save(utils.err(next, function(boards) {
+		board.save(function(err, board) {
+			if(err) {
+				return next(utils.error(400, err));
+			}
 			return res.json(201, board);
-		}));
+		});
 	})
-
-	/**
-	 * DELETE /boards?boards=123,124,125
-	 */
-	.delete(middleware.authenticate('user'))
+	.delete(middleware.authenticate('bearer'))
 	.delete(function(req, res, next) {
-		var ObjectId = require('mongoose').Types.ObjectId;
 		// make sure we receive correct parameters
 		if(!req.query.boards) {
 			return next(utils.error(400, 'No boards specified'));
@@ -88,174 +71,142 @@ router.route('/')
 		// MongoDB operations such as $in seem to require ObjectIDs
 		var objids = ids.map(function(id) { return new ObjectId(id); });
 		var bquery = Board.find({ '_id': { $in: objids } });
-
-		// all boards in request must be owned by the user in order
-		// for the request to complete
-		bquery.exec(utils.err(next, function(boards) {
+		// all boards in request must be owned by the user
+		bquery.exec(function(err, boards) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			// don't remove any boards if whole query is not valid
 			for(var i = 0; i < boards.length; i++) {
 				if(!boards[i].isOwner(req.user)) {
 					return next(utils.error(403, 'Ownership required'));
 				}
 			}
-			bquery.remove(utils.err(next, function() {
+			bquery.remove(function(err) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
 				return res.json(200, boards);
-			}));
-		}));
+			});
+		});
 	});
 
-/**
- * boards/:board_id
- */
-router.route('/:board_id')
-
-	/**
-	 * GET /boards/:board_id
-	 */
-	.get(middleware.authenticate('user', 'anonymous'))
+Router.route('/:board_id')
+	.get(middleware.authenticate('bearer', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
 		Board.populate(req.resolved.board, 'owner members',
-			utils.err(next, function(board) {
+			function(err, board) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
 				return res.json(200, board);
-			}));
+			});
 	})
-
-	/**
-	 * PUT /boards/:board_id
-	 */
-	.put(middleware.authenticate('user'))
+	.put(middleware.authenticate('bearer'))
 	.put(middleware.relation('owner'))
 	.put(function(req, res, next) {
-
-		var board = req.resolved.board;
-
-		board.name     = req.body.name;
-		board.info     = req.body.info;
-		board.isPublic = req.body.isPublic;
-
-		res.status(400);
-		board.save(utils.err(next, function(board) {
+		var board          = req.resolved.board;
+		    board.name     = req.body.name;
+		    board.info     = req.body.info;
+		    board.isPublic = req.body.isPublic;
+		board.save(function(err, board) {
+			if(err) {
+				return next(utils.error(400, err));
+			}
 			return res.json(200, board);
-		}));
+		});
 	})
-
-	/**
-	 * DELETE /boards/:board_id
-	 */
-	.delete(middleware.authenticate('user'))
+	.delete(middleware.authenticate('bearer'))
 	.delete(middleware.relation('owner'))
 	.delete(function(req, res, next) {
-		req.resolved.board.remove(utils.err(next, function() {
+		req.resolved.board.remove(function(err) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
 			return res.json(200, req.resolved.board);
-		}));
+		});
 	});
 
-/**
- * boards/:board_id/users
- */
-router.route('/:board_id/users')
-
-	/**
-	 * GET /boards/:board_id/users
-	 */
-	.get(middleware.authenticate('user', 'anonymous'))
+Router.route('/:board_id/users')
+	.get(middleware.authenticate('bearer', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
 		Board.populate(req.resolved.board, 'owner members',
-			utils.err(next, function(board) {
+			function(err, board) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
 				return res.json(200, {
 					owner:   board.owner,
 					members: board.members
 				});
-			}));
+			});
 	})
-
-	/**
-	 * POST /boards/:board_id/users
-	 */
-	.post(middleware.authenticate('user'))
+	.post(middleware.authenticate('bearer'))
 	.post(middleware.relation('owner'))
 	.post(function(req, res, next) {
-		res.status(400);
-		User.find({ _id: req.body.id }, utils.err(next, function(users) {
-			var user = users[0];
+		var board = req.resolved.board;
+		if(!ObjectId.isValid(req.body.id)) {
+			return next(utils.error(400, 'Valid ObjectId required'));
+		}
+		User.findOne({ _id: req.body.id }, function(err, user) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
 			if(!user) {
-				return next(new Error('User not found'));
+				return next(utils.error(404, 'User not found'));
 			}
-
-			var board = req.resolved.board;
 			if(board.isOwner(user) || board.isMember(user)) {
-				return next(new Error('User already exists on board'));
+				return next(utils.error(409, 'User already exists on board'));
 			}
-
 			board.members.push(user.id);
-			board.save(utils.err(next, function() {
+			board.save(function(err) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
 				return res.json(200, user);
-			}));
-		}));
+			});
+		});
 	});
 
-/**
- * boards/:board_id/users/:user_id
- */
-router.route('/:board_id/users/:user_id')
-
-	/**
-	 * GET /boards/:board_id/users/:user_id
-	 */
-	.get(middleware.authenticate('user', 'anonymous'))
+Router.route('/:board_id/users/:user_id')
+	.get(middleware.authenticate('bearer', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
-
 		var user  = req.resolved.user;
 		var board = req.resolved.board;
-
 		if(board.isOwner(user) || board.isMember(user)) {
 			return res.json(200, user);
 		}
-
-		return next(utils.error(404, 'Not found'));
+		return next(utils.error(400, 'User not found'));
 	})
-
-	/**
-	 * DELETE /boards/:board_id/users/:user_id
-	 */
-	.delete(middleware.authenticate('user'))
+	.delete(middleware.authenticate('bearer'))
 	.delete(middleware.relation('owner'))
 	.delete(function(req, res, next) {
-
 		var user  = req.resolved.user;
 		var board = req.resolved.board;
-
-		res.status(400);
-
+		if(!board.isMember(user)) {
+			return next(utils.error(400, 'User not found'));
+		}
 		board.members.pull(user.id);
-		board.save(utils.err(next, function() {
+		board.save(function(err) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
 			return res.json(200, user);
-		}));
+		});
 	});
 
-/**
- * boards/:board_id/tickets
- */
-router.route('/:board_id/tickets')
-
-	/**
-	 * GET /boards/:board_id/tickets
-	 */
-	.get(middleware.authenticate('user', 'anonymous'))
+Router.route('/:board_id/tickets')
+	.get(middleware.authenticate('bearer', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res) {
 		return res.json(200, req.resolved.board.tickets);
 	})
-
-	/**
-	 * POST /boards/:board_id/tickets
-	 */
-	.post(middleware.authenticate('user'))
+	.post(middleware.authenticate('bearer'))
 	.post(middleware.relation('member', 'owner'))
 	.post(function(req, res, next) {
-
 		var board  = req.resolved.board;
 		var ticket = board.tickets.create({
 			owner:    req.user.id,
@@ -264,52 +215,41 @@ router.route('/:board_id/tickets')
 			content:  req.body.content,
 			position: req.body.position
 		});
-
-		res.status(400);
-
 		board.tickets.push(ticket);
-		board.save(utils.err(next, function() {
-			emitter.to(board.id)
-				.emit('ticket:create', {
-					user:    req.user,
-					tickets: [ ticket.toObject() ]
-				});
+		board.save(function(err) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			emitter.to(board.id).emit('ticket:create', {
+				user:    req.user,
+				tickets: [ ticket.toObject() ]
+			});
 			return res.json(201, ticket);
-		}));
+		});
 	})
-
-	/**
-	 * DELETE /boards/:board_id/tickets?tickets=123,124,126
-	 */
-	.delete(middleware.authenticate('user'))
+	.delete(middleware.authenticate('bearer'))
 	.delete(middleware.relation('member', 'owner'))
 	.delete(function(req, res, next) {
-
 		var ids     = [ ]
 		var removed = [ ]
-
-		var board = req.resolved.board;
-
 		if(req.query.tickets) {
 			ids = req.query.tickets.split(',');
 		}
-
+		var board = req.resolved.board;
 		for(var i = 0; i < ids.length; i++) {
 			var ticket = board.tickets.id(ids[i]);
-
 			if(ticket) {
 				ticket.remove();
 				removed.push(ticket.toObject());
 			}
 			else return next(utils.error(400, 'Invalid parameters'));
 		}
-
 		board.save(function(err, board) {
 			if(err) {
 				if(err.name == 'VersionError') {
-					return next(utils.error(409, 'Conflict!'));
+					return next(utils.error(409, err));
 				}
-				return next(err);
+				return next(utils.error(500, err));
 			}
 			emitter.to(board.id).emit('ticket:remove', {
 				user:    req.user,
@@ -319,92 +259,63 @@ router.route('/:board_id/tickets')
 		});
 	});
 
-/**
- * boards/:board_id/tickets/:ticket_id
- */
-router.route('/:board_id/tickets/:ticket_id')
-
-	/**
-	 * GET /boards/:board_id/tickets/:ticket_id
-	 */
-	.get(middleware.authenticate('user', 'anonymous'))
+Router.route('/:board_id/tickets/:ticket_id')
+	.get(middleware.authenticate('bearer', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res) {
 		return res.json(200, req.resolved.ticket);
 	})
-
-	/**
-	 * PUT /boards/:board_id/tickets/:ticket_id
-	 */
-	.put(middleware.authenticate('user'))
+	.put(middleware.authenticate('bearer'))
 	.put(middleware.relation('member', 'owner'))
 	.put(function(req, res, next) {
-
-		var board  = req.resolved.board;
-		var ticket = req.resolved.ticket;
-
-		ticket.color    = req.body.color    || ticket.color;
-		ticket.heading  = req.body.heading  || ticket.heading;
-		ticket.content  = req.body.content  || ticket.content;
-		ticket.position = req.body.position || ticket.position;
-
-		res.status(400);
-		board.save(utils.err(next, function(board) {
-			var updated = board.tickets.id(ticket.id);
-			emitter.to(board.id)
-				.emit('ticket:update', {
-					user:    req.user,
-					tickets: [ updated.toObject() ]
-				});
-			return res.json(200, updated);
-		}));
+		var ticket          = req.resolved.ticket;
+		    ticket.color    = req.body.color    || ticket.color;
+		    ticket.heading  = req.body.heading  || ticket.heading;
+		    ticket.content  = req.body.content  || ticket.content;
+		    ticket.position = req.body.position || ticket.position;
+		req.resolved.board.save(function(err, board) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			emitter.to(board.id).emit('ticket:update', {
+				user:    req.user,
+				tickets: [ board.tickets.id(ticket.id).toObject() ]
+			});
+			return res.json(200, board.tickets.id(ticket.id));
+		});
 	})
-
-	/**
-	 * DELETE /boards/:board_id/tickets/:ticket_id
-	 */
-	.delete(middleware.authenticate('user'))
+	.delete(middleware.authenticate('bearer'))
 	.delete(middleware.relation('member', 'owner'))
 	.delete(function(req, res, next) {
-
 		var board  = req.resolved.board;
 		var ticket = req.resolved.ticket;
-
 		board.tickets.remove({ _id: ticket.id });
 		board.save(function(err, board) {
 			if(err) {
 				if(err.name == 'VersionError') {
-					return next(utils.error(409, 'Conflict!'));
+					return next(utils.error(409, err));
 				}
-				return next(err);
+				return next(utils.error(500, err));
 			}
-			emitter.to(board.id)
-				.emit('ticket:remove', {
-					user:    req.user,
-					tickets: [ ticket.toObject() ]
-				});
+			emitter.to(board.id).emit('ticket:remove', {
+				user:    req.user,
+				tickets: [ ticket.toObject() ]
+			});
 			return res.json(200, ticket);
 		});
 	});
 
-router.route('/:board_id/screenshot')
-
-	/**
-	 * GET /boards/:board_id/screenshot
-	 */
-	.get(middleware.authenticate('user', 'anonymous'))
+Router.route('/:board_id/screenshot')
+	.get(middleware.authenticate('bearer', 'anonymous'))
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
 		var url = config.static.url + ':' + config.static.port +
 			'/boards' + req.path;
-		return request.get(url,
-			function(err) {
-				if(err) {
-					return res.send(503, 'screenshot-service unavailable');
-				}
-			})
-			.pipe(res);
+		return request.get(url, function(err) {
+			if(err) {
+				return res.send(503, 'screenshot-service unavailable');
+			}
+		}).pipe(res);
 	});
 
-
-module.exports = router;
+module.exports = Router;

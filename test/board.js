@@ -374,14 +374,14 @@ describe('routes/board', function() {
 			this.request.post('/api/v1/boards/' + postUsersBoard.id + '/users')
 				.send({ access_token: this.seppo.access_token })
 				.send({ id: this.seppo.id })
-				.expect(400, done);
+				.expect(409, done);
 		});
 
 		it('should not accept existing members', function(done) {
 			this.request.post('/api/v1/boards/' + postUsersBoard.id + '/users')
 				.send({ access_token: this.seppo.access_token })
 				.send({ id: this.kari.id })
-				.expect(400, done);
+				.expect(409, done);
 		});
 
 		it('should return the added user', function(done) {
@@ -431,7 +431,7 @@ describe('routes/board', function() {
 
 				this.request.get('/api/v1/boards/' + bid + '/users/' + uid)
 					.send({ access_token: this.seppo.access_token })
-					.expect(404, done);
+					.expect(400, done);
 			});
 
 		it('should return a single user', function(done) {

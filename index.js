@@ -1,18 +1,14 @@
 'use strict';
 
-
+var os      = require('os');
 var cluster = require('cluster');
 
 if(cluster.isMaster) {
-
-	var numcpu = require('os').cpus().length;
-
-	for(var i = 0; i < numcpu; i++) {
+	for(var i = 0; i < os.cpus().length; i++) {
 		cluster.fork();
 	}
 }
 else {
-
 	var server = require('./server');
 
 	var shutdown = function() {
@@ -22,7 +18,9 @@ else {
 		});
 	}
 
-	process.on('SIGINT', shutdown).on('SIGTERM', shutdown);
+	process
+		.on('SIGINT',  shutdown)
+		.on('SIGTERM', shutdown);
 
 	server.listen(function() {
 		console.log('Worker [', cluster.worker.id, '] listening');

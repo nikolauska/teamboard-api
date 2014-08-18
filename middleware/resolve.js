@@ -1,35 +1,26 @@
 'use strict';
 
+var utils    = require('../utils');
+var mongoose = require('mongoose');
 
-var error = require('../utils/error');
-var User  = require('mongoose').model('user');
-var Board = require('mongoose').model('board');
+var User     = mongoose.model('user');
+var Board    = mongoose.model('board');
+var ObjectId = mongoose.Types.ObjectId;
 
 module.exports.user = function() {
 	return function(req, res, next, id) {
-
-		User.find({ _id: id }, function(err, users) {
-
+		if(!ObjectId.isValid(id)) {
+			return next(utils.error(400, 'Invalid ObjectId attribute'));
+		}
+		User.findOne({ _id: id }, function(err, user) {
 			if(err) {
-
-				if(err.name === 'CastError') {
-					return next(error(400, err));
-				}
-
-				return next(err);
+				return next(utils.error(500, err));
 			}
-
-			// check to see that a user was actually found
-
-			if(!users[0]) {
-				return next(error(404, 'User not found'));
+			if(!user) {
+				return next(utils.error(404, 'User not found'));
 			}
-
-			// everything is ok
-
 			req.resolved      = req.resolved || { }
-			req.resolved.user = users[0];
-
+			req.resolved.user = user;
 			return next();
 		});
 	}
@@ -37,27 +28,18 @@ module.exports.user = function() {
 
 module.exports.board = function() {
 	return function(req, res, next, id) {
-
-		var bq = Board.find({ _id: id }, function(err, boards) {
-
+		if(!ObjectId.isValid(id)) {
+			return next(utils.error(400, 'Invalid ObjectId attribute'));
+		}
+		Board.findOne({ _id: id }, function(err, board) {
 			if(err) {
-				if(err.name === 'CastError') {
-					return next(error(400, err));
-				}
-				return next(err);
+				return next(utils.error(500, err));
 			}
-
-			// check to see if a board was actually found
-
-			if(!boards[0]) {
-				return next(error(404, 'Board not found'));
+			if(!board) {
+				return next(utils.error(404, 'Board not found'));
 			}
-
-			// everything is ok
-
 			req.resolved       = req.resolved || { }
-			req.resolved.board = boards[0];
-
+			req.resolved.board = board;
 			return next();
 		});
 	}
@@ -65,22 +47,20 @@ module.exports.board = function() {
 
 module.exports.ticket = function() {
 	return function(req, res, next, id) {
-
-		// this middleware should be invoked after
-		// resolving board_id to a board model
-
 		if(!req.resolved || !req.resolved.board) {
-			return next(error(404, 'Board not found'));
+			return next(utils.error(404, 'Board not found'));
+		}
+		if(!ObjectId.isValid(id)) {
+			return next(utils.error(400, 'Invalid ObjectId attribute'));
 		}
 
 		var ticket = req.resolved.board.tickets.id(id);
 
 		if(!ticket) {
-			return next(error(404, 'Ticket not found'));
+			return next(utils.error(404, 'Ticket not found'));
 		}
-
+		req.resolved        = req.resolved || { }
 		req.resolved.ticket = ticket;
-
 		return next();
 	}
 }

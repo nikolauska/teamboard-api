@@ -1,16 +1,8 @@
-/**
- * Entry point for the server application.
- *
- * @module  server
- */
-
 'use strict';
 
-
-// configure everything
 var app      = require('./config/express');
-var passport = require('./config/passport');
 var mongoose = require('./config/mongoose');
+var passport = require('./config/passport');
 
 // use authentication
 app.use(passport.initialize());
@@ -24,9 +16,6 @@ app.all('*', require('cors')({
 app.use('/api/v1/auth',   require('./routes/auth'));
 app.use('/api/v1/users',  require('./routes/user'));
 app.use('/api/v1/boards', require('./routes/board'));
-
-// setup static content
-app.use('/static', require('express').static(__dirname + '/static'));
 
 // handle errors with ~grace~
 app.use(function(err, req, res, next) {
