@@ -122,7 +122,12 @@ Router.route('/:board_id')
 			if(err) {
 				return next(error(400, err));
 			}
-			return res.json(200, board);
+			Board.populate(board, 'owner members', function(err, board) {
+				if(err) {
+					return next(error(500, err));
+				}
+				return res.json(200, board);
+			});
 		});
 	})
 
