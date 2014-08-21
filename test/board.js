@@ -90,7 +90,8 @@ describe('routes/board', function() {
 
 					res.body.should.be.an.Object;
 					res.body.should.have.property('owner');
-					res.body.owner.should.equal(self.seppo.id);
+					res.body.owner.should.be.an.Object;
+					res.body.owner.id.should.equal(self.seppo.id);
 
 					return done();
 				});

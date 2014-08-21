@@ -53,7 +53,12 @@ Router.route('/')
 			if(err) {
 				return next(error(400, err));
 			}
-			return res.json(201, board);
+			Board.populate(board, 'owner members', function(err, board) {
+				if(err) {
+					return next(error(500, err));
+				}
+				return res.json(201, board);
+			});
 		});
 	})
 
