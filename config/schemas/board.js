@@ -23,7 +23,7 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	},
 	background: {
 		type:    String,
-		default: "none"
+		default: 'none'
 	},
 	isPublic: {
 		type:    Boolean,
@@ -34,6 +34,16 @@ var BoardSchema = module.exports = new mongoose.Schema({
 		type:     mongoose.Schema.Types.ObjectId,
 		required: true
 	},
+	memberships: [{
+		user: {
+			ref: 'user',
+			type: mongoose.Schema.Types.ObjectId
+		},
+		role: {
+			type: String,
+			enum: [ 'member', 'admin' ]
+		}
+	}],
 	members: [{
 		ref: 'user',
 		type: mongoose.Schema.Types.ObjectId
@@ -49,8 +59,11 @@ if(!BoardSchema.options.toObject) BoardSchema.options.toObject = { }
 BoardSchema.options.toJSON.transform = function(doc, ret) {
 	ret.id = doc.id;
 
+	ret._members = _.pluck(doc.memberships, 'user');
+
 	delete ret._id;
 	delete ret.__v;
+	delete ret.memberships;
 }
 
 BoardSchema.options.toObject.transform = BoardSchema.options.toJSON.transform;

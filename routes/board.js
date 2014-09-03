@@ -50,6 +50,11 @@ Router.route('/')
 			size: req.body.size,
 			background: req.body.background,
 
+			memberships: [{
+				user: req.user.id,
+				role: 'admin'
+			}],
+
 			isPublic: req.body.isPublic,
 			owner:    req.user.id
 		});
@@ -153,14 +158,26 @@ Router.route('/:board_id/users')
 	.get(middleware.relation('*'))
 	.get(function(req, res, next) {
 		// Explicitly populate the resolved board-document
-		Board.populate(req.resolved.board, 'owner members',
+		Board.populate(req.resolved.board, 'owner members memberships.user',
 			function(err, board) {
 				if(err) {
 					return next(error(500, err));
 				}
+
+				var members = [ ];
+				board.memberships.forEach(function(membership) {
+					var member = {
+						id: membership.user.id,
+						email: membership.user.email,
+						role: membership.role,
+					}
+					members.push(member);
+				});
+
 				return res.json(200, {
-					owner:   board.owner,
-					members: board.members
+					owner:    board.owner,
+					members:  board.members,
+					_members: members
 				});
 			});
 	})
@@ -188,6 +205,10 @@ Router.route('/:board_id/users')
 			}
 
 			board.members.push(user.id);
+			board.memberships.push({
+				user: user.id,
+				role: 'member'
+			});
 			board.save(function(err) {
 				if(err) {
 					return next(error(500, err));

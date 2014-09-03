@@ -4,6 +4,7 @@
 describe('routes/board', function() {
 
 	var testBoard = null;
+	var createdViaAPI = null;
 
 	before(function(done) {
 
@@ -92,6 +93,8 @@ describe('routes/board', function() {
 					res.body.should.have.property('owner');
 					res.body.owner.should.be.an.Object;
 					res.body.owner.id.should.equal(self.seppo.id);
+
+					createdViaAPI = res.body;
 
 					return done();
 				});
@@ -294,7 +297,7 @@ describe('routes/board', function() {
 
 		it('should return an object containing owner and members',
 			function(done) {
-				this.request.get('/api/v1/boards/' + testBoard.id + '/users')
+				this.request.get('/api/v1/boards/' + createdViaAPI.id + '/users')
 					.send({ access_token: this.seppo.access_token })
 					.expect(200, function(err, res) {
 
