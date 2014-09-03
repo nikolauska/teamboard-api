@@ -11,6 +11,20 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	info: {
 		type: String
 	},
+	size: {
+		width: {
+			type: Number,
+			default: 8
+		},
+		height: {
+			type: Number,
+			default: 8
+		}
+	},
+	background: {
+		type:    String,
+		default: "none"
+	},
 	isPublic: {
 		type:    Boolean,
 		default: false

@@ -44,8 +44,12 @@ Router.route('/')
 	.post(middleware.authenticate('bearer'))
 	.post(function(req, res, next) {
 		var board = new Board({
-			name:     req.body.name,
-			info:     req.body.info,
+			name: req.body.name,
+			info: req.body.info,
+
+			size: req.body.size,
+			background: req.body.background,
+
 			isPublic: req.body.isPublic,
 			owner:    req.user.id
 		});
@@ -118,6 +122,8 @@ Router.route('/:board_id')
 		    board.name     = req.body.name;
 		    board.info     = req.body.info;
 		    board.isPublic = req.body.isPublic;
+		    board.background = req.body.background;
+		    board.size = req.body.size;
 		board.save(function(err, board) {
 			if(err) {
 				return next(error(400, err));
