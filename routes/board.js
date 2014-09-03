@@ -277,6 +277,7 @@ Router.route('/:board_id/tickets')
 			// make socket.io know about this event
 			emitter.to(board.id).emit('ticket:create', {
 				user:    req.user,
+				board:   board.id,
 				tickets: [ ticket.toObject() ]
 			});
 			return res.json(201, ticket);
@@ -318,6 +319,7 @@ Router.route('/:board_id/tickets')
 			// make socket.io know about this event
 			emitter.to(board.id).emit('ticket:remove', {
 				user:    req.user,
+				board:   board.id,
 				tickets: removed
 			});
 			return res.json(200, removed);
@@ -347,6 +349,7 @@ Router.route('/:board_id/tickets/:ticket_id')
 			// make socket.io know about this event
 			emitter.to(board.id).emit('ticket:update', {
 				user:    req.user,
+				board:   board.id,
 				tickets: [ board.tickets.id(ticket.id).toObject() ]
 			});
 			return res.json(200, board.tickets.id(ticket.id));
@@ -370,6 +373,7 @@ Router.route('/:board_id/tickets/:ticket_id')
 			// make socket.io know about this event
 			emitter.to(board.id).emit('ticket:remove', {
 				user:    req.user,
+				board:   board.id,
 				tickets: [ ticket.toObject() ]
 			});
 			return res.json(200, ticket);
