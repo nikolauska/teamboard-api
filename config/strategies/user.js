@@ -19,6 +19,10 @@ module.exports = new BearerStrategy(function(token, done) {
 			if(err) {
 				return done(utils.error(401, err));
 			}
+
+			// TODO check 'req.user' format from strategies/guest.js
+
+			user.type = 'user';
 			return done(null, user);
 		});
 	});

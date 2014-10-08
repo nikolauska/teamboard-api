@@ -25,29 +25,37 @@ var BoardSchema = module.exports = new mongoose.Schema({
 		type:    String,
 		default: 'none'
 	},
-	isPublic: {
-		type:    Boolean,
-		default: false
-	},
-	owner: {
+	createdBy: {
 		ref:      'user',
 		type:     mongoose.Schema.Types.ObjectId,
 		required: true
 	},
-	memberships: [{
-		user: {
-			ref: 'user',
-			type: mongoose.Schema.Types.ObjectId
-		},
-		role: {
-			type: String,
-			enum: [ 'member', 'admin' ]
-		}
-	}],
-	members: [{
-		ref: 'user',
-		type: mongoose.Schema.Types.ObjectId
-	}],
+	pass: {
+		type: String
+	},
+	// isPublic: {
+	// 	type:    Boolean,
+	// 	default: false
+	// },
+	// owner: {
+	// 	ref:      'user',
+	// 	type:     mongoose.Schema.Types.ObjectId,
+	// 	required: true
+	// },
+	// memberships: [{
+	// 	user: {
+	// 		ref: 'user',
+	// 		type: mongoose.Schema.Types.ObjectId
+	// 	},
+	// 	role: {
+	// 		type: String,
+	// 		enum: [ 'member', 'admin' ]
+	// 	}
+	// }],
+	// members: [{
+	// 	ref: 'user',
+	// 	type: mongoose.Schema.Types.ObjectId
+	// }],
 	tickets: [
 		require('./ticket')
 	]
@@ -59,24 +67,24 @@ if(!BoardSchema.options.toObject) BoardSchema.options.toObject = { }
 BoardSchema.options.toJSON.transform = function(doc, ret) {
 	ret.id = doc.id;
 
-	ret._members = _.pluck(doc.memberships, 'user');
+	// ret._members = _.pluck(doc.memberships, 'user');
 
 	delete ret._id;
 	delete ret.__v;
-	delete ret.memberships;
+	// delete ret.memberships;
 }
 
 BoardSchema.options.toObject.transform = BoardSchema.options.toJSON.transform;
 
-BoardSchema.methods.isOwner = function(user) {
-	var owner = this.populated('owner') || this.owner;
-	return owner == user.id;
-}
+// BoardSchema.methods.isOwner = function(user) {
+// 	var owner = this.populated('owner') || this.owner;
+// 	return owner == user.id;
+// }
 
-BoardSchema.methods.isMember = function(user) {
-	var members = this.populated('members') || this.members;
-	var isMember = _.find(members, function(member) {
-		return member == user.id;
-	});
-	return isMember != undefined && isMember != null;
-}
+// BoardSchema.methods.isMember = function(user) {
+// 	var members = this.populated('members') || this.members;
+// 	var isMember = _.find(members, function(member) {
+// 		return member == user.id;
+// 	});
+// 	return isMember != undefined && isMember != null;
+// }

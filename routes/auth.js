@@ -22,6 +22,7 @@ Router.route('/login')
 			if(err) {
 				return next(error(401, err));
 			}
+
 			// generates and stores a token for the given user
 			var gentoken = function(user, callback) {
 				user.token = jwt.sign({ id: user.id }, config.token.secret,
@@ -33,6 +34,7 @@ Router.route('/login')
 					return callback(user);
 				});
 			}
+
 			// respond to login request with correct headers and stuff
 			var onlogin = function(user) {
 				res.set('x-access-token', user.token);

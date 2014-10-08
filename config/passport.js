@@ -2,8 +2,8 @@
 
 var passport = require('passport');
 
-passport.use(require('./strategies/local'));
-passport.use(require('./strategies/bearer'));
-passport.use(require('./strategies/anonymous'));
+passport.use('user',  require('./strategies/user'));
+passport.use('guest', require('./strategies/guest'));
+passport.use('local', require('./strategies/local'));
 
 module.exports = passport;

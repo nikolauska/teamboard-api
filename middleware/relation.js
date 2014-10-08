@@ -4,23 +4,27 @@ var _     = require('lodash');
 var error = require('../utils/error');
 
 var _roles = {
-	anonymous: function(req) {
-		if(req.resolved.board) {
-			return req.resolved.board.isPublic;
-		}
-		return false;
-	},
-	member: function(req) {
+
+	user: function(req) {
 		if(!req.user || !req.resolved.board) {
 			return false;
 		}
-		return req.resolved.board.isMember(req.user);
+
+		var isUser    = req.user.type    == 'user';
+		var isCreator = req.user.user_id == req.resolved.board.createdBy;
+
+		return isUser && isCreator;
 	},
-	owner: function(req) {
+
+	guest: function(req) {
 		if(!req.user || !req.resolved.board) {
 			return false;
 		}
-		return req.resolved.board.isOwner(req.user);
+
+		var isGuest   = req.user.type     == 'guest';
+		var isVisitor = req.user.board_id == req.resolved.board.id;
+
+		return isGuest && isVisitor;
 	}
 }
 

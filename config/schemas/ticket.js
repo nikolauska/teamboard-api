@@ -26,16 +26,16 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	},
 	color: {
 		type: String
-	},
-	owner: {
-		ref:      'user',
-		type:     mongoose.Schema.Types.ObjectId,
-		required: true
-	},
-	members: [{
-		ref:  'user',
-		type: mongoose.Schema.Types.ObjectId
-	}]
+	}
+	// owner: {
+	// 	ref:      'user',
+	// 	type:     mongoose.Schema.Types.ObjectId,
+	// 	required: true
+	// },
+	// members: [{
+	// 	ref:  'user',
+	// 	type: mongoose.Schema.Types.ObjectId
+	// }]
 });
 
 if(!TicketSchema.options.toJSON) TicketSchema.options.toJSON     = { }
