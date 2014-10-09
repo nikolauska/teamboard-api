@@ -47,20 +47,29 @@ module.exports.board = function() {
 
 module.exports.ticket = function() {
 	return function(req, res, next, id) {
+
 		if(!req.resolved || !req.resolved.board) {
 			return next(utils.error(404, 'Board not found'));
 		}
+
 		if(!ObjectId.isValid(id)) {
 			return next(utils.error(400, 'Invalid ObjectId attribute'));
 		}
 
-		var ticket = req.resolved.board.tickets.id(id);
+		Ticket.findOne({ '_id': id, 'board_id', req.resolved.board.id },
+			function(err, ticket) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
 
-		if(!ticket) {
-			return next(utils.error(404, 'Ticket not found'));
-		}
-		req.resolved        = req.resolved || { }
-		req.resolved.ticket = ticket;
-		return next();
+				if(!ticket) {
+					return next(utils.error(404, 'Ticket not found'));
+				}
+
+				req.resolved        = req.resolved || { }
+				req.resolved.ticket = ticket;
+
+				return next();
+			});
 	}
 }

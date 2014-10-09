@@ -4,47 +4,33 @@ var jwt    = require('jsonwebtoken');
 var utils  = require('../../utils');
 var config = require('../index');
 
-var Board           = require('mongoose').model('board');
+var Board          = require('mongoose').model('board');
 var BearerStrategy = require('passport-http-bearer').Strategy;
 
+/**
+ * Authenticate the requestee as a 'guest' based on the passed 'Bearer' token.
+ */
 module.exports = new BearerStrategy(function(token, done) {
 	jwt.verify(token, config.token.secret, function(err, decoded) {
 		if(err) {
 			return done(utils.error(401, err));
 		}
 
-		// find the board the access token is attached to
-		Board.findOne({ pass: decoded.board_pass }, function(err, board) {
-			// something bad happened
+		Board.findOne({ accessCode: decoded.accessCode }, function(err, board) {
 			if(err) {
 				return done(utils.error(500, err));
 			}
 
-			// no board with that pass exists
 			if(!board) {
-				return done(utils.error(401, 'Invalid Board Pass'));
+				return done(utils.error(401, 'Invalid access code'));
 			}
 
 			return done(null, {
+				id:       decoded.id,
 				type:     decoded.type,
+				access:   board.id
 				username: decoded.username,
-				board_id: board.id
 			});
 		});
-
-		/**
-		 * {
-		 *   username: 'lauri.kasanen',
-		 *   type:     'guest'
-		 *   user_id:   null
-		 *   board_id: 'board.id'
-		 * }
-		 * {
-		 *   username: 'jukka.salonen',
-		 *   type:     'user'
-		 *   user_id:  'user.id'
-		 *   board_id: null
-		 * }
-		 */
 	});
 });

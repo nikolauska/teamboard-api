@@ -30,7 +30,7 @@ var BoardSchema = module.exports = new mongoose.Schema({
 		type:     mongoose.Schema.Types.ObjectId,
 		required: true
 	},
-	pass: {
+	accessCode: {
 		type: String
 	},
 	// isPublic: {
