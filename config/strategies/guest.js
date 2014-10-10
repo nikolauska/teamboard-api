@@ -28,8 +28,8 @@ module.exports = new BearerStrategy(function(token, done) {
 			return done(null, {
 				id:       decoded.id,
 				type:     decoded.type,
-				access:   board.id
-				username: decoded.username,
+				access:   board.id,
+				username: decoded.username
 			});
 		});
 	});

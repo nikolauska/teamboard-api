@@ -65,7 +65,7 @@ module.exports.ticket = function(req, res, next, id) {
 
 	var boardid = req.resolved.board.id;
 
-	Ticket.findOne({ '_id': id, 'board_id', boardid }, function(err, ticket) {
+	Ticket.findOne({ '_id': id, 'board_id': boardid }, function(err, ticket) {
 		if(err) {
 			return next(utils.error(500, err));
 		}
