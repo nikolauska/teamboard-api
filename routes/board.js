@@ -293,6 +293,65 @@ Router.route('/:board_id/tickets/:ticket_id')
 		});
 	});
 
+Router.route('/:board_id/access')
+
+	/**
+	 * Get the 'access-code' of the given board.
+	 *
+	 * returns:
+	 *   {
+	 *     'accessCode': 'WxYz8Bd'
+	 *   }
+	 */
+	.get(middleware.authenticate('user'))
+	.get(middleware.relation('user'))
+	.get(function(req, res) {
+		return res.json(200, {
+			accessCode: req.resolved.board.accessCode || ''
+		});
+	})
+
+	/**
+	 * Generate a new 'access-code' for the given board. Will replace any
+	 * existing 'access-code', invalidating any 'guest-tokens' tied to it.
+	 *
+	 * returns:
+	 *   {
+	 *     'accessCode': 'WxYz8Bd'
+	 *   }
+	 */
+	.post(middleware.authenticate('user'))
+	.post(middleware.relation('user'))
+	.post(function(req, res, next) {
+		// Generate an 'access-code' for the specified board.
+		var accessCode = require('crypto').randomBytes(4).toString('hex');
+
+		// Attach the generated 'access-code' to the specified board.
+		req.resolved.board.accessCode = accessCode;
+		req.resolved.board.save(function(err, board) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			return res.json(200, { accessCode: board.accessCode });
+		});
+	})
+
+	/**
+	 * Remove the existing 'access-code' invalidating all 'guest-tokens' tied
+	 * to it. This will essentially hide the board from outside eyes.
+	 */
+	.delete(middleware.authenticate('user'))
+	.delete(middleware.relation('user'))
+	.delete(function(req, res, next) {
+		req.resolved.board.accessCode = null;
+		req.resolved.board.save(function(err) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			return res.send(204);
+		});
+	});
+
 
 Router.route('/:board_id/access/:code')
 
@@ -308,27 +367,27 @@ Router.route('/:board_id/access/:code')
 	 *   'x-access-token' : 'guest-token'
 	 */
 	.post(function(req, res, next) {
-
 		var jwt   = require('jsonwebtoken');
 		var board = req.resolved.board;
 
-		// requested board must have a 'accessCode' set
+		// Requested board must have a 'accessCode' set.
 		if(!board.accessCode || board.accessCode != req.params.accessCode) {
 			return next(utils.error(401, ''));
 		}
 
-		// TODO guest must have a _valid_ username
+		// TODO Guest must have a valid 'username'.
 		var guestPayload = {
-			id:         require('crypto').randomBytes(8).toString('hex'),
+			id:         require('crypto').randomBytes(4).toString('hex'),
 			type:       'guest',
 			username:   req.body.username,
 			accessCode: board.accessCode
 		}
 
-		// grant access to guest
+		// Generate the 'guest-token' for access.
 		var guestToken = jwt.sign(guestPayload, config.token.secret);
 
-		return res.set('x-access-token', guestToken).json(200, guestPayload);
+		return res.set('x-access-token', guestToken)
+			.json(200, guestPayload);
 	});
 
 
