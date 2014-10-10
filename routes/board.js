@@ -3,29 +3,30 @@
 var express  = require('express');
 var mongoose = require('mongoose');
 
-var error      = require('../utils/error');
+var utils      = require('../utils');
 var config     = require('../config');
 var emitter    = require('../config/emitter');
 var middleware = require('../middleware');
 
-var User     = mongoose.model('user');
-var Board    = mongoose.model('board');
-var Ticket   = mongoose.model('ticket');
+var Board  = mongoose.model('board');
+var Ticket = mongoose.model('ticket');
 
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
 
 
 // automagically resolve 'id' attributes to their respective documents
-Router.param('user_id',   middleware.resolve.user());
-Router.param('board_id',  middleware.resolve.board());
-Router.param('ticket_id', middleware.resolve.ticket());
+Router.param('board_id',  middleware.resolve.board);
+Router.param('ticket_id', middleware.resolve.ticket);
 
 
 Router.route('/')
 
 	/**
 	 * Returns the boards that have been created by the user making the request.
+	 *
+	 * returns:
+	 *   An array of board objects.
 	 */
 	.get(middleware.authenticate('user'))
 	.get(function(req, res, next) {
@@ -33,7 +34,7 @@ Router.route('/')
 			.populate('createdBy')
 			.exec(function(err, boards) {
 				if(err) {
-					return next(error(500, err));
+					return next(utils.error(500, err));
 				}
 				return res.json(200, boards);
 			});
@@ -47,13 +48,12 @@ Router.route('/')
 	 * TODO Validate the given payload. Can be done in the 'board' model.
 	 *
 	 * {
-	 *   'name': 'cool-board',
-	 *   'info': 'cool things only',
-	 *   'size': {
-	 *     'width':  8,
-	 *     'height': 8
-	 *   },
+	 *   'name':       'cool-board'
+	 *   'info':       'cool things only'
 	 *   'background': 'none'
+	 *   'size': {
+	 *     'width', 'height'
+	 *   }
 	 * }
 	 */
 	.post(middleware.authenticate('user'))
@@ -68,11 +68,11 @@ Router.route('/')
 
 		board.save(function(err, board) {
 			if(err) {
-				return next(error(400, err));
+				return next(utils.error(400, err));
 			}
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
-					return next(error(500, err));
+					return next(utils.error(500, err));
 				}
 				return res.json(201, board);
 			});
@@ -84,6 +84,9 @@ Router.route('/:board_id')
 
 	/**
 	 * Get a specific board.
+	 *
+	 * returns:
+	 *   The specified board object.
 	 */
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('user', 'guest'))
@@ -91,7 +94,7 @@ Router.route('/:board_id')
 		Board.populate(req.resolved.board, 'createdBy',
 			function(err, board) {
 				if(err) {
-					return next(error(500, err));
+					return next(utils.error(500, err));
 				}
 				return res.json(200, board);
 			});
@@ -101,6 +104,19 @@ Router.route('/:board_id')
 	 * Update the specified board. See [POST /boards] for payload details.
 	 *
 	 * TODO Validate the payload. Can be done in the 'board' model.
+	 *
+	 * payload:
+	 *   {
+	 *     'name':       'new-name'
+	 *     'info':       'new-info'
+	 *     'background': 'new-background'
+	 *     'size': {
+	 *       'width', 'height'
+	 *     }
+	 *   }
+	 *
+	 * returns:
+	 *   The updated board object.
 	 */
 	.put(middleware.authenticate('user'))
 	.put(middleware.relation('user'))
@@ -113,11 +129,11 @@ Router.route('/:board_id')
 
 		board.save(function(err, board) {
 			if(err) {
-				return next(error(400, err));
+				return next(utils.error(400, err));
 			}
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
-					return next(error(500, err));
+					return next(utils.error(500, err));
 				}
 				return res.json(200, board);
 			});
@@ -126,14 +142,16 @@ Router.route('/:board_id')
 
 	/**
 	 * Remove the specified board.
+	 *
+	 * returns:
+	 *   The removed board object.
 	 */
 	.delete(middleware.authenticate('user'))
 	.delete(middleware.relation('user'))
 	.delete(function(req, res, next) {
-		// TODO rather use 'Board.remove'
 		req.resolved.board.remove(function(err) {
 			if(err) {
-				return next(error(500, err));
+				return next(utils.error(500, err));
 			}
 			return res.json(200, req.resolved.board);
 		});
@@ -144,6 +162,9 @@ Router.route('/:board_id/tickets')
 
 	/**
 	 * Get the tickets belonging to the specified board.
+	 *
+	 * returns:
+	 *   An array of ticket objects.
 	 */
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('user', 'guest'))
@@ -151,7 +172,7 @@ Router.route('/:board_id/tickets')
 		var boardid = req.resolved.board.id;
 		Ticket.find({ 'board_id': boardid }, function(err, tickets) {
 			if(err) {
-				return next(error(500, err));
+				return next(utils.error(500, err));
 			}
 			return res.json(200, board.tickets);
 		});
@@ -165,16 +186,18 @@ Router.route('/:board_id/tickets')
 	 * TODO Add a post-save hook on ticket to also add it to the board's
 	 *      'tickets' collection.
 	 *
-	 * {
-	 *   'color':   '#BABABA'
-	 *   'heading': 'for sharks only'
-	 *   'content': 'important stuff'
-	 *   'position': {
-	 *     'x': 0
-	 *     'y': 0
-	 *     'z': 0
+	 * payload:
+	 *   {
+	 *     'color':   '#BABABA'
+	 *     'heading': 'for sharks only'
+	 *     'content': 'important stuff'
+	 *     'position': {
+	 *       'x', 'y', 'z'
+	 *     }
 	 *   }
-	 * }
+	 *
+	 * returns:
+	 *   The created ticket object.
 	 */
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('user', 'guest'))
@@ -190,7 +213,7 @@ Router.route('/:board_id/tickets')
 
 		newTicket.save(function(err, ticket) {
 			if(err) {
-				return next(error(400, err));
+				return next(utils.error(400, err));
 			}
 
 			emitter.to(req.resolved.board.id)
@@ -211,6 +234,19 @@ Router.route('/:board_id/tickets/:ticket_id')
 	 * Updates the given ticket.
 	 *
 	 * TODO Validate the payload.
+	 *
+	 * payload:
+	 *   {
+	 *     'color':    '#FFF'
+	 *     'heading':  'new-heading'
+	 *     'content':  'new-content'
+	 *     'position': {
+	 *       'x', 'y', 'z'
+	 *     }
+	 *   }
+	 *
+	 * returns:
+	 *   The updated ticket object.
 	 */
 	.put(middleware.authenticate('user', 'guest'))
 	.put(middleware.relation('user', 'guest'))
@@ -218,7 +254,7 @@ Router.route('/:board_id/tickets/:ticket_id')
 		Ticket.findByIdAndUpdate(req.resolved.ticket.id, req.body,
 			function(err, ticket) {
 				if(err) {
-					return next(error(500, err));
+					return next(utils.error(500, err));
 				}
 
 				emitter.to(req.resolved.board.id)
@@ -234,13 +270,16 @@ Router.route('/:board_id/tickets/:ticket_id')
 
 	/**
 	 * Delete the specified ticket.
+	 *
+	 * returns:
+	 *   The deleted ticket object.
 	 */
 	.delete(middleware.authenticate('user', 'guest'))
 	.delete(middleware.relation('user', 'guest'))
 	.delete(function(req, res, next) {
 		req.resolved.ticket.remove(function(err) {
 			if(err) {
-				return next(error(500, err));
+				return next(utils.error(500, err));
 			}
 
 			emitter.to(req.resolved.board.id)
@@ -258,8 +297,7 @@ Router.route('/:board_id/tickets/:ticket_id')
 Router.route('/:board_id/access/:code')
 
 	/**
-	 * Generates a 'guest' token to the given board. That can be passed in with
-	 * requests to
+	 * Generates a 'guest' token to the given board.
 	 *
 	 * payload:
 	 *   {
@@ -276,7 +314,7 @@ Router.route('/:board_id/access/:code')
 
 		// requested board must have a 'accessCode' set
 		if(!board.accessCode || board.accessCode != req.params.accessCode) {
-			return next(error(401, ''));
+			return next(utils.error(401, ''));
 		}
 
 		// TODO guest must have a _valid_ username
@@ -290,7 +328,7 @@ Router.route('/:board_id/access/:code')
 		// grant access to guest
 		var guestToken = jwt.sign(guestPayload, config.token.secret);
 
-		return res.set('x-access-token', guestToken).send(200);
+		return res.set('x-access-token', guestToken).json(200, guestPayload);
 	});
 
 

@@ -25,7 +25,7 @@ module.exports = new LocalStrategy(opts, function(email, password, done) {
 
 		user.comparePassword(password, function(err, match) {
 			if(err) {
-				return done(err);
+				return done(utils.error(500, err));
 			}
 
 			if(!match) {

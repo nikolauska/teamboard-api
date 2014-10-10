@@ -2,14 +2,45 @@
 
 var mongoose = require('mongoose');
 
+/**
+ * Schema defining the 'ticket' model.
+ */
 var TicketSchema = module.exports = new mongoose.Schema({
+
+	/**
+	 * The ticket heading.
+	 */
 	heading: {
 		type:     String,
 		required: true
 	},
+
+	/**
+	 * The ticket contents.
+	 *
+	 * TODO Should we allow HTML content?
+	 */
 	content: {
 		type: String
 	},
+
+	/**
+	 * The ticket color.
+	 *
+	 * TODO Enumerate the color, eg. #FFF, #BABABA...
+	 */
+	color: {
+		type: String
+	},
+
+	/**
+	 * The ticket's position. The ticket moves in a 2D-plane (x, y) with z
+	 * indicating the 'z-index' of the ticket.
+	 *
+	 * TODO Clamp these to the board's size? We would need to know the ticket's
+	 *      pixel size in order to clamp the x, y -coordinates to the board's
+	 *      maximum size.
+	 */
 	position: {
 		x: {
 			type:    Number,
@@ -23,19 +54,7 @@ var TicketSchema = module.exports = new mongoose.Schema({
 			type:    Number,
 			default: 0
 		}
-	},
-	color: {
-		type: String
 	}
-	// owner: {
-	// 	ref:      'user',
-	// 	type:     mongoose.Schema.Types.ObjectId,
-	// 	required: true
-	// },
-	// members: [{
-	// 	ref:  'user',
-	// 	type: mongoose.Schema.Types.ObjectId
-	// }]
 });
 
 if(!TicketSchema.options.toJSON) TicketSchema.options.toJSON     = { }
@@ -48,4 +67,7 @@ TicketSchema.options.toJSON.transform = function(doc, ret) {
 	delete ret.__v;
 }
 
+/**
+ * BUG See 'config/schemas/board.js' for details.
+ */
 TicketSchema.options.toObject.transform = TicketSchema.options.toJSON.transform;

@@ -41,48 +41,40 @@ Router.route('/login')
 	 *   'password': user.password
 	 * }
 	 */
+	.post(middleware.authenticate('local'))
 	.post(function(req, res, next) {
-		var onAuthentication = function(err, user) {
+		// The secret used to sign the 'jwt' tokens.
+		var secret = config.token.secret;
+
+		// Find the user specified in the 'req.user' payload. Note that
+		// 'req.user' is not the 'user' model.
+		User.findOne({ _id: req.user.id }, function(err, user) {
 			if(err) {
-				return next(error(401, err));
+				return next(utils.error(500, err));
 			}
 
-			var respond = function(token, payload) {
-				return res.set('x-access-token', token).json(200, payload);
-			}
-
-			var createToken = function(user) {
-				var userPayload = {
-					id:       user.id,
-					type:     'user',
-					username: user.email
-				}
-
-				user.token = jwt.sign(userPayload, config.token.secret);
-				user.save(function(err, user) {
-					if(err) {
-						return next(error(500, err));
+			jwt.verify(user.token, secret, function(err, payload) {
+				// If there was something wrong with the existing token, we
+				// generate a new one since correct credentials were provided.
+				if(err) {
+					var payload = {
+						id: user.id, type: 'user', username: user.email
 					}
-					return respond(user.token, userPayload);
-				});
-			}
 
-			if(user.token) {
-				// if the token is not valid anymore but correct credentials
-				// were provided, generate a new token for the user
-				jwt.verify(user.token, config.token.secret,
-					function(err, payload) {
+					user.token = jwt.sign(payload, secret);
+					user.save(function(err, user) {
 						if(err) {
-							return createToken(user);
+							return next(utils.error(500, err));
 						}
-						return respond(user.token, payload);
+						return res.set('x-access-token', token)
+							.json(200, payload);
 					});
-			}
-			else return createToken(user);
-		}
-
-		return passport.authenticate(
-			'local', { session: false }, onAuthentication)(req, res);
+				}
+				// If the token was valid we reuse it.
+				return res.set('x-access-token', user.token)
+					.json(200, payload);
+			});
+		});
 	});
 
 Router.route('/logout')
