@@ -71,5 +71,8 @@ var config = {
 	}
 }
 
+/**
+ *  Configuration based on 'NODE_ENV'.
+ */
 module.exports = _.merge(config.common,
 	config[process.env.NODE_ENV] || config.development);

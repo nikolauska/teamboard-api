@@ -5,6 +5,7 @@ var utils = require('../../utils');
 var User          = require('mongoose').model('user');
 var LocalStrategy = require('passport-local').Strategy;
 
+// Defines the 'req.body' fields used to look for credentials.
 var opts = {
 	usernameField: 'email',
 	passwordField: 'password'

@@ -1,7 +1,7 @@
 'use strict';
 
-var utils    = require('../utils');
 var mongoose = require('mongoose');
+var utils    = require('../utils');
 
 var User     = mongoose.model('user');
 var Board    = mongoose.model('board');

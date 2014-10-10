@@ -4,20 +4,24 @@ var app      = require('./config/express');
 var mongoose = require('./config/mongoose');
 var passport = require('./config/passport');
 
-// use authentication
+// Use 'passport' authentication.
 app.use(passport.initialize());
 
-// allow CORS for everything
+// Attach 'CORS' middleware to every route.
 app.all('*', require('cors')({
 	exposedHeaders: ['x-access-token']
 }));
 
-// setup API routes
+// Setup the actual routes available.
 app.use('/api/v1/auth',   require('./routes/auth'));
-app.use('/api/v1/users',  require('./routes/user'));
 app.use('/api/v1/boards', require('./routes/board'));
 
-// catch errors and format them properly
+/**
+ * Error handling middleware. All errors passed to 'next' will eventually end
+ * up here.
+ *
+ * TODO Review the error format.
+ */
 app.use(function(err, req, res, next) {
 	var boom = require('boom');
 	    err  = boom.wrap(err, err.status);
@@ -27,8 +31,14 @@ app.use(function(err, req, res, next) {
 	return res.status(err.output.statusCode).send(err.output.payload);
 });
 
+/**
+ * The Express application.
+ */
 module.exports.app = app;
 
+/**
+ * Perform necessary initialization to start the server.
+ */
 module.exports.listen = function(onListen) {
 	var config = require('./config');
 
@@ -41,6 +51,9 @@ module.exports.listen = function(onListen) {
 	});
 }
 
+/**
+ * Perform necessary teardown to stop the server.
+ */
 module.exports.shutdown = function(onShutdown) {
 	return this.server.close(function() {
 		mongoose.disconnect(onShutdown || function() {});
