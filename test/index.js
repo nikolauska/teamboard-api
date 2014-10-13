@@ -51,60 +51,15 @@ before(function(done) {
 	});
 });
 
-
 /**
  * A basic 'user' workflow.
  */
 describe('Basic API usage', function() {
 
-	// var credentials = {
-	// 	'email':    'nuuska@muikku.nen',
-	// 	'password': 'nuuskamuikkunen'
-	// }
+	var context = { }
 
-	var context = {
-		'user':   null,
-		'board':  null,
-		'ticket': null
-	}
-
-	/**
-	 * Register to the service.
-	 */
-	// before(function(done) {
-	// 	this.app.post('/auth/register').send(credentials)
-	// 		.expect(201, function(err, res) {
-	// 			if(err) {
-	// 				return done(err);
-	// 			}
-
-	// 			context.user = res.body;
-
-	// 			return done();
-	// 		});
-	// });
-
-	// /**
-	//  * Login the registered user.
-	//  */
-	// before(function(done) {
-	// 	this.app.post('/auth/login').send(credentials)
-	// 		.expect(200, function(err, res) {
-	// 			if(err) {
-	// 				return done(err);
-	// 			}
-
-	// 			context.user       = context.user || { }
-	// 			context.user.token = res.headers['x-access-token'];
-
-	// 			return done();
-	// 		});
-	// });
-
-
-
-	describe('Signing up',        require('./spec/signing-up'));
-	describe('Logging in',        require('./spec/signing-in'));
+	describe('Signing up',        require('./spec/signing-up')(context));
+	describe('Logging in',        require('./spec/signing-in')(context));
 	describe('Creating a board',  require('./spec/creating-a-board')(context));
 	describe('Creating a ticket', require('./spec/creating-a-ticket')(context));
 });
