@@ -20,11 +20,6 @@ before(function(done) {
 	var server = require('../server');
 	this.app   = supertest(server.app);
 
-	this.user = {
-		'email':    'kari@taalas.maa',
-		'password': 'talon-mies-poika-isanmaa'
-	}
-
 	console.log(chalk.dim('\nUsing MongDB configuration:'));
 	purdy(config.mongo);
 	console.log('\n');
@@ -56,33 +51,60 @@ before(function(done) {
 	});
 });
 
-/**
- * Create a 'testuser'.
- */
-before(function(done) {
-	var self = this;
-	var User = mongoose.model('user');
-
-	new User(self.user).save(function(err, user) {
-		if(err) {
-			return done(err);
-		}
-		self.user.id = user.id;
-
-		console.log(chalk.dim('\nTestuser created:'));
-		purdy(self.user);
-
-		console.log(chalk.dim('\nStarting tests...\n'));
-		return done();
-	});
-});
 
 /**
- *
+ * A basic 'user' workflow.
  */
-describe('Basic user actions', function() {
+describe('Basic API usage', function() {
+
+	// var credentials = {
+	// 	'email':    'nuuska@muikku.nen',
+	// 	'password': 'nuuskamuikkunen'
+	// }
+
+	var context = {
+		'user':   null,
+		'board':  null,
+		'ticket': null
+	}
+
+	/**
+	 * Register to the service.
+	 */
+	// before(function(done) {
+	// 	this.app.post('/auth/register').send(credentials)
+	// 		.expect(201, function(err, res) {
+	// 			if(err) {
+	// 				return done(err);
+	// 			}
+
+	// 			context.user = res.body;
+
+	// 			return done();
+	// 		});
+	// });
+
+	// /**
+	//  * Login the registered user.
+	//  */
+	// before(function(done) {
+	// 	this.app.post('/auth/login').send(credentials)
+	// 		.expect(200, function(err, res) {
+	// 			if(err) {
+	// 				return done(err);
+	// 			}
+
+	// 			context.user       = context.user || { }
+	// 			context.user.token = res.headers['x-access-token'];
+
+	// 			return done();
+	// 		});
+	// });
+
+
+
 	describe('Signing up',        require('./spec/signing-up'));
 	describe('Logging in',        require('./spec/signing-in'));
-	describe('Creating a board',  require('./spec/creating-a-board'));
-	describe('Creating a ticket', require('./spec/creating-a-ticket'));
+	describe('Creating a board',  require('./spec/creating-a-board')(context));
+	describe('Creating a ticket', require('./spec/creating-a-ticket')(context));
 });
