@@ -76,3 +76,13 @@ before(function(done) {
 		return done();
 	});
 });
+
+/**
+ *
+ */
+describe('Basic user actions', function() {
+	describe('Signing up',        require('./spec/signing-up'));
+	describe('Logging in',        require('./spec/signing-in'));
+	describe('Creating a board',  require('./spec/creating-a-board'));
+	describe('Creating a ticket', require('./spec/creating-a-ticket'));
+});

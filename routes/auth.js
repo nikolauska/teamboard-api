@@ -69,7 +69,7 @@ Router.route('/login')
 						if(err) {
 							return next(utils.error(500, err));
 						}
-						return res.set('x-access-token', token)
+						return res.set('x-access-token', user.token)
 							.json(200, payload);
 					});
 				}
