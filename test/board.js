@@ -1,11 +1,28 @@
 'use strict';
 
-/**
- * Basic API Usage.
- */
-describe('/boards', function() {
+// 1.  Creating a Board
+//     - check valid defaults etc...
+// 2.  Updating a Board
+//     - validation ...
+// 3.  Creating a Ticket
+// 4.  Updating a Ticket (moving, editing)
+// 5.  Updating a Board (again)
+// 6.  Removing a Ticket
+// 7.  Accessing a removed ticket
+// 8.  Removing a Board
+// 9.  Accessing a removed board
+//
+// describe('Basic API Usage',
+//   describe('Creating a Board',
+//     it('should require authentication')
+//     it('should require only a name')))
+//   describe('Updating a Board')
+//     ...
 
-	var accessToken = null;
+describe('Basic API Usage.', function() {
+
+	var accessToken    = null;
+	var boardUnderTest = null;
 
 	/**
 	 * Login with our testuser to generate an 'access-token'.
@@ -24,89 +41,90 @@ describe('/boards', function() {
 			});
 	});
 
-	// 1.  Creating a Board
-	//     - check valid defaults etc...
-	// 2.  Updating a Board
-	//     - validation ...
-	// 3.  Creating a Ticket
-	// 4.  Updating a Ticket (moving, editing)
-	// 5.  Updating a Board (again)
-	// 6.  Removing a Ticket
-	// 7.  Accessing a removed ticket
-	// 8.  Removing a Board
-	// 9.  Accessing a removed board
-	//
-	// describe('Basic API Usage',
-	//   describe('Creating a Board',
-	//     it('should require authentication')
-	//     it('should require only a name')))
-	//   describe('Updating a Board')
-	//     ...
+	describe('Creating a Board', function() {
 
+		it('should require authentication', function(done) {
+			this.app.post('/boards')
+				.send({ 'name': 'plankku' })
+				.expect(401, done);
+		});
 
-	describe('/boards', function() {
+		// TODO What about invalid name etc... (length, format).
 
-		describe('POST', function() {
+		it('should initialize to some defaults', function(done) {
+			var self = this;
 
-			it('should initialize to some defaults', function(done) {
-				var self = this;
+			// We send only the minimum amount of information to the server and
+			// check what the server defaults the rest of fields to.
+			this.app.post('/boards')
+				.send({ 'name': 'plankku' })
+				.send({ 'access_token': accessToken })
+				.expect(201, function(err, res) {
+					if(err) {
+						return done(err);
+					}
 
-				// We send only the minimum amount of information to the server
-				// and check what the server defaults the rest of fields to.
-				this.app.post('/boards')
-					.send({ 'name': 'plankku' })
-					.send({ 'access_token': accessToken })
-					.expect(201, function(err, res) {
-						if(err) {
-							return done(err);
-						}
+					var board = res.body;
 
-						var board = res.body;
+					// The server should only set attributes sent, so
+					// 'description' should not be undefined.
+					board.name.should.equal('plankku');
+					board.description.should.equal('');
 
-						// The server should only set attributes sent, so
-						// 'description' should not be undefined.
-						board.name.should.equal('plankku');
-						board.description.should.equal('');
+					// Size is the board's size in 'tickets'.
+					//
+					// TODO Default values are hardcoded here, they should be
+					//      read from configuration.
+					board.size.should.be.an.Object;
+					board.size.width.should.equal(8);
+					board.size.height.should.equal(8);
 
-						// Size is the board's size in 'tickets'.
-						//
-						// TODO Default values are hardcoded here, they should
-						//      be read from configuration.
-						board.size.should.be.an.Object;
-						board.size.width.should.equal(8);
-						board.size.height.should.equal(8);
+					// Background should default to 'none'.
+					//
+					// TODO Background should be an enumeration.
+					board.background.should.equal('none');
 
-						// Background should default to 'none'.
-						//
-						// TODO Background should be an enumeration.
-						board.background.should.equal('none');
+					// Check that the 'createdBy' field gets populated by the
+					// server and that the 'id' gets set to the requesting
+					// user's 'id'.
+					board.createdBy.should.be.an.Object;
+					board.createdBy.id.should.be.a.String;
+					board.createdBy.id.should.equal(self.user.id);
 
-						// Check that the 'createdBy' field gets populated by
-						// the server and that the 'id' gets set to the
-						// requesting user's 'id'.
-						board.createdBy.should.be.an.Object;
-						board.createdBy.id.should.be.a.String;
-						board.createdBy.id.should.equal(self.user.id);
+					// Reuse the board in future tests.
+					boardUnderTest = board;
 
-						return done();
-					});
-			});
-
-			// TODO Handle the validation cases etc.
+					return done();
+				});
 		});
 	});
 
-	describe('/boards/:id/access', function() {
+	describe('Updating a Board', function() {
 
-		/**
-		 * Create a 'board' on which 'access_code' will be generated.
-		 */
-		before(function(done) {
-
+		it('should require authentication', function(done) {
+			this.app.put('/boards/' + boardUnderTest.id + '')
+				.send({ 'name': 'plankku' })
+				.expect(401, done);
 		});
 
-		describe('GET', function() {
-			it.skip('should return an empty \'access-code\'');
+		it('should ignore excess attributes', function(done) {
+			this.app.put('/boards/' + boardUnderTest.id + '')
+				.send({ 'access_token': accessToken })
+				.send({
+					'blargh': 'ububu',
+					'ubuntu': 12.04
+				})
+				.expect(400, done);
+		});
+
+		it('should not change the \'id\'-attribute', function(done) {
+			// generate a valid 'ObjectId'
+			var id = require('mongoose').Types.ObjectId();
+			// try and update the board's 'id' attribute
+			this.app.put('/boards/' + boardUnderTest.id + '')
+				.send({ 'access_token': accessToken })
+				.send({ 'id': id.toString() })
+				.expect(400, done);
 		});
 	});
 });

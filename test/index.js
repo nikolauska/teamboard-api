@@ -35,7 +35,7 @@ before(function(done) {
 /**
  * Drop necessary collections from mongodb.
  */
-[ 'user', 'board' ].forEach(function(collection) {
+[ 'user', 'board', 'ticket' ].forEach(function(collection) {
 
 	before(function(done) {
 		console.log(chalk.dim('Dropping collection...'),
