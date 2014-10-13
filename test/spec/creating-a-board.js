@@ -1,7 +1,5 @@
 'use strict';
 
-var utils = require('../utils');
-
 /**
  * Describes creating a Board.
  */
@@ -14,7 +12,7 @@ module.exports = function(ctx) {
 
 		it('should require a \'name\'', function(done) {
 			this.app.post('/boards')
-				.send({ 'access_token': ctx.user.token })
+				.send({ 'access_token': ctx.credentials.token })
 				.expect(400, done);
 		});
 
@@ -22,7 +20,7 @@ module.exports = function(ctx) {
 			var self = this;
 
 			this.app.post('/boards')
-				.send({ 'access_token': ctx.user.token })
+				.send({ 'access_token': ctx.credentials.token })
 				.send({ 'name': 'plankku' })
 				.expect(201, function(err, res) {
 					if(err) {

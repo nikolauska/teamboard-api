@@ -103,8 +103,8 @@ describe('Basic API usage', function() {
 
 
 
-	describe('Signing up',        require('./spec/signing-up'));
-	describe('Logging in',        require('./spec/signing-in'));
+	describe('Signing up',        require('./spec/signing-up')(context));
+	describe('Logging in',        require('./spec/signing-in')(context));
 	describe('Creating a board',  require('./spec/creating-a-board')(context));
 	describe('Creating a ticket', require('./spec/creating-a-ticket')(context));
 });
