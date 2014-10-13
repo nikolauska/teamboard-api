@@ -1,53 +1,70 @@
 'use strict';
 
+/**
+ * TODO Refactor into 'cases'. Like 'Logging in' and 'Siging up'.
+ */
 
-describe('routes/auth', function() {
+/**
+ * Authentication
+ */
+describe('/auth', function() {
 
-	describe('GET /auth', function() {
-		it.skip('should require authentication')
-		it.skip('should return user identified by token');
-	});
+	/**
+	 * Signing up.
+	 */
+	describe('/auth/register', function() {
+		describe('POST', function() {
 
-	describe('POST /auth/login', function() {
+			it('should reject a invalid emails', function(done) {
+				this.app.post('/auth/register')
+					.send({
+						'email':    'pekka',
+						'password': 'pouta'
+					})
+					.expect(400, done);
+			});
 
-		var test_auth_user = null;
-
-		before(function(done) {
-
-			var User = require('mongoose').model('user');
-
-			new User({ email: 'auth@auth.auth', password: 'test' })
-				.save(function(err, user) {
-					test_auth_user = user;
-					return done();
-				});
+			// TODO Cover most of the validation cases.
 		});
+	});
 
-		it('should require an existing user', function(done) {
-			this.request.post('/api/v1/auth/login')
-				.send({ email: 'idonot@exist.com', password: 'test' })
-				.expect(401, done);
+	/**
+	 * Logging in.
+	 */
+	describe('/auth/login', function() {
+		describe('POST', function() {
+
+			it('should require a valid account', function(done) {
+				this.app.post('/auth/login')
+					.send({
+						'email':    'seppo@taalas.maa',
+						'password': 'isanta'
+					})
+					.expect(401, done);
+			});
+
+			// TODO Cover the case of having partially correct credentials.
+
+			it('should generate an access token', function(done) {
+				this.app.post('/auth/login')
+					.send(this.user)
+					.expect(200, function(err, res) {
+						if(err) {
+							return done(err);
+						}
+
+						// TODO Can we validate the format of the access token?
+						res.headers['x-access-token'].should.be.a.String;
+
+						return done();
+					});
+			});
 		});
-
-		it('should require a correct password', function(done) {
-			this.request.post('/api/v1/auth/login')
-				.send({ email: 'auth@auth.auth', password: 'test1234' })
-				.expect(401, done);
-		});
-
-		it.skip('should require email and password');
-		it.skip('should return a token');
 	});
 
-	describe('POST /auth/logout', function() {
-		it.skip('should require a token');
-		it.skip('should invalidate the token');
-	});
+	/**
+	 * Logging out.
+	 */
 
-	describe('POST /auth/register', function() {
-		it.skip('should require email and password');
-		it.skip('should send a confirmation email');
-		it.skip('should not login until confirmation');
-		it.skip('should login after confirmation');
-	});
+	// TODO Cover the case of 'guest-token'.
 });

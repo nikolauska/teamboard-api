@@ -44,12 +44,20 @@ if(!UserSchema.options.toObject) UserSchema.options.toObject = { }
 
 // Remove the sensitive stuff from 'user' when JSONized.
 UserSchema.options.toJSON.transform = function(doc, ret) {
-	ret.id = doc.id;
+	// ret.id       = doc.id;
+	// ret.type     = 'user';
+	// ret.username = doc.email;
 
-	delete ret._id;
-	delete ret.__v;
-	delete ret.token;
-	delete ret.password;
+	// delete ret._id;
+	// delete ret.__v;
+	// delete ret.token;
+	// delete ret.password;
+
+	return {
+		'id':       doc.id,
+		'type':     'user',
+		'username': doc.email
+	}
 }
 
 /**

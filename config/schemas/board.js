@@ -19,7 +19,8 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	 * Description of the board.
 	 */
 	description: {
-		type: String
+		type:    String,
+		default: ''
 	},
 
 	/**
@@ -28,11 +29,11 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	 */
 	size: {
 		width: {
-			type: Number,
+			type:    Number,
 			default: 8
 		},
 		height: {
-			type: Number,
+			type:    Number,
 			default: 8
 		}
 	},

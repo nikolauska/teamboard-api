@@ -71,6 +71,9 @@ var config = {
 	}
 }
 
+// Quick hack to enable a 'test' environment.
+config.test = config.development;
+
 /**
  *  Configuration based on 'NODE_ENV'.
  */

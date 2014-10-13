@@ -48,9 +48,9 @@ Router.route('/')
 	 * TODO Validate the given payload. Can be done in the 'board' model.
 	 *
 	 * {
-	 *   'name':       'cool-board'
-	 *   'info':       'cool things only'
-	 *   'background': 'none'
+	 *   'name':        'cool-board'
+	 *   'description': 'cool things only'
+	 *   'background':  'none'
 	 *   'size': {
 	 *     'width', 'height'
 	 *   }
@@ -58,15 +58,11 @@ Router.route('/')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
-		var board = new Board({
-			name:       req.body.name,
-			info:       req.body.info,
-			size:       req.body.size,
-			background: req.body.background,
-			createdBy:  req.user.id
-		});
 
-		board.save(function(err, board) {
+		var payload           = req.body;
+		    payload.createdBy = req.user.id;
+
+		new Board(payload).save(function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}

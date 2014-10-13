@@ -13,8 +13,8 @@ app.all('*', require('cors')({
 }));
 
 // Setup the actual routes available.
-app.use('/api/v1/auth',   require('./routes/auth'));
-app.use('/api/v1/boards', require('./routes/board'));
+app.use('/auth',   require('./routes/auth'));
+app.use('/boards', require('./routes/board'));
 
 /**
  * Error handling middleware. All errors passed to 'next' will eventually end

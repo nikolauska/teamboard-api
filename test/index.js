@@ -1,114 +1,78 @@
 'use strict';
 
+var chalk     = require('chalk');
+var purdy     = require('purdy');
+var mongoose  = require('mongoose');
+var supertest = require('supertest');
 
-var config   = require('../config');
-var mongoose = require('mongoose');
+// Set the 'NODE_ENV' for this process as 'test'. This will disable
+// 'development' level logging, making test output more readable.
+process.env.NODE_ENV = 'test';
+
+var config = require('../config');
 
 /**
  * Setup 'supertest'. Declare 'demousers'. Establish mongoose connection.
  */
 before(function(done) {
-	console.log('setting up...');
+	console.log(chalk.dim('\nInitializing...'));
 
-	this.request = require('supertest')(require('../server').app);
+	var server = require('../server');
+	this.app   = supertest(server.app);
 
-	this.kari  = { email: 'kari@taalas.maa',  password: 'poika' }
-	this.seppo = { email: 'seppo@taalas.maa', password: 'talkkari' }
+	this.user = {
+		'email':    'kari@taalas.maa',
+		'password': 'talon-mies-poika-isanmaa'
+	}
 
-	console.log('connecting to mongoose, using:', JSON.stringify(config.mongo));
+	console.log(chalk.dim('\nUsing MongDB configuration:'));
+	purdy(config.mongo);
+	console.log('\n');
+
 	mongoose.connect(config.mongo.url, config.mongo.options, done);
 });
 
 /**
  * Drop necessary collections from mongodb.
  */
-['user', 'board'].forEach(function(model) {
+[ 'user', 'board' ].forEach(function(collection) {
+
 	before(function(done) {
-		console.log('dropping collection', model);
-		var Model = mongoose.model(model);
+		console.log(chalk.dim('Dropping collection...'),
+			chalk.red(collection));
+
+		var Model = mongoose.model(collection);
 		Model.collection.count(function(err, count) {
 			if(err) {
 				return done(err);
 			}
+
 			if(count > 0) {
 				return Model.collection.drop(done);
 			}
-			console.log('Nothing to drop!');
+
 			return done();
 		});
 	});
 });
 
 /**
- * Add 'kari' user.
+ * Create a 'testuser'.
  */
 before(function(done) {
-
 	var self = this;
 	var User = mongoose.model('user');
 
-	new User(self.kari).save(function(err, user) {
+	new User(self.user).save(function(err, user) {
 		if(err) {
 			return done(err);
 		}
-		self.kari.id = user.id;
+		self.user.id = user.id;
+
+		console.log(chalk.dim('\nTestuser created:'));
+		purdy(self.user);
+
+		console.log(chalk.dim('\nStarting tests...\n'));
 		return done();
 	});
-});
-
-/**
- * Add 'seppo' user.
- */
-before(function(done) {
-
-	var self = this;
-	var User = mongoose.model('user');
-
-	new User(self.seppo).save(function(err, user) {
-		if(err) {
-			return done(err);
-		}
-		self.seppo.id = user.id;
-		return done();
-	});
-});
-
-/**
- * Login 'kari' user.
- */
-before(function(done) {
-
-	var self = this;
-	self.request.post('/api/v1/auth/login')
-		.send(self.kari)
-		.expect(200, function(err, res) {
-
-			if(err) {
-				return done(err);
-			}
-
-			self.kari.access_token = res.headers['x-access-token'];
-
-			return done();
-		});
-});
-
-/**
- * Login 'seppo' user.
- */
-before(function(done) {
-
-	var self = this;
-	self.request.post('/api/v1/auth/login')
-		.send(self.seppo)
-		.expect(200, function(err, res) {
-
-			if(err) {
-				return done(err);
-			}
-
-			self.seppo.access_token = res.headers['x-access-token'];
-
-			return done();
-		});
 });

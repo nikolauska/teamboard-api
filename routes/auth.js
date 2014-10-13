@@ -53,7 +53,10 @@ Router.route('/login')
 				return next(utils.error(500, err));
 			}
 
-			jwt.verify(user.token, secret, function(err, payload) {
+			// Make sure the token verified is not undefined. An empty string
+			// is not a valid token so this 'should' be ok.
+			var token = user.token || '';
+			jwt.verify(token, secret, function(err, payload) {
 				// If there was something wrong with the existing token, we
 				// generate a new one since correct credentials were provided.
 				if(err) {
@@ -71,7 +74,7 @@ Router.route('/login')
 					});
 				}
 				// If the token was valid we reuse it.
-				return res.set('x-access-token', user.token)
+				else return res.set('x-access-token', user.token)
 					.json(200, payload);
 			});
 		});
@@ -107,7 +110,9 @@ Router.route('/register')
 		new User({ email: req.body.email, password: req.body.password })
 			.save(function(err, user) {
 				if(err) {
-					return next(err);
+					// TODO Make sure the type of 'err' is 'ValidationError' if
+					//      we are sending a '400' response.
+					return next(utils.error(400, err));
 				}
 				return res.json(201, user);
 			});
