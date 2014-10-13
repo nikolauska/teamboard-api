@@ -55,7 +55,6 @@ module.exports = function(ctx) {
 
 					ctx.board = board;
 
-
 					return done();
 				});
 		});
