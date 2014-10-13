@@ -25,8 +25,8 @@ gulp.task('test-dot',  test('dot'));
 gulp.task('test-spec', test('spec'));
 gulp.task('test:exit', ['test-spec'], process.exit);
 
-gulp.task('watch', ['test'], function() {
-	return gulp.watch(['./**/*.js', '!./gulpfile.js'], ['test']);
+gulp.task('watch', ['test-spec'], function() {
+	return gulp.watch(['./**/*.js', '!./gulpfile.js'], ['test-spec']);
 });
 
 gulp.task('default', ['watch']);

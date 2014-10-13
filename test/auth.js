@@ -7,15 +7,15 @@
 // /**
 //  * Authentication
 //  */
-// describe('/auth', function() {
+// describe('User authentication', function() {
 
 // 	/**
 // 	 * Signing up.
 // 	 */
-// 	describe('/auth/register', function() {
+// 	describe('Registering a new user', function() {
 // 		describe('POST', function() {
 
-// 			it('should reject a invalid emails', function(done) {
+// 			it('should reject an invalid email address', function(done) {
 // 				this.app.post('/auth/register')
 // 					.send({
 // 						'email':    'pekka',
@@ -24,47 +24,47 @@
 // 					.expect(400, done);
 // 			});
 
-// 			// TODO Cover most of the validation cases.
+// 		// TODO Cover most of the validation cases.
 // 		});
 // 	});
 
 // 	/**
 // 	 * Logging in.
 // 	 */
-// 	describe('/auth/login', function() {
-// 		describe('POST', function() {
+// 	describe('Logging in', function() {
+// 	describe('POST', function() {
 
-// 			it('should require a valid account', function(done) {
-// 				this.app.post('/auth/login')
-// 					.send({
-// 						'email':    'seppo@taalas.maa',
-// 						'password': 'isanta'
-// 					})
-// 					.expect(401, done);
-// 			});
-
-// 			// TODO Cover the case of having partially correct credentials.
-
-// 			it('should generate an access token', function(done) {
-// 				this.app.post('/auth/login')
-// 					.send(this.user)
-// 					.expect(200, function(err, res) {
-// 						if(err) {
-// 							return done(err);
-// 						}
-
-// 						// TODO Can we validate the format of the access token?
-// 						res.headers['x-access-token'].should.be.a.String;
-
-// 						return done();
-// 					});
-// 			});
+// 		it('should require a valid account', function(done) {
+// 			this.app.post('/auth/login')
+// 				.send({
+// 					'email':    'seppo@taalas.maa',
+// 					'password': 'isanta'
+// 				})
+// 				.expect(401, done);
 // 		});
-// 	});
 
-// 	/**
-// 	 * Logging out.
-// 	 */
+// 		// TODO Cover the case of having partially correct credentials.
 
-// 	// TODO Cover the case of 'guest-token'.
-// });
+// 		it('should generate an access token', function(done) {
+// 			this.app.post('/auth/login')
+// 				.send(this.user)
+// 				.expect(200, function(err, res) {
+// 					if(err) {
+// 						return done(err);
+// 					}
+
+// 					// TODO Can we validate the format of the access token?
+// 					res.headers['x-access-token'].should.be.a.String;
+
+// 					return done();
+// 				});
+//  			});
+//  		});
+//  	});
+
+//  	/**
+//  	 * Logging out.
+//  	 */
+
+//  	// TODO Cover the case of 'guest-token'.
+//  });
