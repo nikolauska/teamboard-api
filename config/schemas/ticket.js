@@ -8,6 +8,18 @@ var mongoose = require('mongoose');
 var TicketSchema = module.exports = new mongoose.Schema({
 
 	/**
+	 * Describes on which board does this ticket belong.
+	 *
+	 * TODO Should we actually group the ticket's under the 'board' model as
+	 *      references, or keep this style?
+	 */
+	board: {
+		ref:      'board',
+		type:     mongoose.Schema.Types.ObjectId,
+		required: true
+	},
+
+	/**
 	 * The ticket heading.
 	 */
 	heading: {

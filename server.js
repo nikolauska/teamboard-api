@@ -25,9 +25,11 @@ app.use('/boards', require('./routes/board'));
 app.use(function(err, req, res, next) {
 	var boom = require('boom');
 	    err  = boom.wrap(err, err.status);
-	if(err.status >= 500) {
+
+	if(err.output.statusCode >= 500) {
 		console.error(err);
 	}
+
 	return res.status(err.output.statusCode).send(err.output.payload);
 });
 

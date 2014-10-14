@@ -199,7 +199,10 @@ Router.route('/:board_id/tickets')
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
 
-		new Ticket(req.body).save(function(err, ticket) {
+		var payload       = req.body;
+		    payload.board = req.resolved.board.id;
+
+		new Ticket(payload).save(function(err, ticket) {
 			if(err) {
 				return next(utils.error(400, err));
 			}

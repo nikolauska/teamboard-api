@@ -59,4 +59,5 @@ describe('Basic API usage', function() {
 	describe('Logging in',        require('./spec/signing-in')(context));
 	describe('Creating a board',  require('./spec/creating-a-board')(context));
 	describe('Creating a ticket', require('./spec/creating-a-ticket')(context));
+	describe('Updating a ticket', require('./spec/updating-a-ticket')(context));
 });

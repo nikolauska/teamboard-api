@@ -52,6 +52,8 @@ module.exports = function(ctx) {
 					ticket.position.y.should.be.a.Number;
 					ticket.position.z.should.be.a.Number;
 
+					ctx.ticket = ticket;
+
 					return done();
 				});
 		});

@@ -5,6 +5,7 @@ var utils    = require('../utils');
 
 var User     = mongoose.model('user');
 var Board    = mongoose.model('board');
+var Ticket   = mongoose.model('ticket');
 var ObjectId = mongoose.Types.ObjectId;
 
 /**
@@ -63,9 +64,8 @@ module.exports.ticket = function(req, res, next, id) {
 		return next(utils.error(400, 'Invalid ObjectId attribute'));
 	}
 
-	var boardid = req.resolved.board.id;
-
-	Ticket.findOne({ '_id': id, 'board_id': boardid }, function(err, ticket) {
+	var board = req.resolved.board.id;
+	Ticket.findOne({ '_id': id, 'board': board }, function(err, ticket) {
 		if(err) {
 			return next(utils.error(500, err));
 		}

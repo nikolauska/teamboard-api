@@ -6,6 +6,8 @@
 module.exports = function(ctx) {
 	return function() {
 
+		console.log(ctx);
+
 		it('should require authentication', function(done) {
 			this.app.post('/boards').expect(401, done);
 		});
