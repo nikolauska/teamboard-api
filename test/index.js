@@ -20,9 +20,8 @@ before(function(done) {
 	var server = require('../server');
 	this.app   = supertest(server.app);
 
-	console.log(chalk.dim('\nUsing MongDB configuration:'));
+	console.log(chalk.dim('\nUsing MongDB configuration:\n'));
 	purdy(config.mongo);
-	console.log('\n');
 
 	mongoose.connect(config.mongo.url, config.mongo.options, done);
 });
@@ -30,26 +29,21 @@ before(function(done) {
 /**
  * Drop necessary collections from mongodb.
  */
-[ 'user', 'board', 'ticket' ].forEach(function(collection) {
+before(function() {
+	console.log(chalk.dim('\nDropping the database...\n'));
+	mongoose.connection.db.dropDatabase();
+});
 
+/**
+ * Ensure indexes for each collection
+ */
+[ 'user', 'board', 'ticket' ].forEach(function(name) {
 	before(function(done) {
-		console.log(chalk.dim('Dropping collection...'),
-			chalk.red(collection));
-
-		var Model = mongoose.model(collection);
-		Model.collection.count(function(err, count) {
-			if(err) {
-				return done(err);
-			}
-
-			if(count > 0) {
-				return Model.collection.drop(done);
-			}
-
-			return done();
-		});
+		console.log(chalk.dim('Ensuring indexes for...', chalk.yellow(name)));
+		mongoose.model(name).ensureIndexes(done);
 	});
 });
+
 
 // Throw in a newline for clarity.
 before(console.log.bind(console, ''));
