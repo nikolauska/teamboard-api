@@ -8,8 +8,8 @@ module.exports = function(ctx) {
 		it('should reject an empty email address', function(done) {
 			this.app.post('/auth/register')
 				.send({
-					'email': 	"",
-					'password': "pouta"
+					'email': 	'',
+					'password': 'pouta'
 				})
 				.expect(400, done);
 		});
@@ -26,8 +26,8 @@ module.exports = function(ctx) {
 		it('should reject an empty password', function(done) {
 			this.app.post('/auth/register')
 				.send({
-					'email': 	"pekka@pouta.fi",
-					'password': ""
+					'email': 	'pekka@pouta.fi',
+					'password': ''
 				})
 				.expect(400, done);
 		});
@@ -35,8 +35,8 @@ module.exports = function(ctx) {
 		it('should accept valid credentials', function(done) {
 			this.app.post('/auth/register')
 				.send({
-					'email': 	"pekka@pouta.fi",
-					'password': "pouta"
+					'email': 	'pekka@pouta.fi',
+					'password': 'pouta'
 				})
 				.expect(201, function(err, res) {
 					if(err) {
@@ -53,17 +53,13 @@ module.exports = function(ctx) {
 				});
 		});
 
-		// it('should reject existing email address', function(done) {
-		// 	this.app.post('/auth/register')
-		// 		.send({
-		// 			'email': 	"pekka@pouta.fi",
-		// 			'password': "pouta"
-		// 		})
-		// 		.expect(400, done);
-		// });
+		it('should reject existing email address', function(done) {
+		 	this.app.post('/auth/register')
+	 			.send({
+		 			'email': 	'pekka@pouta.fi',
+		 			'password': 'pouta'
+		 		})
+		 		.expect(400, done);
+		});
 	}
-
-
-	// TODO Cover most of the validation cases.
-
 }

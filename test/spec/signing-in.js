@@ -5,16 +5,32 @@
  */
 module.exports = function(ctx) {
 	return function() {
-		it('should require a valid account', function(done) {
+		it('should reject an invalid email address', function(done) {
 			this.app.post('/auth/login')
-			.send({
-				'email':    'seppo@taalas.maa',
-				'password': 'isanta'
-			})
-			.expect(401, done);
+				.send({
+					'email':    'seppo@taalas.maa',
+					'password': ctx.credentials.password
+				})
+				.expect(401, done);
 		});
 
-		// TODO Cover the case of having partially correct credentials.
+		it('should reject an invalid password', function(done) {
+			this.app.post('/auth/login')
+				.send({
+					'email': 	ctx.credentials.email,
+					'password': 'blaablablaa'
+				})
+				.expect(401, done);
+		});
+
+		it('should accept valid credentials', function(done) {
+			this.app.post('/auth/login')
+				.send({
+					'email': 	ctx.credentials.email,
+					'password': ctx.credentials.password
+				})
+				.expect(200, done);
+		});
 
 		it('should generate an access token', function(done) {
 			this.app.post('/auth/login')
