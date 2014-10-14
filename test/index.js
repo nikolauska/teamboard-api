@@ -15,12 +15,12 @@ var config = require('../config');
  * Setup 'supertest'. Declare 'demousers'. Establish mongoose connection.
  */
 before(function(done) {
-	console.log(chalk.dim('\nInitializing...'));
+	console.log(chalk.dim('Initializing...'));
 
 	var server = require('../server');
 	this.app   = supertest(server.app);
 
-	console.log(chalk.dim('\nUsing MongDB configuration:\n'));
+	console.log(chalk.dim('Using MongDB configuration:\n'));
 	purdy(config.mongo);
 
 	mongoose.connect(config.mongo.url, config.mongo.options, done);
@@ -55,9 +55,27 @@ describe('Basic API usage', function() {
 
 	var context = { }
 
-	describe('Signing up',        require('./spec/signing-up')(context));
-	describe('Logging in',        require('./spec/signing-in')(context));
-	describe('Creating a board',  require('./spec/creating-a-board')(context));
-	describe('Creating a ticket', require('./spec/creating-a-ticket')(context));
-	describe('Updating a ticket', require('./spec/updating-a-ticket')(context));
+	describe('Signing up',
+		require('./spec/signing-up')(context));
+
+	describe('Logging in',
+		require('./spec/signing-in')(context));
+
+	describe('Creating a board',
+		require('./spec/creating-a-board')(context));
+
+	describe('Creating a ticket',
+		require('./spec/creating-a-ticket')(context));
+
+	describe('Updating a ticket',
+		require('./spec/updating-a-ticket')(context));
+
+	describe('Granting guest access',
+		require('./spec/granting-guest-access')(context));
+
+	describe('Using guest token',
+		require('./spec/using-guest-token')(context));
+
+	describe('Revoking guest access',
+		require('./spec/revoking-guest-access')(context));
 });

@@ -17,12 +17,12 @@ module.exports = new BearerStrategy(function(token, done) {
 		}
 
 		if(!user) {
-			return done(utils.error(401, 'User not found'));
+			return done(null, null, 'User not found');
 		}
 
 		jwt.verify(user.token, config.token.secret, function(err, decoded) {
 			if(err) {
-				return done(utils.error(401, err));
+				return done(null, null, err);
 			}
 
 			return done(null, {

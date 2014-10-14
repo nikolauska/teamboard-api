@@ -58,9 +58,9 @@ module.exports = function(ctx) {
 					ticket.position.should.be.an.Object;
 					ticket.position.should.have.properties([ 'x', 'y', 'z' ]);
 
-					ticket.position.x.should.equal(0);
-					ticket.position.y.should.equal(8);
-					ticket.position.z.should.equal(0);
+					ticket.position.x.should.equal(payload.position.x);
+					ticket.position.y.should.equal(payload.position.y);
+					ticket.position.z.should.equal(payload.position.z);
 
 					ctx.ticket = ticket;
 

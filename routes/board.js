@@ -339,7 +339,7 @@ Router.route('/:board_id/access')
 			if(err) {
 				return next(utils.error(500, err));
 			}
-			return res.send(204);
+			return res.send(200);
 		});
 	});
 
@@ -362,7 +362,7 @@ Router.route('/:board_id/access/:code')
 		var board = req.resolved.board;
 
 		// Requested board must have a 'accessCode' set.
-		if(!board.accessCode || board.accessCode != req.params.accessCode) {
+		if(!board.accessCode || board.accessCode != req.params.code) {
 			return next(utils.error(401, ''));
 		}
 

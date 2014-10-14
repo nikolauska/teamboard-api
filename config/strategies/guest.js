@@ -13,7 +13,7 @@ var BearerStrategy = require('passport-http-bearer').Strategy;
 module.exports = new BearerStrategy(function(token, done) {
 	jwt.verify(token, config.token.secret, function(err, decoded) {
 		if(err) {
-			return done(utils.error(401, err));
+			return done(null, null, err);
 		}
 
 		Board.findOne({ accessCode: decoded.accessCode }, function(err, board) {
@@ -22,7 +22,7 @@ module.exports = new BearerStrategy(function(token, done) {
 			}
 
 			if(!board) {
-				return done(utils.error(401, 'Invalid access code'));
+				return done(null, null);
 			}
 
 			return done(null, {

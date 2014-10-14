@@ -21,7 +21,7 @@ module.exports = new LocalStrategy(opts, function(email, password, done) {
 		}
 
 		if(!user) {
-			return done(utils.error(401, 'User not found'));
+			return done(null, null, 'User not found');
 		}
 
 		user.comparePassword(password, function(err, match) {
@@ -30,7 +30,7 @@ module.exports = new LocalStrategy(opts, function(email, password, done) {
 			}
 
 			if(!match) {
-				return done(utils.error(401, 'Invalid password'));
+				return done(null, null, 'Invalid password');
 			}
 
 			return done(null, {
