@@ -51,6 +51,9 @@ before(function(done) {
 	});
 });
 
+// Throw in a newline for clarity.
+before(console.log.bind(console, ''));
+
 /**
  * A basic 'user' workflow.
  */

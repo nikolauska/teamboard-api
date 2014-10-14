@@ -199,15 +199,7 @@ Router.route('/:board_id/tickets')
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
 
-		var newTicket = new Ticket({
-			'color':    req.body.color,
-			'heading':  req.body.heading,
-			'content':  req.body.content,
-			'position': req.body.position,
-			'board_id': req.resolved.board.id
-		});
-
-		newTicket.save(function(err, ticket) {
+		new Ticket(req.body).save(function(err, ticket) {
 			if(err) {
 				return next(utils.error(400, err));
 			}

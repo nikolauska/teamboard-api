@@ -21,7 +21,8 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	 * TODO Should we allow HTML content?
 	 */
 	content: {
-		type: String
+		type:    String,
+		default: ''
 	},
 
 	/**
@@ -30,7 +31,8 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	 * TODO Enumerate the color, eg. #FFF, #BABABA...
 	 */
 	color: {
-		type: String
+		type:    String,
+		default: '#FFF'
 	},
 
 	/**
