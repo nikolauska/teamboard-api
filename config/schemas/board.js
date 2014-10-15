@@ -65,7 +65,8 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	 * generated 'access-tokens' invalid.
 	 */
 	accessCode: {
-		type: String
+		type:    String,
+		default: null
 	}
 });
 
