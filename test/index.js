@@ -3,6 +3,7 @@
 var chalk     = require('chalk');
 var purdy     = require('purdy');
 var mongoose  = require('mongoose');
+var mockgoose = require('mockgoose');
 var supertest = require('supertest');
 
 // Set the 'NODE_ENV' for this process as 'test'. This will disable
@@ -10,6 +11,9 @@ var supertest = require('supertest');
 process.env.NODE_ENV = 'test';
 
 var config = require('../config');
+
+// Wrap Mongoose with Mockgoose
+mockgoose(mongoose);
 
 /**
  * Setup 'supertest'. Declare 'demousers'. Establish mongoose connection.
@@ -25,25 +29,6 @@ before(function(done) {
 
 	mongoose.connect(config.mongo.url, config.mongo.options, done);
 });
-
-/**
- * Drop necessary collections from mongodb.
- */
-before(function() {
-	console.log(chalk.dim('\nDropping the database...\n'));
-	mongoose.connection.db.dropDatabase();
-});
-
-/**
- * Ensure indexes for each collection
- */
-[ 'user', 'board', 'ticket' ].forEach(function(name) {
-	before(function(done) {
-		console.log(chalk.dim('Ensuring indexes for...', chalk.yellow(name)));
-		mongoose.model(name).ensureIndexes(done);
-	});
-});
-
 
 // Throw in a newline for clarity.
 before(console.log.bind(console, ''));
