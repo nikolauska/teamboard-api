@@ -22,7 +22,7 @@ module.exports = new BearerStrategy(function(token, done) {
 			}
 
 			if(!board) {
-				return done(null, null);
+				return done(null, null, 'Access denied.');
 			}
 
 			return done(null, {
