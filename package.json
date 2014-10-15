@@ -33,6 +33,7 @@
     "gulp-util": "~2.2.16",
     "purdy": "^1.0.1",
     "should": "~4.0.0",
-    "supertest": "~0.13.0"
+    "supertest": "~0.13.0",
+    "mockgoose": "~1.10.7"
   }
 }
