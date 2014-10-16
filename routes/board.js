@@ -166,7 +166,7 @@ Router.route('/:board_id/tickets')
 	.get(middleware.relation('user', 'guest'))
 	.get(function(req, res) {
 		var boardid = req.resolved.board.id;
-		Ticket.find({ 'board_id': boardid }, function(err, tickets) {
+		Ticket.find({ 'board': boardid }, function(err, tickets) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
