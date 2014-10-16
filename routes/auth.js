@@ -87,12 +87,15 @@ Router.route('/logout')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
-		req.user.token = null;
-		req.user.save(function(err) {
+		User.findOne({ '_id': req.user.id }, function(err, user) {
 			if(err) {
-				return next(err);
+				return next(utils.error(500, err));
 			}
-			return res.send(200);
+
+			user.token = null;
+			user.save(function(err) {
+				return err ? next(err) : res.send(200);
+			});
 		});
 	});
 
