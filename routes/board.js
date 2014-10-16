@@ -170,7 +170,7 @@ Router.route('/:board_id/tickets')
 			if(err) {
 				return next(utils.error(500, err));
 			}
-			return res.json(200, board.tickets);
+			return res.json(200, tickets);
 		});
 	})
 

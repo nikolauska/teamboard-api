@@ -92,6 +92,10 @@ Router.route('/logout')
 				return next(utils.error(500, err));
 			}
 
+			if(!user) {
+				return next(utils.error(404, 'User not found'));
+			}
+
 			user.token = null;
 			user.save(function(err) {
 				return err ? next(err) : res.send(200);
