@@ -1,6 +1,8 @@
 'use strict';
 
-var config  = require('./index');
 var emitter = require('socket.io-emitter');
 
-module.exports = emitter(config.redis);
+/**
+ * Exports the 'socket.io-emitter' ready configured to use 'redis'.
+ */
+module.exports = emitter(require('../config').redis);

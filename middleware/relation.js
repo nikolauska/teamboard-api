@@ -1,31 +1,52 @@
 'use strict';
 
 var _     = require('lodash');
-var error = require('../utils/error');
+var utils = require('../utils');
 
 var _roles = {
-	anonymous: function(req) {
-		if(req.resolved.board) {
-			return req.resolved.board.isPublic;
-		}
-		return false;
-	},
-	member: function(req) {
+
+	/**
+	 * Check that the requestee is the 'user' that created the 'board'
+	 * specified in 'req.resolved'.
+	 */
+	user: function(req) {
 		if(!req.user || !req.resolved.board) {
 			return false;
 		}
-		return req.resolved.board.isMember(req.user);
+
+		var isUser    = req.user.type == 'user';
+		var hasAccess = req.user.id   == req.resolved.board.createdBy;
+
+		return isUser && hasAccess;
 	},
-	owner: function(req) {
+
+	/**
+	 * Check that the requestee is a 'guest' with access to the 'board'
+	 * specified in 'req.resolved'.
+	 */
+	guest: function(req) {
 		if(!req.user || !req.resolved.board) {
 			return false;
 		}
-		return req.resolved.board.isOwner(req.user);
+
+		var isGuest   = req.user.type   == 'guest';
+		var hasAccess = req.user.access == req.resolved.board.id;
+
+		return isGuest && hasAccess;
 	}
 }
 
+/**
+ * Middleware to limit the access to 'boards' based on 'req.user' properties.
+ * Note that this middleware is not generic in any way, and is dependent on the
+ * 'resolve' middleware being invoked before this.
+ *
+ * TODO Can we dissolve some of the dependencies?
+ */
 module.exports = function() {
-	var roles = [ ];
+	var roles = [];
+
+	// if the argument passed in is '*', run the all the checks
 	if(arguments.length && arguments[0] == '*') {
 		roles = _.keys(_roles);
 	}
@@ -34,13 +55,16 @@ module.exports = function() {
 			roles.push(arguments[i]);
 		}
 	}
+
 	return function(req, res, next) {
+		// check the requesting user's role against the roles defined
 		for(var i = 0; i < roles.length; i++) {
 			if(_roles[roles[i]](req)) {
 				return next();
 			}
 		}
-		return next(error(403, 'User did not match any role: ' +
+
+		return next(utils.error(403, 'User did not match any role: ' +
 			roles.join(', ') + '.'));
 	}
 }
