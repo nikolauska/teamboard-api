@@ -17,7 +17,7 @@ module.exports = function(ctx) {
 		it('should reject an invalid password', function(done)
 {			this.app.post('/auth/login')
 				.send({
-					'email': 	ctx.credentials.email,
+					'email':    ctx.credentials.email,
 					'password': 'blaablablaa'
 				})
 				.expect(401, done);

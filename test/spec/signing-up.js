@@ -1,9 +1,9 @@
 'use strict';
 
-var promise   = require('promise');
+var promise = require('promise');
 
 var credentials = {
-	'email': 	'pekka.pouta@pilvi.fi',
+	'email':    'pekka.pouta@pilvi.fi',
 	'password': 'abc12!"#$%&\'()*+,-./:;<=>?@[]^_`{|}~'
 }
 
@@ -16,7 +16,7 @@ module.exports = function(ctx) {
 		it('should reject an empty email address', function(done) {
 			this.app.post('/auth/register')
 				.send({
-					'email': 	'',
+					'email':    '',
 					'password': credentials.password
 				})
 				.expect(400, done);
@@ -35,13 +35,22 @@ module.exports = function(ctx) {
 		it('should reject an empty password', function(done) {
 			this.app.post('/auth/register')
 				.send({
-					'email': 	credentials.email,
+					'email':    credentials.email,
 					'password': ''
 				})
 				.expect(400, done);
 		});
 
-		it('should reject an invalid password', function(done) {
+		it('should reject empty spaces in password', function(done) {
+			this.app.post('/auth/register')
+				.send({
+					'email':    credentials.email,
+					'password': 'sala sana'
+				})
+				.expect(400, done);
+		});
+
+		it('should reject invalid characters in password', function(done) {
 			var payloads = [];
 			var promises = [];
 			var app = this.app
@@ -64,10 +73,8 @@ module.exports = function(ctx) {
 				});
 			}
 
-			for(var i = 0; i <= 224; i++) {
-				if(i < 33 || i > 126) {
-					payloads.push('salasana_' + i + String.fromCharCode(i));
-				}
+			for(var i = 192; i < 221; i++) {
+				payloads.push('salasana_' + i + String.fromCharCode(i));
 			}
 
 			for(var i = 0; i < payloads.length; i++) {
