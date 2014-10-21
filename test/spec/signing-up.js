@@ -14,7 +14,7 @@ module.exports = function(ctx) {
 	return function() {
 
 		it('should reject an empty email address', function(done) {
-			this.app.post('/auth/register')
+			this.app.post('/api/auth/register')
 				.send({
 					'email':    '',
 					'password': credentials.password
@@ -23,7 +23,7 @@ module.exports = function(ctx) {
 		});
 
 		it('should reject an invalid email address', function(done) {
-			this.app.post('/auth/register')
+			this.app.post('/api/auth/register')
 				.send({
 					'email':    'pekka',
 					'password': credentials.password
@@ -33,7 +33,7 @@ module.exports = function(ctx) {
 
 
 		it('should reject an empty password', function(done) {
-			this.app.post('/auth/register')
+			this.app.post('/api/auth/register')
 				.send({
 					'email':    credentials.email,
 					'password': ''
@@ -42,7 +42,7 @@ module.exports = function(ctx) {
 		});
 
 		it('should reject empty spaces in password', function(done) {
-			this.app.post('/auth/register')
+			this.app.post('/api/auth/register')
 				.send({
 					'email':    credentials.email,
 					'password': 'sala sana'
@@ -57,7 +57,7 @@ module.exports = function(ctx) {
 
 			function postPassword(payload) {
 				return new promise(function(resolve, reject) {
-					app.post('/auth/register')
+					app.post('/api/auth/register')
 						.send({
 							'email':    credentials.email,
 							'password': payload
@@ -91,7 +91,7 @@ module.exports = function(ctx) {
 		});
 
 		it('should reject passwords under 8 characters', function(done) {
-			this.app.post('/auth/register')
+			this.app.post('/api/auth/register')
 				.send({
 					'email':    credentials.email,
 					'password': 'abcdefg'
@@ -100,7 +100,7 @@ module.exports = function(ctx) {
 		});
 
 		it('should reject passwords over 36 characters', function(done) {
-			this.app.post('/auth/register')
+			this.app.post('/api/auth/register')
 				.send({
 					'email':    credentials.email,
 					'password': 'abcdefghijklmnopqrstuvwxyzabcdefghijk'
@@ -109,7 +109,7 @@ module.exports = function(ctx) {
 		});
 
 		it('should accept valid credentials', function(done) {
-			this.app.post('/auth/register')
+			this.app.post('/api/auth/register')
 				.send(credentials)
 				.expect(201, function(err, res) {
 					if(err) {
@@ -127,7 +127,7 @@ module.exports = function(ctx) {
 		});
 
 		it('should reject existing email address', function(done) {
-		 	this.app.post('/auth/register')
+		 	this.app.post('/api/auth/register')
 	 			.send(credentials)
 		 		.expect(400, done);
 		});

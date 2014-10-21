@@ -9,14 +9,14 @@ module.exports = function(ctx) {
 
 			var app = this.app;
 
-			app.delete('/boards/' + ctx.board.id + '/access')
+			app.delete('/api/boards/' + ctx.board.id + '/access')
 				.send({ 'access_token': ctx.credentials.token })
 				.expect(200, function(err, res) {
 					if(err) {
 						return done(err);
 					}
 
-					app.post('/boards/' + ctx.board.id + '/tickets')
+					app.post('/api/boards/' + ctx.board.id + '/tickets')
 						.send({ 'access_token': ctx.credentials.guest })
 						.send({ 'heading': 'i will never exist' })
 						.expect(401, done);

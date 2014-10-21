@@ -20,7 +20,7 @@ Router.param('board_id',  middleware.resolve.board);
 Router.param('ticket_id', middleware.resolve.ticket);
 
 
-Router.route('/')
+Router.route('/boards')
 
 	/**
 	 * Returns the boards that have been created by the user making the request.
@@ -76,7 +76,7 @@ Router.route('/')
 	});
 
 
-Router.route('/:board_id')
+Router.route('/boards/:board_id')
 
 	/**
 	 * Get a specific board.
@@ -154,7 +154,7 @@ Router.route('/:board_id')
 	});
 
 
-Router.route('/:board_id/tickets')
+Router.route('/boards/:board_id/tickets')
 
 	/**
 	 * Get the tickets belonging to the specified board.
@@ -219,7 +219,7 @@ Router.route('/:board_id/tickets')
 	});
 
 
-Router.route('/:board_id/tickets/:ticket_id')
+Router.route('/boards/:board_id/tickets/:ticket_id')
 
 	/**
 	 * Updates the given ticket.
@@ -284,7 +284,7 @@ Router.route('/:board_id/tickets/:ticket_id')
 		});
 	});
 
-Router.route('/:board_id/access')
+Router.route('/boards/:board_id/access')
 
 	/**
 	 * Get the 'access-code' of the given board.
@@ -344,7 +344,7 @@ Router.route('/:board_id/access')
 	});
 
 
-Router.route('/:board_id/access/:code')
+Router.route('/boards/:board_id/access/:code')
 
 	/**
 	 * Generates a 'guest' token to the given board.

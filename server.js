@@ -12,9 +12,9 @@ app.all('*', require('cors')({
 	exposedHeaders: ['x-access-token']
 }));
 
-// Setup the actual routes available.
-app.use('/auth',   require('./routes/auth'));
-app.use('/boards', require('./routes/board'));
+// Mount routers on '/api' endpoint.
+app.use('/api', require('./routes/auth'));
+app.use('/api', require('./routes/board'));
 
 /**
  * Error handling middleware. All errors passed to 'next' will eventually end
@@ -23,9 +23,6 @@ app.use('/boards', require('./routes/board'));
  * TODO Review the error format.
  */
 app.use(function(err, req, res, next) {
-	if(process.env.NODE_ENV == 'test') {
-		//console.log(err);
-	}
 	var boom = require('boom');
 	    err  = boom.wrap(err, err.status);
 
