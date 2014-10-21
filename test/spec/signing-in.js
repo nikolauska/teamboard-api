@@ -23,6 +23,7 @@ module.exports = function(ctx) {
 				.expect(401, done);
 		});
 
+
 		it('should accept valid credentials', function(done) {
 			this.app.post('/auth/login')
 				.send(ctx.credentials)

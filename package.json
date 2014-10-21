@@ -34,6 +34,7 @@
     "purdy": "^1.0.1",
     "should": "~4.0.0",
     "supertest": "~0.13.0",
-    "mockgoose": "~1.10.7"
+    "mockgoose": "~1.10.7",
+    "promise": "~6.0.0"
   }
 }

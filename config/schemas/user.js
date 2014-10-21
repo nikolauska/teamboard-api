@@ -17,7 +17,7 @@ var UserSchema = module.exports = new mongoose.Schema({
 	 */
 	email: {
 		type:     String,
-		match:    /\S+@\S+\.\S+/,
+		match:  	/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
 		unique:   true,
 		required: true
 	},
@@ -64,6 +64,20 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
  * BUG See 'config/schemas/board.js' for details.
  */
 UserSchema.options.toObject.transform = UserSchema.options.toJSON.transform;
+
+/**
+ * Validates password with regexp.
+ * Reference: https://kb.wisc.edu/page.php?id=4073
+ */
+UserSchema.path('password').validate(function() {
+	var user = this;
+
+	if(!user.isModified('password')) {
+		return true;
+	}
+
+	return /^[a-zA-Z0-9!"#$%&'()*+,-.\/:;<=>?@\[\]^_`{|}~]{8,36}$/.test(user.password);
+}, null);
 
 /**
  * Hash the users password using 'bcrypt' if modified.

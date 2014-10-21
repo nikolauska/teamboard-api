@@ -23,6 +23,9 @@ app.use('/boards', require('./routes/board'));
  * TODO Review the error format.
  */
 app.use(function(err, req, res, next) {
+	if(process.env.NODE_ENV == 'test') {
+		//console.log(err);
+	}
 	var boom = require('boom');
 	    err  = boom.wrap(err, err.status);
 
