@@ -8,7 +8,7 @@ module.exports = function(ctx) {
 
 		it('should generate an access code', function(done) {
 
-			this.app.post('/boards/' + ctx.board.id + '/access')
+			this.app.post('/api/boards/' + ctx.board.id + '/access')
 				.send({ 'access_token': ctx.credentials.token })
 				.expect(200, function(err, res) {
 					if(err) {
@@ -23,7 +23,7 @@ module.exports = function(ctx) {
 
 		it('should generate an access token', function(done) {
 
-			var endpoint = '/boards/' + ctx.board.id +
+			var endpoint = '/api/boards/' + ctx.board.id +
 				'/access/' + ctx.board.accessCode
 
 			this.app.post(endpoint)

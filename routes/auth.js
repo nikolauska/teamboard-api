@@ -11,7 +11,7 @@ var middleware = require('../middleware');
 var User   = require('mongoose').model('user');
 var Router = require('express').Router();
 
-Router.route('/')
+Router.route('/auth')
 
 	/**
 	 * Get the user details based on the 'type' of the user. In a sense, returns
@@ -29,7 +29,7 @@ Router.route('/')
 		return res.json(200, req.user);
 	});
 
-Router.route('/login')
+Router.route('/auth/login')
 
 	/**
 	 * Exchange an 'access-token' for valid credentials. If the user already
@@ -80,7 +80,7 @@ Router.route('/login')
 		});
 	});
 
-Router.route('/logout')
+Router.route('/auth/logout')
 
 	/**
 	 * Removes the 'access-token' stored in database in order to invalidate it.
@@ -103,7 +103,7 @@ Router.route('/logout')
 		});
 	});
 
-Router.route('/register')
+Router.route('/auth/register')
 
 	/**
 	 * Creates a new 'user' account.

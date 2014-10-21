@@ -10,10 +10,13 @@ module.exports = function(ctx) {
 		var credentials = null;
 
 		before(function() {
+
 			credentials = {
 				'access_token': ctx.credentials.token
 			}
-			endpoint = '/boards/' + ctx.board.id + '/tickets/' + ctx.ticket.id;
+
+			endpoint = '/api/boards/' + ctx.board.id +
+				'/tickets/' + ctx.ticket.id;
 		});
 
 		it('should require authentication', function(done) {
@@ -21,7 +24,7 @@ module.exports = function(ctx) {
 		});
 
 		var dummyid       = require('mongoose').Types.ObjectId();
-		var dummyendpoint = '/boards/' + dummyid + '/tickets/' + dummyid;
+		var dummyendpoint = '/api/boards/' + dummyid + '/tickets/' + dummyid;
 
 		it('should require existing board and ticket', function(done) {
 			this.app.put(dummyendpoint).send(credentials).expect(404, done);

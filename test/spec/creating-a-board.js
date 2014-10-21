@@ -7,11 +7,11 @@ module.exports = function(ctx) {
 	return function() {
 
 		it('should require authentication', function(done) {
-			this.app.post('/boards').expect(401, done);
+			this.app.post('/api/boards').expect(401, done);
 		});
 
 		it('should require a \'name\'', function(done) {
-			this.app.post('/boards')
+			this.app.post('/api/boards')
 				.send({ 'access_token': ctx.credentials.token })
 				.expect(400, done);
 		});
@@ -19,7 +19,7 @@ module.exports = function(ctx) {
 		it('should initialize the board to valid defaults', function(done) {
 			var self = this;
 
-			this.app.post('/boards')
+			this.app.post('/api/boards')
 				.send({ 'access_token': ctx.credentials.token })
 				.send({ 'name': 'plankku' })
 				.expect(201, function(err, res) {
