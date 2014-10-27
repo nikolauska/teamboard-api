@@ -13,7 +13,7 @@ process.env.NODE_ENV = 'test';
 var config = require('../config');
 
 // Wrap Mongoose with Mockgoose
-mockgoose(mongoose);
+// mockgoose(mongoose);
 
 /**
  * Setup 'supertest'. Declare 'demousers'. Establish mongoose connection.
@@ -48,6 +48,9 @@ describe('Basic API usage', function() {
 
 	describe('Creating a board',
 		require('./spec/creating-a-board')(context));
+
+	describe('Updating a board',
+		require('./spec/updating-a-board')(context));
 
 	describe('Creating a ticket',
 		require('./spec/creating-a-ticket')(context));

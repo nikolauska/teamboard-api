@@ -8,6 +8,7 @@ var config     = require('../config');
 var emitter    = require('../config/emitter');
 var middleware = require('../middleware');
 
+var Event  = mongoose.model('event');
 var Board  = mongoose.model('board');
 var Ticket = mongoose.model('ticket');
 
@@ -70,6 +71,19 @@ Router.route('/boards')
 				if(err) {
 					return next(utils.error(500, err));
 				}
+
+				new Event({
+					'board': board.id,
+					'type': 'BOARD_CREATE',
+					'user':  {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					}
+				}).save(function(err) {
+					if(err) return console.error(err);
+				});
+
 				return res.json(201, board);
 			});
 		});
@@ -103,9 +117,9 @@ Router.route('/boards/:board_id')
 	 *
 	 * payload:
 	 *   {
-	 *     'name':       'new-name'
-	 *     'info':       'new-info'
-	 *     'background': 'new-background'
+	 *     'name':        'new-name'
+	 *     'description': 'new-info'
+	 *     'background':  'new-background'
 	 *     'size': {
 	 *       'width', 'height'
 	 *     }
@@ -117,20 +131,58 @@ Router.route('/boards/:board_id')
 	.put(middleware.authenticate('user'))
 	.put(middleware.relation('user'))
 	.put(function(req, res, next) {
-		var board            = req.resolved.board;
-		    board.name       = req.body.name;
-		    board.info       = req.body.info;
-		    board.size       = req.body.size;
-		    board.background = req.body.background;
+		var id = req.resolved.board.id;
 
-		board.save(function(err, board) {
+		// Make sure we have a handle to the previous attributes.
+		var old = req.resolved.board.toObject()
+
+		// TODO How to make sure only certain fields are updated, something in
+		//      the actual 'model'?
+		Board.findByIdAndUpdate(id, req.body, function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
+
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
+
+				new Event({
+					'board': board.id,
+					'type': 'BOARD_EDIT',
+					'user':  {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'oldAttributes': {
+							'name':        old.name,
+							'description': old.description,
+							'background':  old.background,
+							'size': {
+								'width':  old.size.width,
+								'height': old.size.height,
+							}
+						},
+						'newAttributes': {
+							'name':        board.name,
+							'description': board.description,
+							'background':  board.background,
+							'size': {
+								'width':  board.size.width,
+								'height': board.size.height,
+							}
+						}
+					}
+				}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+					emitter.to(board.id).emit('board:event', ev.toObject());
+				});
+
 				return res.json(200, board);
 			});
 		});
