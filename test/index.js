@@ -13,7 +13,7 @@ process.env.NODE_ENV = 'test';
 var config = require('../config');
 
 // Wrap Mongoose with Mockgoose
-// mockgoose(mongoose);
+mockgoose(mongoose);
 
 /**
  * Setup 'supertest'. Declare 'demousers'. Establish mongoose connection.
