@@ -67,14 +67,15 @@ Router.route('/boards')
 			if(err) {
 				return next(utils.error(400, err));
 			}
+
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
 
 				new Event({
-					'board': board.id,
 					'type': 'BOARD_CREATE',
+					'board': board.id,
 					'user':  {
 						'id':       req.user.id,
 						'type':     req.user.type,
@@ -149,8 +150,8 @@ Router.route('/boards/:board_id')
 				}
 
 				new Event({
-					'board': board.id,
 					'type': 'BOARD_EDIT',
+					'board': board.id,
 					'user':  {
 						'id':       req.user.id,
 						'type':     req.user.type,
@@ -201,6 +202,22 @@ Router.route('/boards/:board_id')
 			if(err) {
 				return next(utils.error(500, err));
 			}
+
+			new Event({
+				'type':  'BOARD_REMOVE',
+				'board': req.resolved.board.id,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ev.board).emit('board:event', ev.toObject());
+			});
+
 			return res.json(200, req.resolved.board);
 		});
 	});
@@ -217,8 +234,8 @@ Router.route('/boards/:board_id/tickets')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('user', 'guest'))
 	.get(function(req, res) {
-		var boardid = req.resolved.board.id;
-		Ticket.find({ 'board': boardid }, function(err, tickets) {
+		var board = req.resolved.board;
+		Ticket.find({ 'board': board.id }, function(err, tickets) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
@@ -259,6 +276,27 @@ Router.route('/boards/:board_id/tickets')
 				return next(utils.error(400, err));
 			}
 
+			new Event({
+				'type': 'TICKET_CREATE',
+				'board': ticket.board,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'id': ticket._id,
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ticket.board).emit('board:event', ev.toObject());
+			});
+
+			/**
+			 * Deprecated.
+			 */
 			emitter.to(req.resolved.board.id)
 				.emit('ticket:create', {
 					user:   req.user,
@@ -294,12 +332,51 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	.put(middleware.authenticate('user', 'guest'))
 	.put(middleware.relation('user', 'guest'))
 	.put(function(req, res, next) {
+		// Store a reference to the old ticket attributes.
+		var old = req.resolved.ticket.toObject();
+
+		// TODO Deprecate changing 'position' here, instead move to a separate
+		//      method, which will also provide the 'TICKET_MOVE' event.
 		Ticket.findByIdAndUpdate(req.resolved.ticket.id, req.body,
 			function(err, ticket) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
 
+				// TODO utils.emit('TICKET_EDIT', { board, user }, { data })
+				new Event({
+					'type': 'TICKET_EDIT',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'id': ticket._id,
+
+						'oldAttributes': {
+							'color':   old.color,
+							'heading': old.heading,
+							'content': old.content,
+						},
+
+						'newAttributes': {
+							'color':   ticket.color,
+							'heading': ticket.heading,
+							'content': ticket.content,
+						},
+					}
+				}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+					emitter.to(ev.board).emit('board:event', ev.toObject());
+				});
+
+				/**
+				 * Deprecated.
+				 */
 				emitter.to(req.resolved.board.id)
 					.emit('ticket:update', {
 						user:   req.user,
@@ -325,6 +402,27 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 				return next(utils.error(500, err));
 			}
 
+			new Event({
+				'type': 'TICKET_REMOVE',
+				'board': req.resolved.ticket.board,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'id': req.resolved.ticket._id,
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ev.board).emit('board:event', ev.toObject());
+			});
+
+			/**
+			 * Deprecated.
+			 */
 			emitter.to(req.resolved.board.id)
 				.emit('ticket:remove', {
 					user:   req.user,
