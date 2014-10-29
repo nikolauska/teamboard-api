@@ -473,6 +473,25 @@ Router.route('/boards/:board_id/access')
 			if(err) {
 				return next(utils.error(500, err));
 			}
+
+			new Event({
+				'type': 'BOARD_PUBLISH',
+				'board': req.resolved.board.id,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'accessCode': accessCode,
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ev.board).emit('board:event', ev.toObject());
+			});
+
 			return res.json(200, { accessCode: board.accessCode });
 		});
 	})
@@ -489,6 +508,22 @@ Router.route('/boards/:board_id/access')
 			if(err) {
 				return next(utils.error(500, err));
 			}
+
+			new Event({
+				'type': 'BOARD_UNPUBLISH',
+				'board': req.resolved.board.id,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ev.board).emit('board:event', ev.toObject());
+			});
+
 			return res.send(200);
 		});
 	});
@@ -526,6 +561,21 @@ Router.route('/boards/:board_id/access/:code')
 
 		// Generate the 'guest-token' for access.
 		var guestToken = jwt.sign(guestPayload, config.token.secret);
+
+		new Event({
+			'type': 'BOARD_GUEST_JOIN',
+			'board': req.resolved.board.id,
+			'user': {
+				'id':       guestPayload.id,
+				'type':     guestPayload.type,
+				'username': guestPayload.username,
+			},
+		}).save(function(err, ev) {
+			if(err) {
+				return console.error(err);
+			}
+			emitter.to(ev.board).emit('board:event', ev.toObject());
+		});
 
 		return res.set('x-access-token', guestToken)
 			.json(200, guestPayload);
