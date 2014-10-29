@@ -61,6 +61,9 @@ describe('Basic API usage', function() {
 	describe('Granting guest access',
 		require('./spec/granting-guest-access')(context));
 
+	describe('Fetching board events',
+		require('./spec/fetching-events')(context));
+
 	describe('Using guest token',
 		require('./spec/using-guest-token')(context));
 

@@ -434,6 +434,27 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 		});
 	});
 
+
+Router.route('/boards/:board_id/events')
+
+	/**
+	 * Get a list of 'events' that have occurred on this board.
+	 *
+	 * returns:
+	 *   [ EventObject ]
+	 */
+	.get(middleware.authenticate('user', 'guest'))
+	.get(middleware.relation('user', 'guest'))
+	.get(function(req, res, next) {
+		Event.find({ 'board': req.resolved.board.id }, function(err, evs) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			return res.json(200, evs);
+		});
+	});
+
+
 Router.route('/boards/:board_id/access')
 
 	/**
