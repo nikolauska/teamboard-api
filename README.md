@@ -209,6 +209,32 @@ above for the description of the `ticket` object.
 Removes the ticket specified by `:id`. Returns the removed `ticket` object. See
 above for the description of the `ticket` object.
 
+### Board Events
+
+Events are generated for various actions done via the API. Events are also
+emitted through `teamboard-io`, so that connected clients can listen to them
+under the key `board:event`.
+
+Currently the possible event `types` are:
+- `BOARD_CREATE`, `BOARD_EDIT`, `BOARD_REMOVE`
+- `BOARD_PUBLISH`, `BOARD_UNPUBLISH`, `BOARD_GUEST_JOIN`
+- `TICKET_CREATE`, `TICKET_EDIT`, `TICKET_REMOVE`
+
+The returned `events` have a `data` field that is used to store additional data
+regarding the `event`. For example for ticket based events this usually means
+storing an `id` attribute referencing the ticket in question.
+
+**GET /boards/:id/events**
+```
+returns:
+[{
+  'type': 'event.type',
+  'board': 'board.id',
+  'user': { 'id', 'type', 'username' },
+  'data': { }
+}]
+```
+
 ### Guest Access
 
 Guest access can be granted to a board by generating an `access-code` for it.

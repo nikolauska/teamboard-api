@@ -49,6 +49,9 @@ describe('Basic API usage', function() {
 	describe('Creating a board',
 		require('./spec/creating-a-board')(context));
 
+	describe('Updating a board',
+		require('./spec/updating-a-board')(context));
+
 	describe('Creating a ticket',
 		require('./spec/creating-a-ticket')(context));
 
@@ -57,6 +60,9 @@ describe('Basic API usage', function() {
 
 	describe('Granting guest access',
 		require('./spec/granting-guest-access')(context));
+
+	describe('Fetching board events',
+		require('./spec/fetching-events')(context));
 
 	describe('Using guest token',
 		require('./spec/using-guest-token')(context));

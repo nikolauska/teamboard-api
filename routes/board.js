@@ -8,6 +8,7 @@ var config     = require('../config');
 var emitter    = require('../config/emitter');
 var middleware = require('../middleware');
 
+var Event  = mongoose.model('event');
 var Board  = mongoose.model('board');
 var Ticket = mongoose.model('ticket');
 
@@ -66,10 +67,24 @@ Router.route('/boards')
 			if(err) {
 				return next(utils.error(400, err));
 			}
+
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
+
+				new Event({
+					'type': 'BOARD_CREATE',
+					'board': board.id,
+					'user':  {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					}
+				}).save(function(err) {
+					if(err) return console.error(err);
+				});
+
 				return res.json(201, board);
 			});
 		});
@@ -103,9 +118,9 @@ Router.route('/boards/:board_id')
 	 *
 	 * payload:
 	 *   {
-	 *     'name':       'new-name'
-	 *     'info':       'new-info'
-	 *     'background': 'new-background'
+	 *     'name':        'new-name'
+	 *     'description': 'new-info'
+	 *     'background':  'new-background'
 	 *     'size': {
 	 *       'width', 'height'
 	 *     }
@@ -117,20 +132,58 @@ Router.route('/boards/:board_id')
 	.put(middleware.authenticate('user'))
 	.put(middleware.relation('user'))
 	.put(function(req, res, next) {
-		var board            = req.resolved.board;
-		    board.name       = req.body.name;
-		    board.info       = req.body.info;
-		    board.size       = req.body.size;
-		    board.background = req.body.background;
+		var id = req.resolved.board.id;
 
-		board.save(function(err, board) {
+		// Make sure we have a handle to the previous attributes.
+		var old = req.resolved.board.toObject()
+
+		// TODO How to make sure only certain fields are updated, something in
+		//      the actual 'model'?
+		Board.findByIdAndUpdate(id, req.body, function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
+
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
+
+				new Event({
+					'type': 'BOARD_EDIT',
+					'board': board.id,
+					'user':  {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'oldAttributes': {
+							'name':        old.name,
+							'description': old.description,
+							'background':  old.background,
+							'size': {
+								'width':  old.size.width,
+								'height': old.size.height,
+							}
+						},
+						'newAttributes': {
+							'name':        board.name,
+							'description': board.description,
+							'background':  board.background,
+							'size': {
+								'width':  board.size.width,
+								'height': board.size.height,
+							}
+						}
+					}
+				}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+					emitter.to(board.id).emit('board:event', ev.toObject());
+				});
+
 				return res.json(200, board);
 			});
 		});
@@ -149,6 +202,22 @@ Router.route('/boards/:board_id')
 			if(err) {
 				return next(utils.error(500, err));
 			}
+
+			new Event({
+				'type':  'BOARD_REMOVE',
+				'board': req.resolved.board.id,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ev.board).emit('board:event', ev.toObject());
+			});
+
 			return res.json(200, req.resolved.board);
 		});
 	});
@@ -165,8 +234,8 @@ Router.route('/boards/:board_id/tickets')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('user', 'guest'))
 	.get(function(req, res) {
-		var boardid = req.resolved.board.id;
-		Ticket.find({ 'board': boardid }, function(err, tickets) {
+		var board = req.resolved.board;
+		Ticket.find({ 'board': board.id }, function(err, tickets) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
@@ -207,6 +276,27 @@ Router.route('/boards/:board_id/tickets')
 				return next(utils.error(400, err));
 			}
 
+			new Event({
+				'type': 'TICKET_CREATE',
+				'board': ticket.board,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'id': ticket._id,
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ticket.board).emit('board:event', ev.toObject());
+			});
+
+			/**
+			 * Deprecated.
+			 */
 			emitter.to(req.resolved.board.id)
 				.emit('ticket:create', {
 					user:   req.user,
@@ -242,12 +332,51 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	.put(middleware.authenticate('user', 'guest'))
 	.put(middleware.relation('user', 'guest'))
 	.put(function(req, res, next) {
+		// Store a reference to the old ticket attributes.
+		var old = req.resolved.ticket.toObject();
+
+		// TODO Deprecate changing 'position' here, instead move to a separate
+		//      method, which will also provide the 'TICKET_MOVE' event.
 		Ticket.findByIdAndUpdate(req.resolved.ticket.id, req.body,
 			function(err, ticket) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
 
+				// TODO utils.emit('TICKET_EDIT', { board, user }, { data })
+				new Event({
+					'type': 'TICKET_EDIT',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'id': ticket._id,
+
+						'oldAttributes': {
+							'color':   old.color,
+							'heading': old.heading,
+							'content': old.content,
+						},
+
+						'newAttributes': {
+							'color':   ticket.color,
+							'heading': ticket.heading,
+							'content': ticket.content,
+						},
+					}
+				}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+					emitter.to(ev.board).emit('board:event', ev.toObject());
+				});
+
+				/**
+				 * Deprecated.
+				 */
 				emitter.to(req.resolved.board.id)
 					.emit('ticket:update', {
 						user:   req.user,
@@ -273,6 +402,27 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 				return next(utils.error(500, err));
 			}
 
+			new Event({
+				'type': 'TICKET_REMOVE',
+				'board': req.resolved.ticket.board,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'id': req.resolved.ticket._id,
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ev.board).emit('board:event', ev.toObject());
+			});
+
+			/**
+			 * Deprecated.
+			 */
 			emitter.to(req.resolved.board.id)
 				.emit('ticket:remove', {
 					user:   req.user,
@@ -283,6 +433,27 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 			return res.json(200, req.resolved.ticket);
 		});
 	});
+
+
+Router.route('/boards/:board_id/events')
+
+	/**
+	 * Get a list of 'events' that have occurred on this board.
+	 *
+	 * returns:
+	 *   [ EventObject ]
+	 */
+	.get(middleware.authenticate('user', 'guest'))
+	.get(middleware.relation('user', 'guest'))
+	.get(function(req, res, next) {
+		Event.find({ 'board': req.resolved.board.id }, function(err, evs) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			return res.json(200, evs);
+		});
+	});
+
 
 Router.route('/boards/:board_id/access')
 
@@ -323,6 +494,25 @@ Router.route('/boards/:board_id/access')
 			if(err) {
 				return next(utils.error(500, err));
 			}
+
+			new Event({
+				'type': 'BOARD_PUBLISH',
+				'board': req.resolved.board.id,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'accessCode': accessCode,
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ev.board).emit('board:event', ev.toObject());
+			});
+
 			return res.json(200, { accessCode: board.accessCode });
 		});
 	})
@@ -339,6 +529,22 @@ Router.route('/boards/:board_id/access')
 			if(err) {
 				return next(utils.error(500, err));
 			}
+
+			new Event({
+				'type': 'BOARD_UNPUBLISH',
+				'board': req.resolved.board.id,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				emitter.to(ev.board).emit('board:event', ev.toObject());
+			});
+
 			return res.send(200);
 		});
 	});
@@ -376,6 +582,21 @@ Router.route('/boards/:board_id/access/:code')
 
 		// Generate the 'guest-token' for access.
 		var guestToken = jwt.sign(guestPayload, config.token.secret);
+
+		new Event({
+			'type': 'BOARD_GUEST_JOIN',
+			'board': req.resolved.board.id,
+			'user': {
+				'id':       guestPayload.id,
+				'type':     guestPayload.type,
+				'username': guestPayload.username,
+			},
+		}).save(function(err, ev) {
+			if(err) {
+				return console.error(err);
+			}
+			emitter.to(ev.board).emit('board:event', ev.toObject());
+		});
 
 		return res.set('x-access-token', guestToken)
 			.json(200, guestPayload);
