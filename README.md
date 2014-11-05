@@ -209,6 +209,28 @@ above for the description of the `ticket` object.
 Removes the ticket specified by `:id`. Returns the removed `ticket` object. See
 above for the description of the `ticket` object.
 
+### Ticket Comments
+
+Comments are actually events, see below for an explanation.
+
+**GET /boards/:id/tickets/:id/comments**
+```
+returns:
+[ EventObject ]
+```
+
+**POST /boards/:id/tickets/:id/comments**
+```
+payload:
+{
+  'comment': '...',
+}
+```
+```
+returns:
+{ EventObject }
+```
+
 ### Board Events
 
 Events are generated for various actions done via the API. Events are also
@@ -218,7 +240,7 @@ under the key `board:event`.
 Currently the possible event `types` are:
 - `BOARD_CREATE`, `BOARD_EDIT`, `BOARD_REMOVE`
 - `BOARD_PUBLISH`, `BOARD_UNPUBLISH`, `BOARD_GUEST_JOIN`
-- `TICKET_CREATE`, `TICKET_EDIT`, `TICKET_REMOVE`
+- `TICKET_CREATE`, `TICKET_EDIT`, `TICKET_REMOVE`, 'TICKET_COMMENT'
 
 The returned `events` have a `data` field that is used to store additional data
 regarding the `event`. For example for ticket based events this usually means
