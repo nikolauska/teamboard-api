@@ -435,6 +435,61 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	});
 
 
+Router.route('/boards/:board_id/tickets/:ticket_id/comments')
+
+	/**
+	 * Get a list of 'events' of the type of 'TICKET_COMMENT' for the board
+	 * specified by 'board_id'.
+	 *
+	 * returns:
+	 *   [ EventObject ]
+	 */
+	.get(middleware.authenticate('user', 'guest'))
+	.get(middleware.relation('user', 'guest'))
+	.get(function(req, res, next) {
+
+		var commentQuery = Event.find({
+			'type':    'TICKET_COMMENT',
+			'board':   req.resolved.board.id,
+			'data.id': req.resolved.ticket.id,
+		});
+
+		return commentQuery.exec(function(err, comments) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			return res.json(200, comments);
+		});
+	})
+
+	/**
+	 * Post a new comment on the specified ticket.
+	 */
+	.post(middleware.authenticate('user', 'guest'))
+	.post(middleware.relation('user', 'guest'))
+	.post(function(req, res, next) {
+		new Event({
+			'type': 'TICKET_COMMENT',
+			'board': req.resolved.board.id,
+
+			'user': {
+				'id':       req.user.id,
+				'type':     req.user.type,
+				'username': req.user.username,
+			},
+
+			'data': {
+				'id':      req.resolved.ticket.id,
+				'comment': req.body.comment,
+			}
+		}).save(function(err, ev) {
+			if(err) return next(utils.error(500, err));
+			emitter.to(ev.board).emit('board:event', ev.toObject());
+			return res.json(201, ev.toObject());
+		});
+	});
+
+
 Router.route('/boards/:board_id/events')
 
 	/**

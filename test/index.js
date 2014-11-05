@@ -58,6 +58,9 @@ describe('Basic API usage', function() {
 	describe('Updating a ticket',
 		require('./spec/updating-a-ticket')(context));
 
+	describe('Commenting on a ticket',
+		require('./spec/posting-a-comment')(context));
+
 	describe('Granting guest access',
 		require('./spec/granting-guest-access')(context));
 
