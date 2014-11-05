@@ -223,6 +223,44 @@ Router.route('/boards/:board_id')
 	});
 
 
+Router.route('/boards/:board_id/export')
+
+	/**
+	 * Download the 'board' as a 'json'-file.
+	 */
+	.get(middleware.authenticate('user', 'guest'))
+	.get(middleware.relation('user', 'guest'))
+	.get(function(req, res, next) {
+
+		var boardQuery = Board.findById(req.resolved.board.id)
+			.populate({
+				'path':   'createdBy',
+				'select': '-_id -__v -password -token',
+			})
+			.select('-_id -__v -accessCode').lean();
+
+		boardQuery.exec(function(err, board) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+
+			var ticketQuery = Ticket.find({ 'board': req.resolved.board.id })
+				.select('-_id -__v -board').lean();
+
+			ticketQuery.exec(function(err, tickets) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
+
+				var boardObject         = board;
+				    boardObject.tickets = tickets;
+
+				return res.attachment('board.json').json(200, boardObject);
+			});
+		});
+	});
+
+
 Router.route('/boards/:board_id/tickets')
 
 	/**

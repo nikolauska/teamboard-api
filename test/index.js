@@ -72,4 +72,7 @@ describe('Basic API usage', function() {
 
 	describe('Revoking guest access',
 		require('./spec/revoking-guest-access')(context));
+
+	describe('Exporting to a file',
+		require('./spec/exporting-to-a-file')(context));
 });
