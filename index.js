@@ -1,5 +1,6 @@
 'use strict';
 
+var nr      = require('newrelic');
 var os      = require('os');
 var cluster = require('cluster');
 
