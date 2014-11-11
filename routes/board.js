@@ -316,8 +316,6 @@ Router.route('/boards/:board_id/tickets')
 	 *
 	 * TODO Validate the payload. Can be done in the 'ticket' model. Remember
 	 *      to check for a 'ValidationError' on save.
-	 * TODO Add a post-save hook on ticket to also add it to the board's
-	 *      'tickets' collection.
 	 *
 	 * payload:
 	 *   {
@@ -410,6 +408,8 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 				if(err) {
 					return next(utils.error(500, err));
 				}
+
+				if(!ticket) return next(utils.error(404, 'Ticket not found'));
 
 				// TODO utils.emit('TICKET_EDIT', { board, user }, { data })
 				new Event({
