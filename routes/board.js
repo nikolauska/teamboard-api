@@ -231,6 +231,7 @@ Router.route('/boards/:board_id/export')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('user', 'guest'))
 	.get(function(req, res, next) {
+		var format = req.query.format ? req.query.format : 'json';
 
 		var boardQuery = Board.findById(req.resolved.board.id)
 			.populate({
@@ -250,6 +251,35 @@ Router.route('/boards/:board_id/export')
 			ticketQuery.exec(function(err, tickets) {
 				if(err) {
 					return next(utils.error(500, err));
+				}
+
+				if(format == 'csv') {
+					var json2csv = require('nice-json2csv');
+
+					var boardCSVData = {
+						'NAME':        board.name,
+						'DESCRIPTION': board.description,
+						'CREATED_BY':  board.createdBy.email,
+						'SIZE_WIDTH':  '' + board.size.width  + '',
+						'SIZE_HEIGHT': '' + board.size.height + '',
+					}
+
+					var ticketCSVData = tickets.map(function(t) {
+						return {
+							'HEADING':    t.heading,
+							'CONTENT':    t.content,
+							'COLOR':      t.color,
+							'POSITION_X': '' + t.position.x + '',
+							'POSITION_Y': '' + t.position.y + '',
+							'POSITION_Z': '' + t.position.z + '',
+						}
+					});
+
+					var csvBoard    = json2csv.convert(boardCSVData);
+					var csvTickets  = json2csv.convert(ticketCSVData);
+					var csvResponse = csvBoard + '\n\n' + csvTickets;
+
+					return res.attachment('board.csv').send(200, csvResponse);
 				}
 
 				var boardObject         = board;

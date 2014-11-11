@@ -1,5 +1,6 @@
 'use strict';
 
+var config   = require('./config');
 var app      = require('./config/express');
 var mongoose = require('./config/mongoose');
 var passport = require('./config/passport');
@@ -42,11 +43,7 @@ module.exports.app = app;
  * Perform necessary initialization to start the server.
  */
 module.exports.listen = function(onListen) {
-	var config = require('./config');
-
-	mongoose.connect(
-		config.mongo.url,
-		config.mongo.options);
+	mongoose.connect(config.mongo.url, config.mongo.options);
 
 	this.server = app.listen(config.port, onListen || function() {
 		console.log('server listening at', config.port);
