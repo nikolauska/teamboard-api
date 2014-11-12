@@ -10,7 +10,7 @@ RUN cd /home/teamboard/teamboard-api && \
 	npm install && \
 	chown -R teamboard:teamboard .
 
-RUN ["mkdir", "/home/teamboard/logs"]
+RUN ["sudo", "-u", "teamboard", "mkdir", "/home/teamboard/logs"]
 
 CMD /usr/bin/sudo -u teamboard -E \
 	/usr/local/bin/node /home/teamboard/teamboard-api/index.js \
