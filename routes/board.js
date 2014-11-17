@@ -139,7 +139,15 @@ Router.route('/boards/:board_id')
 
 		// TODO How to make sure only certain fields are updated, something in
 		//      the actual 'model'?
-		Board.findByIdAndUpdate(id, req.body, function(err, board) {
+		var payload = {
+			'name':        req.body.name        || old.name,
+			'description': req.body.description || old.description,
+			'background':  req.body.background  || old.background,
+		}
+		var size         = req.body.size || old.size;
+		    payload.size = { 'width': size.width, 'height': size.height }
+
+		Board.findByIdAndUpdate(id, payload, function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
