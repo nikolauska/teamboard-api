@@ -144,8 +144,13 @@ Router.route('/boards/:board_id')
 			'description': req.body.description || old.description,
 			'background':  req.body.background  || old.background,
 		}
-		var size         = req.body.size || old.size;
-		    payload.size = { 'width': size.width, 'height': size.height }
+
+		var size = req.body.size || old.size;
+
+		payload.size = {
+			'width':  size.width  || old.size.width,
+			'height': size.height || old.size.height,
+		}
 
 		Board.findByIdAndUpdate(id, payload, function(err, board) {
 			if(err) {
