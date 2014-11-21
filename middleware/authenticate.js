@@ -22,5 +22,8 @@ module.exports = function() {
 	for(var i = 0; i < arguments.length; i++) {
 		strategies.push(arguments[i]);
 	}
-	return passport.authenticate(strategies, { session: false });
+	return passport.authenticate(strategies, {
+		session:       false,
+		failWithError: true,
+	});
 }
