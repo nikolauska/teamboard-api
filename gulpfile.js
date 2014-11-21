@@ -17,7 +17,10 @@ gulp.task('test', function() {
 gulp.task('test:exit', ['test'], process.exit);
 
 gulp.task('watch', ['test'], function() {
-	return gulp.watch(['./**/*.js', '!./gulpfile.js'], ['test']);
+	return gulp.watch(['./**/*.js',
+		'!./gulpfile.js',
+		'!./node_modules/**/*.js',
+	], ['test']);
 });
 
 gulp.task('default', ['watch']);
