@@ -1,6 +1,6 @@
 {
   "name": "teamboard-api",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "RESTful API for Teamboard 2.0",
   "license": "MIT",
   "scripts": {
