@@ -1,39 +1,8 @@
 Changelog
 =========
 
-v0.2.8 (2014-11-26)
--------------------
-
-- 0.2.8. [jenkins]
-
-- Changelog. [jenkins]
-
-- Changelog. [jenkins]
-
-- Changelog. [jenkins]
-
-v0.2.7 (2014-11-26)
--------------------
-
-- 0.2.7. [Jenkins]
-
-v0.2.6 (2014-11-26)
--------------------
-
-- 0.2.6. [Jenkins]
-
-v0.2.5 (2014-11-26)
--------------------
-
-- 0.2.5. [jenkins]
-
 v0.2.4 (2014-11-26)
 -------------------
-
-- 0.2.4. [jenkins]
-
-- Merge branch 'master' of https://github.com/N4SJAMK/teamboard-api into
-  dev. [tanelih]
 
 - Fix issue with 'passport' not propagating errors. [tanelih]
 
@@ -43,20 +12,10 @@ v0.2.4 (2014-11-26)
 v0.2.1 (2014-11-18)
 -------------------
 
-- 0.2.1. [tanelih]
-
 - Fix issue with request body size being set too low. [tanelih]
 
 v0.2.0 (2014-11-18)
 -------------------
-
-- 0.2.0. [tanelih]
-
-- Revert "0.0.2" [Taneli Hartikainen]
-
-  This reverts commit 4773e3860bc8e340edab991229cd068ab4cbc54a.
-
-- 0.0.2. [Taneli Hartikainen]
 
 - Disable 'newrelic' by default. [Taneli Hartikainen]
 
@@ -67,13 +26,8 @@ v0.2.0 (2014-11-18)
 - Fix issues with updating a board, due to invalid payload. [Taneli
   Hartikainen]
 
-- Merge branch 'dev' of https://github.com/N4SJAMK/teamboard-api into
-  dev. [Taneli Hartikainen]
-
 - Add ignore rules to 'newrelic' configuration for 400 status codes.
   [Taneli Hartikainen]
-
-- Merge branch 'feature-newrelic' into dev. [Taneli Hartikainen]
 
 - Fix issue with ticket updating. [Taneli Hartikainen]
 
@@ -87,12 +41,6 @@ v0.2.0 (2014-11-18)
 
 - Add commenting. [Taneli Hartikainen]
 
-- Merge branch 'feature-events' into dev. [Taneli Hartikainen]
-
-- Merge pull request #6 from spherelot/dev. [spherelot]
-
-  Change redirect error and output to logfiles
-
 - Prefix /api on routes. [Taneli Hartikainen]
 
 - Fixed invalid password test in sign up. Cleaning up. [Petri
@@ -101,21 +49,7 @@ v0.2.0 (2014-11-18)
 - Added password and email validation. More unit tests. [Petri
   Matilainen]
 
-- Merge branch 'feature-guest-access' into dev. [Teemu Laukka]
-
-- Merge pull request #4 from spherelot/dev. [spherelot]
-
-  Change add default command for the image
-
 - Change static mongoose version to package.json. [spherelot]
-
-- Merge pull request #3 from spherelot/dev. [spherelot]
-
-  Change removed EXPOSE command from Dockerfile
-
-- Merge pull request #2 from spherelot/dev. [spherelot]
-
-  Add Dockerfile for automatic docker builds
 
 - Add 'board' attribute to emitted events. [Taneli Hartikainen]
 
@@ -139,10 +73,6 @@ v0.2.0 (2014-11-18)
 - Remove crypt-service request retries. Remove bcrypt dependency.
   [Taneli Hartikainen]
 
-- Revert "Remove teamboard-crypt dependency." [Taneli Hartikainen]
-
-  This reverts commit 3d191030c79ab59b056a111f6e8b8649b6225278.
-
 - Remove teamboard-crypt dependency. [Taneli Hartikainen]
 
 - Add more logging. [Taneli Hartikainen]
@@ -165,17 +95,9 @@ v0.2.0 (2014-11-18)
 - Add DELETE route for multiple boards, as with tickets. [Taneli
   Hartikainen]
 
-- Merge branch 'master' of https://github.com/N4SJAMK/teamboard-api into
-  dev. [Taneli Hartikainen]
-
-  Conflicts:         README.md
-
 - Fix issue with board being stuck in public state. [Taneli Hartikainen]
 
 - Fix issues with 500 from authentication. [Taneli Hartikainen]
-
-- Merge branch 'dev' of https://github.com/N4SJAMK/teamboard-api into
-  dev. [Taneli Hartikainen]
 
 - Fix error handling in screenshot API. [Taneli Hartikainen]
 
