@@ -5,7 +5,6 @@ var mongoose = require('mongoose');
 
 var utils      = require('../utils');
 var config     = require('../config');
-var emitter    = require('../config/emitter');
 var middleware = require('../middleware');
 
 var Event  = mongoose.model('event');
@@ -194,7 +193,7 @@ Router.route('/boards/:board_id')
 					if(err) {
 						return console.error(err);
 					}
-					emitter.to(board.id).emit('board:event', ev.toObject());
+					utils.emitter.to(board.id).emit('board:event', ev.toObject());
 				});
 
 				return res.json(200, board);
@@ -228,7 +227,7 @@ Router.route('/boards/:board_id')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 			});
 
 			return res.json(200, req.resolved.board);
@@ -370,13 +369,13 @@ Router.route('/boards/:board_id/tickets')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ticket.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ticket.board).emit('board:event', ev.toObject());
 			});
 
 			/**
 			 * Deprecated.
 			 */
-			emitter.to(req.resolved.board.id)
+			utils.emitter.to(req.resolved.board.id)
 				.emit('ticket:create', {
 					user:   req.user,
 					board:  req.resolved.board.id,
@@ -452,13 +451,13 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 					if(err) {
 						return console.error(err);
 					}
-					emitter.to(ev.board).emit('board:event', ev.toObject());
+					utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 				});
 
 				/**
 				 * Deprecated.
 				 */
-				emitter.to(req.resolved.board.id)
+				utils.emitter.to(req.resolved.board.id)
 					.emit('ticket:update', {
 						user:   req.user,
 						board:  req.resolved.board.id,
@@ -498,13 +497,13 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 			});
 
 			/**
 			 * Deprecated.
 			 */
-			emitter.to(req.resolved.board.id)
+			utils.emitter.to(req.resolved.board.id)
 				.emit('ticket:remove', {
 					user:   req.user,
 					board:  req.resolved.board.id,
@@ -564,8 +563,10 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 				'comment': req.body.comment,
 			}
 		}).save(function(err, ev) {
-			if(err) return next(utils.error(500, err));
-			emitter.to(ev.board).emit('board:event', ev.toObject());
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 			return res.json(201, ev.toObject());
 		});
 	});
@@ -646,7 +647,7 @@ Router.route('/boards/:board_id/access')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 			});
 
 			return res.json(200, { accessCode: board.accessCode });
@@ -678,7 +679,7 @@ Router.route('/boards/:board_id/access')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 			});
 
 			return res.send(200);
@@ -731,7 +732,7 @@ Router.route('/boards/:board_id/access/:code')
 			if(err) {
 				return console.error(err);
 			}
-			emitter.to(ev.board).emit('board:event', ev.toObject());
+			utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 		});
 
 		return res.set('x-access-token', guestToken)

@@ -13,7 +13,7 @@ app.all('*', require('cors')({
 	exposedHeaders: ['x-access-token']
 }));
 
-// Mount routers on '/api' endpoint.
+// Setup API Routes.
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/board'));
 
