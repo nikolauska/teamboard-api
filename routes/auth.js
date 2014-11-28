@@ -1,7 +1,6 @@
 'use strict';
 
 var jwt      = require('jsonwebtoken');
-var boom     = require('boom');
 var passport = require('passport');
 
 var utils      = require('../utils');

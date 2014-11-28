@@ -13,15 +13,13 @@ app.all('*', require('cors')({
 	exposedHeaders: ['x-access-token']
 }));
 
-// Mount routers on '/api' endpoint.
+// Setup API Routes.
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/board'));
 
 /**
  * Error handling middleware. All errors passed to 'next' will eventually end
  * up here.
- *
- * TODO Review the error format.
  */
 app.use(function(err, req, res, next) {
 	var boom = require('boom');
@@ -41,6 +39,9 @@ module.exports.app = app;
 
 /**
  * Perform necessary initialization to start the server.
+ *
+ * @param  {function}  onListen  Callback invoked when the server starts
+ *                               listening to incoming requests.
  */
 module.exports.listen = function(onListen) {
 	mongoose.connect(config.mongo.url, config.mongo.options);
@@ -52,6 +53,8 @@ module.exports.listen = function(onListen) {
 
 /**
  * Perform necessary teardown to stop the server.
+ *
+ * @param  {function=}  onShutdown  Callback invoked after shutting down.
  */
 module.exports.shutdown = function(onShutdown) {
 	return this.server.close(function() {
