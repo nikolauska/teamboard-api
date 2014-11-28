@@ -7,6 +7,7 @@ var mocha = require('gulp-mocha');
 gulp.task('test', function() {
 	return gulp.src( ['./test/**/*.js'] )
 		.pipe(mocha({
+			'timeout':  10000,
 			'reporter': 'spec',
 			'globals': {
 				'should': require('should')
