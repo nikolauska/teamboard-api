@@ -40,7 +40,6 @@ before(console.log.bind(console, ''));
  * A basic 'user' workflow.
  */
 describe('Basic API usage', function() {
-
 	var context = { }
 
 	describe('Signing up',
