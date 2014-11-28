@@ -369,7 +369,8 @@ Router.route('/boards/:board_id/tickets')
 				if(err) {
 					return console.error(err);
 				}
-				utils.emitter.to(ticket.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ticket.board)
+					.emit('board:event', ev.toObject());
 			});
 
 			/**
@@ -423,7 +424,6 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 				if(!ticket) return next(utils.error(404, 'Ticket not found'));
 
-				// TODO utils.emit('TICKET_EDIT', { board, user }, { data })
 				new Event({
 					'type': 'TICKET_EDIT',
 					'board': ticket.board,
@@ -451,7 +451,8 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 					if(err) {
 						return console.error(err);
 					}
-					utils.emitter.to(ev.board).emit('board:event', ev.toObject());
+					utils.emitter.to(ev.board)
+						.emit('board:event', ev.toObject());
 				});
 
 				/**
@@ -497,7 +498,8 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 				if(err) {
 					return console.error(err);
 				}
-				utils.emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board)
+					.emit('board:event', ev.toObject());
 			});
 
 			/**
@@ -566,7 +568,8 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 			if(err) {
 				return next(utils.error(500, err));
 			}
-			utils.emitter.to(ev.board).emit('board:event', ev.toObject());
+			utils.emitter.to(ev.board)
+				.emit('board:event', ev.toObject());
 			return res.json(201, ev.toObject());
 		});
 	});
@@ -647,7 +650,8 @@ Router.route('/boards/:board_id/access')
 				if(err) {
 					return console.error(err);
 				}
-				utils.emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board)
+					.emit('board:event', ev.toObject());
 			});
 
 			return res.json(200, { accessCode: board.accessCode });
@@ -679,7 +683,8 @@ Router.route('/boards/:board_id/access')
 				if(err) {
 					return console.error(err);
 				}
-				utils.emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board)
+					.emit('board:event', ev.toObject());
 			});
 
 			return res.send(200);
@@ -732,7 +737,8 @@ Router.route('/boards/:board_id/access/:code')
 			if(err) {
 				return console.error(err);
 			}
-			utils.emitter.to(ev.board).emit('board:event', ev.toObject());
+			utils.emitter.to(ev.board)
+				.emit('board:event', ev.toObject());
 		});
 
 		return res.set('x-access-token', guestToken)
