@@ -15,7 +15,7 @@ var config = {
         },
 
         mongo: {
-			options: { safe: true }
+			options: { safe: true, auto_reconnect: true }
 		},
 
         redis: {

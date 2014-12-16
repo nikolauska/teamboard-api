@@ -44,11 +44,24 @@ module.exports.app = app;
  *                               listening to incoming requests.
  */
 module.exports.listen = function(onListen) {
-	mongoose.connect(config.mongo.url, config.mongo.options);
+	var url  = config.mongo.url;
+	var opts = config.mongo.options;
 
-	this.server = app.listen(config.port, onListen || function() {
-		console.log('server listening at', config.port);
-	});
+	mongoose.connect(url, opts).connection
+		/**
+		 *
+		 */
+		.on('connected', function onOpen() {
+			console.log('mongo :: connected');
+		})
+		/**
+		 *
+		 */
+		.on('error', function onError(err) {
+			return console.error('mongo ::', err);
+		});
+
+	return this.server = app.listen(config.port, onListen);
 }
 
 /**
@@ -57,7 +70,7 @@ module.exports.listen = function(onListen) {
  * @param  {function=}  onShutdown  Callback invoked after shutting down.
  */
 module.exports.shutdown = function(onShutdown) {
-	return this.server.close(function() {
-		mongoose.disconnect(onShutdown || function() {});
+	return this.server.close(function onServerClose() {
+		return mongoose.disconnect(onShutdown || function noop() {});
 	});
 }
