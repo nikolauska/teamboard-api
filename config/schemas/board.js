@@ -11,16 +11,8 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	 * The board's display name.
 	 */
 	name: {
-		type:     String,
-		required: true
-	},
-
-	/**
-	 * Description of the board.
-	 */
-	description: {
 		type:    String,
-		default: ''
+		default: '',
 	},
 
 	/**
