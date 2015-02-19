@@ -718,6 +718,7 @@ Router.route('/boards/:board_id/access/:code')
 		var guestPayload = {
 			id:         require('crypto').randomBytes(4).toString('hex'),
 			type:       'guest',
+			access:     board.id,
 			username:   req.body.username,
 			accessCode: board.accessCode
 		}
