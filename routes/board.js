@@ -363,7 +363,10 @@ Router.route('/boards/:board_id/tickets')
 					'username': req.user.username,
 				},
 				'data': {
-					'id': ticket._id,
+					'id':       ticket._id,
+					'color':    ticket.color,
+					'content':  ticket.content,
+					'position': ticket.position,
 				}
 			}).save(function(err, ev) {
 				if(err) {
@@ -436,15 +439,17 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 						'id': ticket._id,
 
 						'oldAttributes': {
-							'color':   old.color,
-							'heading': old.heading,
-							'content': old.content,
+							'color':    old.color,
+							'heading':  old.heading,
+							'content':  old.content,
+							'position': old.position,
 						},
 
 						'newAttributes': {
-							'color':   ticket.color,
-							'heading': ticket.heading,
-							'content': ticket.content,
+							'color':    ticket.color,
+							'heading':  ticket.heading,
+							'content':  ticket.content,
+							'position': ticket.position,
 						},
 					}
 				}).save(function(err, ev) {
