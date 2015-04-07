@@ -139,9 +139,10 @@ Router.route('/boards/:board_id')
 		// TODO How to make sure only certain fields are updated, something in
 		//      the actual 'model'?
 		var payload = {
-			'name':        req.body.name        || old.name,
-			'description': req.body.description || old.description,
-			'background':  req.body.background  || old.background,
+			name:             req.body.name             || old.name,
+			description:      req.body.description      || old.description,
+			background:       req.body.background       || old.background,
+			customBackground: req.body.customBackground || old.customBackground
 		}
 
 		var size = req.body.size || old.size;
@@ -171,18 +172,20 @@ Router.route('/boards/:board_id')
 					},
 					'data': {
 						'oldAttributes': {
-							'name':        old.name,
-							'description': old.description,
-							'background':  old.background,
+							'name':             old.name,
+							'description':      old.description,
+							'background':       old.background,
+							'customBackground': old.customBackground,
 							'size': {
 								'width':  old.size.width,
 								'height': old.size.height,
 							}
 						},
 						'newAttributes': {
-							'name':        board.name,
-							'description': board.description,
-							'background':  board.background,
+							'name':             board.name,
+							'description':      board.description,
+							'background':       board.background,
+							'customBackground': board.customBackground,
 							'size': {
 								'width':  board.size.width,
 								'height': board.size.height,

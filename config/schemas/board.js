@@ -42,6 +42,16 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	},
 
 	/**
+	 * Custom background URL.
+	 *
+	 * TODO Validate to be an URL.
+	 */
+	customBackground: {
+		type:    String,
+		default: null
+	},
+
+	/**
 	 * Reference (ObjectId) of the 'user' who created this board.
 	 */
 	createdBy: {
