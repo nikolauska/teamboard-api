@@ -61,14 +61,6 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	},
 
 	/**
-	 * When was the board last updated...
-	 */
-	updatedAt: {
-		type:    Date,
-		default: Date.now
-	},
-
-	/**
 	 * The 'access-code' that can be used by 'guests' to generate an
 	 * 'access-token' to this board. The generated 'access-tokens' are tied to
 	 * the 'access-code', so refreshing or emptying this will render the
@@ -82,11 +74,6 @@ var BoardSchema = module.exports = new mongoose.Schema({
 
 if(!BoardSchema.options.toJSON) BoardSchema.options.toJSON     = { }
 if(!BoardSchema.options.toObject) BoardSchema.options.toObject = { }
-
-BoardSchema.pre('save', function(next) {
-	this.updatedAt = Date.now();
-	return next();
-});
 
 BoardSchema.options.toJSON.transform = function(doc, ret) {
 	ret.id = doc.id;

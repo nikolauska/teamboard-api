@@ -131,19 +131,37 @@ Router.route('/boards/:board_id')
 	.put(middleware.authenticate('user'))
 	.put(middleware.relation('user'))
 	.put(function(req, res, next) {
-		// This is quite horrible but will do for now...
-		var _     = require('lodash');
-		var old   = req.resolved.board.toObject();
-		var board = _.merge(req.resolved.board, req.body);
+		var id = req.resolved.board.id;
 
-		board.save(function(err, board) {
+		// Make sure we have a handle to the previous attributes.
+		var old = req.resolved.board.toObject()
+
+		// TODO How to make sure only certain fields are updated, something in
+		//      the actual 'model'?
+		var payload = {
+			name:             req.body.name             || old.name,
+			description:      req.body.description      || old.description,
+			background:       req.body.background       || old.background,
+			customBackground: req.body.customBackground || old.customBackground
+		}
+
+		var size = req.body.size || old.size;
+
+		payload.size = {
+			'width':  size.width  || old.size.width,
+			'height': size.height || old.size.height,
+		}
+
+		Board.findByIdAndUpdate(id, payload, function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
+
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
+
 				new Event({
 					'type': 'BOARD_EDIT',
 					'board': board.id,
@@ -180,6 +198,7 @@ Router.route('/boards/:board_id')
 					}
 					utils.emitter.to(board.id).emit('board:event', ev.toObject());
 				});
+
 				return res.json(200, board);
 			});
 		});
@@ -398,63 +417,64 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	.put(middleware.authenticate('user', 'guest'))
 	.put(middleware.relation('user', 'guest'))
 	.put(function(req, res, next) {
-		// It's really quite horrible but w/e...
-		var _      = require('lodash');
-		var old    = req.resolved.ticket.toObject();
-		var ticket = _.merge(req.resolved.ticket, req.body);
+		// Store a reference to the old ticket attributes.
+		var old = req.resolved.ticket.toObject();
 
-		ticket.save(function(err, ticket) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
-
-			if(!ticket) return next(utils.error(404, 'Ticket not found'));
-
-			new Event({
-				'type': 'TICKET_EDIT',
-				'board': ticket.board,
-				'user': {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				},
-				'data': {
-					'id': ticket._id,
-
-					'oldAttributes': {
-						'color':    old.color,
-						'heading':  old.heading,
-						'content':  old.content,
-						'position': old.position,
-					},
-
-					'newAttributes': {
-						'color':    ticket.color,
-						'heading':  ticket.heading,
-						'content':  ticket.content,
-						'position': ticket.position,
-					},
-				}
-			}).save(function(err, ev) {
+		// TODO Deprecate changing 'position' here, instead move to a separate
+		//      method, which will also provide the 'TICKET_MOVE' event.
+		Ticket.findByIdAndUpdate(req.resolved.ticket.id, req.body,
+			function(err, ticket) {
 				if(err) {
-					return console.error(err);
+					return next(utils.error(500, err));
 				}
-				utils.emitter.to(ev.board)
-					.emit('board:event', ev.toObject());
-			});
 
-			/**
-			 * Deprecated.
-			 */
-			utils.emitter.to(req.resolved.board.id)
-				.emit('ticket:update', {
-					user:   req.user,
-					board:  req.resolved.board.id,
-					ticket: ticket.toObject()
+				if(!ticket) return next(utils.error(404, 'Ticket not found'));
+
+				new Event({
+					'type': 'TICKET_EDIT',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'id': ticket._id,
+
+						'oldAttributes': {
+							'color':    old.color,
+							'heading':  old.heading,
+							'content':  old.content,
+							'position': old.position,
+						},
+
+						'newAttributes': {
+							'color':    ticket.color,
+							'heading':  ticket.heading,
+							'content':  ticket.content,
+							'position': ticket.position,
+						},
+					}
+				}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+					utils.emitter.to(ev.board)
+						.emit('board:event', ev.toObject());
 				});
 
-			return res.json(200, ticket);
-		});
+				/**
+				 * Deprecated.
+				 */
+				utils.emitter.to(req.resolved.board.id)
+					.emit('ticket:update', {
+						user:   req.user,
+						board:  req.resolved.board.id,
+						ticket: ticket.toObject()
+					});
+
+				return res.json(200, ticket);
+			});
 	})
 
 	/**
