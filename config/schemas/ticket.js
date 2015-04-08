@@ -74,6 +74,26 @@ TicketSchema.options.toJSON.transform = function(doc, ret) {
 }
 
 /**
+ * Middleware to update the 'related' board's 'updatedAt'...
+ */
+function updateRelatedBoard(next) {
+	mongoose.model('board').findOne({ _id: this.board }, function(err, board) {
+		if(err) {
+			return next(err);
+		}
+		board.update({ updatedAt: Date.now() }, function(err, board) {
+			if(err) {
+				return next(err);
+			}
+			return next();
+		});
+	});
+}
+
+TicketSchema.pre('save',   updateRelatedBoard);
+TicketSchema.pre('remove', updateRelatedBoard);
+
+/**
  * BUG See 'config/schemas/board.js' for details.
  */
 TicketSchema.options.toObject.transform = TicketSchema.options.toJSON.transform;
