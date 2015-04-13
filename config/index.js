@@ -45,6 +45,10 @@ var config = {
         },
 
 		mongo: {
+            options: {
+                user: process.env.MONGODB_USER,
+                pass: process.env.MONGODB_PASS
+            },
 			url: process.env.MONGODB_URL
 		},
 

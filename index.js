@@ -1,3 +1,7 @@
 'use strict'
 
-require('./server').listen();
+console.log('Starting service on port...', process.env.PORT);
+
+require('./server').listen(function() {
+	console.log('Service started on port...', process.env.PORT);
+});
