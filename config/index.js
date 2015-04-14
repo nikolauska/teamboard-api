@@ -25,17 +25,15 @@ var config = {
 	},
 
     test: {
-
         mongo: {
             url: 'mongodb://localhost/teamboard-test'
         }
     },
 
     development: {
-
         mongo: {
-			url: 'mongodb://localhost/teamboard-dev'
-		},
+            url: 'mongodb://localhost/teamboard-development'
+        }
     },
 
 	production: {
@@ -45,14 +43,13 @@ var config = {
         },
 
 		mongo: {
-            options: {
-                user: process.env.MONGODB_USER,
-                pass: process.env.MONGODB_PASS
-            },
 			url: process.env.MONGODB_URL
 		},
 
 		redis: {
+            opts: {
+                auth_pass: process.env.REDIS_PASS
+            },
 			host: process.env.REDIS_HOST,
             port: process.env.REDIS_PORT
 		}
