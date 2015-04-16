@@ -161,6 +161,8 @@ Router.route('/boards/:board_id')
 				if(err) {
 					return next(utils.error(500, err));
 				}
+				console.log('old::',       old);
+				console.log('populated::', board);
 
 				new Event({
 					'type': 'BOARD_EDIT',
@@ -193,6 +195,8 @@ Router.route('/boards/:board_id')
 						}
 					}
 				}).save(function(err, ev) {
+					console.log('event::', ev);
+
 					if(err) {
 						return console.error(err);
 					}
