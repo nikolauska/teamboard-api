@@ -179,7 +179,6 @@ Router.route('/boards/:board_id')
 					}
 					utils.emitter.to(board.id).emit('board:event', ev.toObject());
 				});
-
 				return res.json(200, board);
 			});
 		});
