@@ -1,5 +1,6 @@
 'use strict';
 
+var _        = require('lodash');
 var express  = require('express');
 var mongoose = require('mongoose');
 
@@ -131,39 +132,32 @@ Router.route('/boards/:board_id')
 	.put(middleware.authenticate('user'))
 	.put(middleware.relation('user'))
 	.put(function(req, res, next) {
-		var id = req.resolved.board.id;
+		var id             = req.resolved.board.id;
+		var old            = req.resolved.board.toObject();
+		req.resolved.board = _.merge(req.resolved.board, req.body);
 
-		// Make sure we have a handle to the previous attributes.
-		var old = req.resolved.board.toObject()
+		// var payload = {
+		// 	name:             req.body.name             || old.name,
+		// 	description:      req.body.description      || old.description,
+		// 	background:       req.body.background       || old.background,
+		// 	customBackground: req.body.customBackground || old.customBackground
+		// }
 
-		// TODO How to make sure only certain fields are updated, something in
-		//      the actual 'model'?
-		var payload = {
-			name:             req.body.name             || old.name,
-			description:      req.body.description      || old.description,
-			background:       req.body.background       || old.background,
-			customBackground: req.body.customBackground || old.customBackground
-		}
+		// var size = req.body.size || old.size;
 
-		var size = req.body.size || old.size;
+		// payload.size = {
+		// 	width:  size.width  || old.size.width,
+		// 	height: size.height || old.size.height,
+		// }
 
-		payload.size = {
-			'width':  size.width  || old.size.width,
-			'height': size.height || old.size.height,
-		}
-
-		Board.findByIdAndUpdate(id, payload, function(err, board) {
+		return req.resolved.board.save(function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
-
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
-				console.log('old::',       old);
-				console.log('populated::', board);
-
 				new Event({
 					'type': 'BOARD_EDIT',
 					'board': board.id,
@@ -195,8 +189,6 @@ Router.route('/boards/:board_id')
 						}
 					}
 				}).save(function(err, ev) {
-					console.log('event::', ev);
-
 					if(err) {
 						return console.error(err);
 					}
