@@ -129,7 +129,7 @@ module.exports = function(ctx) {
 		it('should reject existing email address', function(done) {
 		 	this.app.post('/api/auth/register')
 	 			.send(credentials)
-		 		.expect(400, done);
+		 		.expect(409, done);
 		});
 	}
 }

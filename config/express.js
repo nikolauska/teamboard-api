@@ -9,7 +9,7 @@ if(config.env == 'development') {
 
 app.set('json spaces', 2);
 
-app.use(require('body-parser')());
+app.use(require('body-parser')({ 'limit': '1000kb' }));
 app.use(require('method-override')());
 
 module.exports = app;

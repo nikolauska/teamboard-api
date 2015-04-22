@@ -11,16 +11,8 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	 * The board's display name.
 	 */
 	name: {
-		type:     String,
-		required: true
-	},
-
-	/**
-	 * Description of the board.
-	 */
-	description: {
 		type:    String,
-		default: ''
+		default: '',
 	},
 
 	/**
@@ -47,6 +39,16 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	background: {
 		type:    String,
 		default: 'none'
+	},
+
+	/**
+	 * Custom background URL.
+	 *
+	 * TODO Validate to be an URL.
+	 */
+	customBackground: {
+		type:    String,
+		default: null
 	},
 
 	/**

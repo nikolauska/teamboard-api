@@ -1,7 +1,6 @@
 'use strict';
 
 var jwt      = require('jsonwebtoken');
-var boom     = require('boom');
 var passport = require('passport');
 
 var utils      = require('../utils');
@@ -117,9 +116,14 @@ Router.route('/auth/register')
 		new User({ email: req.body.email, password: req.body.password })
 			.save(function(err, user) {
 				if(err) {
-					// TODO Make sure the type of 'err' is 'ValidationError' if
-					//      we are sending a '400' response.
-					return next(utils.error(400, err));
+					console.log(err);
+					if(err.name == 'ValidationError') {
+						return next(utils.error(400, err));
+					}
+					if(err.name == 'MongoError' && err.code == 11000) {
+						return next(utils.error(409, 'User already exists'));
+					}
+					return next(utils.error(500, err));
 				}
 				return res.json(201, user);
 			});

@@ -5,7 +5,6 @@ var mongoose = require('mongoose');
 
 var utils      = require('../utils');
 var config     = require('../config');
-var emitter    = require('../config/emitter');
 var middleware = require('../middleware');
 
 var Event  = mongoose.model('event');
@@ -139,7 +138,21 @@ Router.route('/boards/:board_id')
 
 		// TODO How to make sure only certain fields are updated, something in
 		//      the actual 'model'?
-		Board.findByIdAndUpdate(id, req.body, function(err, board) {
+		var payload = {
+			name:             req.body.name             || old.name,
+			description:      req.body.description      || old.description,
+			background:       req.body.background       || old.background,
+			customBackground: req.body.customBackground || old.customBackground
+		}
+
+		var size = req.body.size || old.size;
+
+		payload.size = {
+			'width':  size.width  || old.size.width,
+			'height': size.height || old.size.height,
+		}
+
+		Board.findByIdAndUpdate(id, payload, function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
@@ -159,18 +172,20 @@ Router.route('/boards/:board_id')
 					},
 					'data': {
 						'oldAttributes': {
-							'name':        old.name,
-							'description': old.description,
-							'background':  old.background,
+							'name':             old.name,
+							'description':      old.description,
+							'background':       old.background,
+							'customBackground': old.customBackground,
 							'size': {
 								'width':  old.size.width,
 								'height': old.size.height,
 							}
 						},
 						'newAttributes': {
-							'name':        board.name,
-							'description': board.description,
-							'background':  board.background,
+							'name':             board.name,
+							'description':      board.description,
+							'background':       board.background,
+							'customBackground': board.customBackground,
 							'size': {
 								'width':  board.size.width,
 								'height': board.size.height,
@@ -181,7 +196,7 @@ Router.route('/boards/:board_id')
 					if(err) {
 						return console.error(err);
 					}
-					emitter.to(board.id).emit('board:event', ev.toObject());
+					utils.emitter.to(board.id).emit('board:event', ev.toObject());
 				});
 
 				return res.json(200, board);
@@ -215,7 +230,7 @@ Router.route('/boards/:board_id')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 			});
 
 			return res.json(200, req.resolved.board);
@@ -351,19 +366,23 @@ Router.route('/boards/:board_id/tickets')
 					'username': req.user.username,
 				},
 				'data': {
-					'id': ticket._id,
+					'id':       ticket._id,
+					'color':    ticket.color,
+					'content':  ticket.content,
+					'position': ticket.position,
 				}
 			}).save(function(err, ev) {
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ticket.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ticket.board)
+					.emit('board:event', ev.toObject());
 			});
 
 			/**
 			 * Deprecated.
 			 */
-			emitter.to(req.resolved.board.id)
+			utils.emitter.to(req.resolved.board.id)
 				.emit('ticket:create', {
 					user:   req.user,
 					board:  req.resolved.board.id,
@@ -411,7 +430,6 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 				if(!ticket) return next(utils.error(404, 'Ticket not found'));
 
-				// TODO utils.emit('TICKET_EDIT', { board, user }, { data })
 				new Event({
 					'type': 'TICKET_EDIT',
 					'board': ticket.board,
@@ -424,28 +442,31 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 						'id': ticket._id,
 
 						'oldAttributes': {
-							'color':   old.color,
-							'heading': old.heading,
-							'content': old.content,
+							'color':    old.color,
+							'heading':  old.heading,
+							'content':  old.content,
+							'position': old.position,
 						},
 
 						'newAttributes': {
-							'color':   ticket.color,
-							'heading': ticket.heading,
-							'content': ticket.content,
+							'color':    ticket.color,
+							'heading':  ticket.heading,
+							'content':  ticket.content,
+							'position': ticket.position,
 						},
 					}
 				}).save(function(err, ev) {
 					if(err) {
 						return console.error(err);
 					}
-					emitter.to(ev.board).emit('board:event', ev.toObject());
+					utils.emitter.to(ev.board)
+						.emit('board:event', ev.toObject());
 				});
 
 				/**
 				 * Deprecated.
 				 */
-				emitter.to(req.resolved.board.id)
+				utils.emitter.to(req.resolved.board.id)
 					.emit('ticket:update', {
 						user:   req.user,
 						board:  req.resolved.board.id,
@@ -485,13 +506,14 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board)
+					.emit('board:event', ev.toObject());
 			});
 
 			/**
 			 * Deprecated.
 			 */
-			emitter.to(req.resolved.board.id)
+			utils.emitter.to(req.resolved.board.id)
 				.emit('ticket:remove', {
 					user:   req.user,
 					board:  req.resolved.board.id,
@@ -551,8 +573,11 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 				'comment': req.body.comment,
 			}
 		}).save(function(err, ev) {
-			if(err) return next(utils.error(500, err));
-			emitter.to(ev.board).emit('board:event', ev.toObject());
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			utils.emitter.to(ev.board)
+				.emit('board:event', ev.toObject());
 			return res.json(201, ev.toObject());
 		});
 	});
@@ -633,7 +658,8 @@ Router.route('/boards/:board_id/access')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board)
+					.emit('board:event', ev.toObject());
 			});
 
 			return res.json(200, { accessCode: board.accessCode });
@@ -665,7 +691,8 @@ Router.route('/boards/:board_id/access')
 				if(err) {
 					return console.error(err);
 				}
-				emitter.to(ev.board).emit('board:event', ev.toObject());
+				utils.emitter.to(ev.board)
+					.emit('board:event', ev.toObject());
 			});
 
 			return res.send(200);
@@ -699,6 +726,7 @@ Router.route('/boards/:board_id/access/:code')
 		var guestPayload = {
 			id:         require('crypto').randomBytes(4).toString('hex'),
 			type:       'guest',
+			access:     board.id,
 			username:   req.body.username,
 			accessCode: board.accessCode
 		}
@@ -718,7 +746,8 @@ Router.route('/boards/:board_id/access/:code')
 			if(err) {
 				return console.error(err);
 			}
-			emitter.to(ev.board).emit('board:event', ev.toObject());
+			utils.emitter.to(ev.board)
+				.emit('board:event', ev.toObject());
 		});
 
 		return res.set('x-access-token', guestToken)

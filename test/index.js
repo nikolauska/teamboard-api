@@ -10,6 +10,9 @@ var supertest = require('supertest');
 // 'development' level logging, making test output more readable.
 process.env.NODE_ENV = 'test';
 
+// Disable 'newrelic' for test runs.
+process.env.NEW_RELIC_ENABLED = false;
+
 var config = require('../config');
 
 // Wrap Mongoose with Mockgoose
@@ -37,7 +40,6 @@ before(console.log.bind(console, ''));
  * A basic 'user' workflow.
  */
 describe('Basic API usage', function() {
-
 	var context = { }
 
 	describe('Signing up',
