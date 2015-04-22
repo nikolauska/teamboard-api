@@ -19,6 +19,6 @@ RUN cd /home/teamboard/teamboard-api && \
 
 RUN ["mkdir", "/home/teamboard/logs"]
 
-CMD /usr/local/bin/node /home/teamboard/teamboard-api/index.js \
+CMD /usr/bin/node /home/teamboard/teamboard-api/index.js \
 	2>> /home/teamboard/logs/teamboard-api.err \
 	1>> /home/teamboard/logs/teamboard-api.log
