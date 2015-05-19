@@ -12,7 +12,7 @@ module.exports = {
             auth_pass: process.env.REDIS_PASS
         },
         port: process.env.REDIS_PORT || 6379,
-        host: process.env.REDIS_HOST || 'locahost'
+        host: process.env.REDIS_HOST || '127.0.0.1'
     },
     token: {
         secret: process.env.TOKEN_SECRET || 'secret'

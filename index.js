@@ -1,6 +1,10 @@
 'use strict'
 
+var server = require('./server');
+var config = require('./config');
+
 console.log('Starting service...');
-require('./server').listen(function() {
-	console.log('Service started on port...', process.env.PORT);
+
+server.listen(function() {
+	console.log('Service started on port...', config.port);
 });
