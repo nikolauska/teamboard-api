@@ -1,10 +1,20 @@
 'use strict';
 
-function undefCheck(text, defValue) {
-	if(text) {return defValue}
-	return text;
-}
+var json2csv = require('nice-json2csv');
 
+/**
+ * Checks if value is undefined and returns defValue. Othervise value is returned 
+ * @param {*} value - Value to check.
+ * @param {*} defValue - Default value to be returned in value is undefined.
+ */
+function undefCheck(value, defValue) {
+	if(typeof value === 'undefined') {return defValue}
+	return value;
+}
+/**
+ * Return hex color to readable format
+ * @param {string} hex - Hex value to be turned.
+ */
 function hexToColor(hex) {
 	if(hex === '#724a7f') {return 'purple';}
 	if(hex === '#eb584a') {return 'red';}
@@ -13,32 +23,44 @@ function hexToColor(hex) {
 	return "";
 }
 
-function generatePlainText(board, tickets) {
-	return 'Board information\n' +
-	'=============================\n' +
-	'Board name: ' + undefCheck(board.name, '') + '\n' +
-	'Board description: ' + undefCheck(board.description, '') + '\n' +
-	'Board created by: ' + undefCheck(board.createdBy.email, '') + '\n' +
-	'Board width: ' + undefCheck(board.size.width, '0') + '\n' +
-	'Board height: ' + undefCheck(board.size.height, '0') + '\n' +
-	'=============================\n' +
-	'\n' + 
-	'Tickets information\n' +
-	'=============================\n' +
-	ticket.map(function(t) {
-		return 'Ticket heading: ' + undefCheck(t.heading, '') + '\n' +
-				'Ticket content: ' + undefCheck(t.content, '') + '\n' +
-				'Ticket color: ' + hexToColor(t.color) + '\n' + 
-				'Ticket position x: ' + undefCheck(t.position.x, '0') + '\n' +
-				'Ticket position y: ' + undefCheck(t.position.y, '0') + '\n' +
-				'---------------\n';
-	}).join('') + '\n' +
-	'=============================';
+/**
+ * Edits content text to be on same line
+ * @param {string} content - content to be edited.
+ */
+function contentEdit(content) {
+	content = content.replace(/\n/g, '\n 			');
+	return content;
 }
 
-function generateCSV(board, tickets) {
-	var json2csv = require('nice-json2csv');
+/**
+ * Generates plain text from board and tickets
+ * @param {object} board - Board object to be generated.
+ * @param {object} tickets - Tickets to be generated.
+ */
+function generatePlainText(board, tickets) {
+	return 'Board information\n' +
+	'=========================================\n\n' +
+	'Board name: 		' + undefCheck(board.name, '') + '\n' +
+	'Board created by: 	' + undefCheck(board.createdBy.email, '') + '\n\n' +
+	'=========================================\n\n\n\n' +
+	'Tickets information\n' +
+	'=========================================\n' +
+	tickets.map(function(t) {
+		return '\n' +
+				'------------------------------------------\n' +
+				'Ticket content:    	' + contentEdit(undefCheck(t.content, '')) + '\n' +
+				'Ticket color: 	    	' + hexToColor(t.color) + '\n' + 
+				'------------------------------------------\n';
+	}).join('') + '\n' +
+	'=========================================';
+}
 
+/**
+ * Generates CSV from board and tickets
+ * @param {object} board - Board object to be generated.
+ * @param {object} tickets - Tickets to be generated.
+ */
+function generateCSV(board, tickets) {
 	var boardCSVData = {
 		'NAME':        board.name,
 		'DESCRIPTION': board.description,
