@@ -261,7 +261,7 @@ Router.route('/boards/:board_id/export')
 				if(format == 'image') {
 					//var path = 'static/' + req.params.board_id + '.png';
 					var path = 'static/board.png';
-					return exportFunctions.generateImage(req, res, path, next, utils.error);
+					return exportAs.generateImage(req, res, path, next, utils.error);
 					//res.attachment(path).send(200,
 				}
 
