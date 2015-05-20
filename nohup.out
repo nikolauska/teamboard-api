@@ -1,0 +1,24 @@
+
+> teamboard-api@0.2.14 start /home/vagrant/teamboard-api
+> node index.js
+
+Starting service...
+Service started on port... undefined
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]
+[Error: Redis connection to locahost:6379 failed - getaddrinfo ENOTFOUND]

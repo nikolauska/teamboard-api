@@ -3,7 +3,7 @@
 var app    = require('express')();
 var config = require('../config');
 
-if(config.env == 'development') {
+if(process.env.NODE_ENV == 'development') {
 	app.use(require('morgan')({ format: 'dev' }));
 }
 
