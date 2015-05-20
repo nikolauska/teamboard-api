@@ -230,7 +230,6 @@ Router.route('/boards/:board_id/export')
 	.get(function(req, res, next) {
 		var format = req.query.format ? req.query.format : 'json';
 		
-
 		var boardQuery = Board.findById(req.resolved.board.id)
 			.populate({
 				'path':   'createdBy',
@@ -240,7 +239,7 @@ Router.route('/boards/:board_id/export')
 
 		boardQuery.exec(function(err, board) {
 			if(err) {
-				return next(utils.error(500, err));
+				return next(utils.error(501, err));
 			}
 
 			var ticketQuery = Ticket.find({ 'board': req.resolved.board.id })
@@ -248,7 +247,7 @@ Router.route('/boards/:board_id/export')
 
 			ticketQuery.exec(function(err, tickets) {
 				if(err) {
-					return next(utils.error(500, err));
+					return next(utils.error(502, err));
 				}
 
 				if(format == 'csv') {
@@ -258,11 +257,8 @@ Router.route('/boards/:board_id/export')
 				if(format == 'plaintext') {
 					return res.attachment('board.txt').send(200, exportAs.generatePlainText(board, tickets));
 				}
-				if(format == 'image') {
-					//var path = 'static/' + req.params.board_id + '.png';
-					var path = 'static/board.png';
-					return exportAs.generateImage(req, res, path, next, utils.error);
-					//res.attachment(path).send(200,
+				if(format == 'image') {			
+					// Make get request here
 				}
 
 				var boardObject         = board;
@@ -273,6 +269,15 @@ Router.route('/boards/:board_id/export')
 		});
 	});
 
+Router.route('/boards/:board_id/export/image')
+	/**
+	 * Export board image
+	 */
+	.get(middleware.authenticate('user', 'guest'))
+	.get(middleware.relation('user', 'guest'))
+	.get(function(req, res, next) {
+
+	});
 
 Router.route('/boards/:board_id/tickets')
 
