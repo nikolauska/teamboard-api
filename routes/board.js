@@ -46,7 +46,7 @@ Router.route('/boards')
 			boardQuery = Board.find({ createdBy: req.user.id });
 		}
 
-		boardQuery.populate('createdBy').exec(function(err, boards) {
+		boardQuery.exec(function(err, boards) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
