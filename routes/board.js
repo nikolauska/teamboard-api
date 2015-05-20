@@ -15,6 +15,8 @@ var Ticket = mongoose.model('ticket');
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
 
+var exportAs = require('../utils/export');
+
 
 // automagically resolve 'id' attributes to their respective documents
 Router.param('board_id',  middleware.resolve.board);
@@ -249,32 +251,12 @@ Router.route('/boards/:board_id/export')
 				}
 
 				if(format == 'csv') {
-					var json2csv = require('nice-json2csv');
+					return res.attachment('board.csv').send(200, exportAs.generateCSV(board, tickets));
+				} 
 
-					var boardCSVData = {
-						'NAME':        board.name,
-						'DESCRIPTION': board.description,
-						'CREATED_BY':  board.createdBy.email,
-						'SIZE_WIDTH':  '' + board.size.width  + '',
-						'SIZE_HEIGHT': '' + board.size.height + '',
-					}
-
-					var ticketCSVData = tickets.map(function(t) {
-						return {
-							'HEADING':    t.heading,
-							'CONTENT':    t.content,
-							'COLOR':      t.color,
-							'POSITION_X': '' + t.position.x + '',
-							'POSITION_Y': '' + t.position.y + '',
-							'POSITION_Z': '' + t.position.z + '',
-						}
-					});
-
-					var csvBoard    = json2csv.convert(boardCSVData);
-					var csvTickets  = json2csv.convert(ticketCSVData);
-					var csvResponse = csvBoard + '\n\n' + csvTickets;
-
-					return res.attachment('board.csv').send(200, csvResponse);
+				// Format json to plaintext if requested
+				if(format == 'plaintext') {
+					return res.attachment('board.txt').send(200, exportAs.generatePlainText(board, tickets));
 				}
 
 				var boardObject         = board;
