@@ -7,6 +7,7 @@ var json2csv = require('nice-json2csv');
  * Checks if value is undefined and returns defValue. Othervise value is returned 
  * @param {*} value - Value to check.
  * @param {*} defValue - Default value to be returned in value is undefined.
+ * @returns {*} defValue if value it undefined, otherwise return value
  */
 function undefCheck(value, defValue) {
 	if(typeof value === 'undefined') {return defValue}
@@ -15,6 +16,7 @@ function undefCheck(value, defValue) {
 /**
  * Return hex color to readable format
  * @param {string} hex - Hex value to be turned.
+ * @returns {string} color hex converted
  */
 function hexToColor(hex) {
 	if(hex === '#724a7f') {return 'purple';}
@@ -27,6 +29,7 @@ function hexToColor(hex) {
 /**
  * Edits content text to be on same line
  * @param {string} content - content to be edited.
+ * @returns {string} content edited
  */
 function contentEdit(content) {
 	content = content.replace(/\n/g, '\n 			');
@@ -37,6 +40,7 @@ function contentEdit(content) {
  * Generates plain text from board and tickets
  * @param {object} board - Board object to be generated.
  * @param {object} tickets - Tickets to be generated.
+ * @returns {string} plain text
  */
 function generatePlainText(board, tickets) {
 	return 'Board information\n' +
@@ -60,6 +64,7 @@ function generatePlainText(board, tickets) {
  * Generates CSV from board and tickets
  * @param {object} board - Board object to be generated.
  * @param {object} tickets - Tickets to be generated.
+ * @returns {string} csv text
  */
 function generateCSV(board, tickets) {
 	var boardCSVData = {
