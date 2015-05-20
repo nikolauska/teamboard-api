@@ -15,7 +15,7 @@ var Ticket = mongoose.model('ticket');
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
 
-var exportFunctions = require('../utils/export');
+var exportAs = require('../utils/export');
 
 
 // automagically resolve 'id' attributes to their respective documents
@@ -251,12 +251,12 @@ Router.route('/boards/:board_id/export')
 				}
 
 				if(format == 'csv') {
-					return res.attachment('board.csv').send(200, exportFunctions.generateCSV(board, tickets));
+					return res.attachment('board.csv').send(200, exportAs.generateCSV(board, tickets));
 				} 
 
 				// Format json to plaintext if requested
 				if(format == 'plaintext') {
-					return res.attachment('board.txt').send(200, exportFunctions.generatePlainText(board, tickets));
+					return res.attachment('board.txt').send(200, exportAs.generatePlainText(board, tickets));
 				}
 
 				var boardObject         = board;
