@@ -24,11 +24,9 @@ app.use('/api', require('./routes/board'));
 app.use(function(err, req, res, next) {
 	var boom = require('boom');
 	    err  = boom.wrap(err, err.status);
-
 	if(err.output.statusCode >= 500) {
 		console.error(err);
 	}
-
 	return res.status(err.output.statusCode).send(err.output.payload);
 });
 
@@ -44,8 +42,7 @@ module.exports.app = app;
  *                               listening to incoming requests.
  */
 module.exports.listen = function(onListen) {
-	mongoose.connect(config.mongo.url, config.mongo.options);
-
+	mongoose.connect(config.mongo.url, config.mongo.opts);
 	this.server = app.listen(config.port, onListen || function() {
 		console.log('server listening at', config.port);
 	});

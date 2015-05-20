@@ -172,11 +172,10 @@ returns:
 [
   {
     "id":      "id",
-    "heading": "heading",
     "content": "content",
     "color":   "#BABABA",
     "position": {
-      "x": 0, "y": 0, "z": 0
+      "x": 0, "y": 0
     }
   }
 ]
@@ -188,7 +187,7 @@ Returns an array of `ticket` objects that belong to the `board` specified by
 ```
 payload:
 {
-  "heading": "heading"
+  "content": "content"
 }
 ```
 Creates a new `ticket`. Returns the created `ticket` object. See above for the

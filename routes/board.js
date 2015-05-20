@@ -1,5 +1,6 @@
 'use strict';
 
+var _        = require('lodash');
 var express  = require('express');
 var mongoose = require('mongoose');
 
@@ -131,36 +132,17 @@ Router.route('/boards/:board_id')
 	.put(middleware.authenticate('user'))
 	.put(middleware.relation('user'))
 	.put(function(req, res, next) {
-		var id = req.resolved.board.id;
+		var old            = req.resolved.board.toObject();
+		req.resolved.board = _.merge(req.resolved.board, req.body);
 
-		// Make sure we have a handle to the previous attributes.
-		var old = req.resolved.board.toObject()
-
-		// TODO How to make sure only certain fields are updated, something in
-		//      the actual 'model'?
-		var payload = {
-			'name':        req.body.name        || old.name,
-			'description': req.body.description || old.description,
-			'background':  req.body.background  || old.background,
-		}
-
-		var size = req.body.size || old.size;
-
-		payload.size = {
-			'width':  size.width  || old.size.width,
-			'height': size.height || old.size.height,
-		}
-
-		Board.findByIdAndUpdate(id, payload, function(err, board) {
+		return req.resolved.board.save(function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
-
 			Board.populate(board, 'createdBy', function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
-
 				new Event({
 					'type': 'BOARD_EDIT',
 					'board': board.id,
@@ -171,18 +153,20 @@ Router.route('/boards/:board_id')
 					},
 					'data': {
 						'oldAttributes': {
-							'name':        old.name,
-							'description': old.description,
-							'background':  old.background,
+							'name':             old.name,
+							'description':      old.description,
+							'background':       old.background,
+							'customBackground': old.customBackground,
 							'size': {
 								'width':  old.size.width,
 								'height': old.size.height,
 							}
 						},
 						'newAttributes': {
-							'name':        board.name,
-							'description': board.description,
-							'background':  board.background,
+							'name':             board.name,
+							'description':      board.description,
+							'background':       board.background,
+							'customBackground': board.customBackground,
 							'size': {
 								'width':  board.size.width,
 								'height': board.size.height,
@@ -195,7 +179,6 @@ Router.route('/boards/:board_id')
 					}
 					utils.emitter.to(board.id).emit('board:event', ev.toObject());
 				});
-
 				return res.json(200, board);
 			});
 		});
@@ -363,7 +346,10 @@ Router.route('/boards/:board_id/tickets')
 					'username': req.user.username,
 				},
 				'data': {
-					'id': ticket._id,
+					'id':       ticket._id,
+					'color':    ticket.color,
+					'content':  ticket.content,
+					'position': ticket.position,
 				}
 			}).save(function(err, ev) {
 				if(err) {
@@ -411,62 +397,61 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	.put(middleware.authenticate('user', 'guest'))
 	.put(middleware.relation('user', 'guest'))
 	.put(function(req, res, next) {
-		// Store a reference to the old ticket attributes.
-		var old = req.resolved.ticket.toObject();
+		var old             = req.resolved.ticket.toObject();
+		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
 
-		// TODO Deprecate changing 'position' here, instead move to a separate
-		//      method, which will also provide the 'TICKET_MOVE' event.
-		Ticket.findByIdAndUpdate(req.resolved.ticket.id, req.body,
-			function(err, ticket) {
-				if(err) {
-					return next(utils.error(500, err));
-				}
+		return req.resolved.ticket.save(function(err, ticket) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
 
-				if(!ticket) return next(utils.error(404, 'Ticket not found'));
+			if(!ticket) return next(utils.error(404, 'Ticket not found'));
 
-				new Event({
-					'type': 'TICKET_EDIT',
-					'board': ticket.board,
-					'user': {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
+			new Event({
+				'type': 'TICKET_EDIT',
+				'board': ticket.board,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'id': ticket._id,
+
+					'oldAttributes': {
+						'color':    old.color,
+						'heading':  old.heading,
+						'content':  old.content,
+						'position': old.position,
 					},
-					'data': {
-						'id': ticket._id,
 
-						'oldAttributes': {
-							'color':   old.color,
-							'heading': old.heading,
-							'content': old.content,
-						},
+					'newAttributes': {
+						'color':    ticket.color,
+						'heading':  ticket.heading,
+						'content':  ticket.content,
+						'position': ticket.position,
+					},
+				}
+			}).save(function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				utils.emitter.to(ev.board)
+					.emit('board:event', ev.toObject());
+			});
 
-						'newAttributes': {
-							'color':   ticket.color,
-							'heading': ticket.heading,
-							'content': ticket.content,
-						},
-					}
-				}).save(function(err, ev) {
-					if(err) {
-						return console.error(err);
-					}
-					utils.emitter.to(ev.board)
-						.emit('board:event', ev.toObject());
+			/**
+			 * Deprecated.
+			 */
+			utils.emitter.to(req.resolved.board.id)
+				.emit('ticket:update', {
+					user:   req.user,
+					board:  req.resolved.board.id,
+					ticket: ticket.toObject()
 				});
 
-				/**
-				 * Deprecated.
-				 */
-				utils.emitter.to(req.resolved.board.id)
-					.emit('ticket:update', {
-						user:   req.user,
-						board:  req.resolved.board.id,
-						ticket: ticket.toObject()
-					});
-
-				return res.json(200, ticket);
-			});
+			return res.json(200, ticket);
+		});
 	})
 
 	/**
@@ -718,6 +703,7 @@ Router.route('/boards/:board_id/access/:code')
 		var guestPayload = {
 			id:         require('crypto').randomBytes(4).toString('hex'),
 			type:       'guest',
+			access:     board.id,
 			username:   req.body.username,
 			accessCode: board.accessCode
 		}
