@@ -125,7 +125,7 @@ Router.route('/boards/:board_id')
 	 *     'background':  'new-background'
 	 *     'size': {
 	 *       'width', 'height'
-	 *     }
+	 *     }bout.
 	 *   }
 	 *
 	 * returns:
@@ -229,6 +229,7 @@ Router.route('/boards/:board_id/export')
 	.get(middleware.relation('user', 'guest'))
 	.get(function(req, res, next) {
 		var format = req.query.format ? req.query.format : 'json';
+		
 
 		var boardQuery = Board.findById(req.resolved.board.id)
 			.populate({
@@ -254,9 +255,14 @@ Router.route('/boards/:board_id/export')
 					return res.attachment('board.csv').send(200, exportFunctions.generateCSV(board, tickets));
 				} 
 
-				// Format json to plaintext if requested
 				if(format == 'plaintext') {
 					return res.attachment('board.txt').send(200, exportFunctions.generatePlainText(board, tickets));
+				}
+				if(format == 'image') {
+					//var path = 'static/' + req.params.board_id + '.png';
+					var path = 'static/board.png';
+					return exportFunctions.generateImage(req, res, path, next, utils.error);
+					//res.attachment(path).send(200,
 				}
 
 				var boardObject         = board;

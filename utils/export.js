@@ -1,5 +1,6 @@
 'use strict';
 
+var webshot  = require('webshot');
 var json2csv = require('nice-json2csv');
 
 /**
@@ -85,7 +86,31 @@ function generateCSV(board, tickets) {
 	return csvBoard + '\n\n' + csvTickets;
 }
 
+function generateImage(req, res, dest, next, utils) {
+    var html = req.html;
+    var zoomFactor = 0.20;
+
+	var options = {
+		siteType:   'html',
+		zoomFactor: zoomFactor,
+		shotSize: {
+			width:  1920 * zoomFactor,
+			height: 1080 * zoomFactor
+		}
+	}
+
+	return webshot(html, dest, options, function(err) {
+		if(err) {
+			err.message = html;	
+			return next(utils(500, err));
+		}
+		return res.attachment('board.png').send(200, dest);
+	});
+
+}
+
 module.exports = {
 	generatePlainText: generatePlainText,
-	generateCSV: generateCSV
+	generateCSV: generateCSV,
+	generateImage: generateImage
 }
