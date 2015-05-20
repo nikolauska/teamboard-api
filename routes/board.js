@@ -26,21 +26,32 @@ Router.param('ticket_id', middleware.resolve.ticket);
 Router.route('/boards')
 
 	/**
-	 * Returns the boards that have been created by the user making the request.
+	 * Returns the boards that have been created by the user making the
+	 * request. If the requestee is a guest, returns the board the guest has
+	 * access to.
 	 *
 	 * returns:
 	 *   An array of board objects.
 	 */
-	.get(middleware.authenticate('user'))
+	.get(middleware.authenticate('user', 'guest'))
 	.get(function(req, res, next) {
-		Board.find({ createdBy: req.user.id })
-			.populate('createdBy')
-			.exec(function(err, boards) {
-				if(err) {
-					return next(utils.error(500, err));
-				}
-				return res.json(200, boards);
-			});
+		var boardQuery = null;
+
+		if(req.user.type === 'guest') {
+			// Guests can only see the board they have access to...
+			boardQuery = Board.find({ _id: req.user.access });
+		}
+		else {
+			// Normal users see the boards they have created.
+			boardQuery = Board.find({ createdBy: req.user.id });
+		}
+
+		boardQuery.populate('createdBy').exec(function(err, boards) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			return res.json(200, boards);
+		});
 	})
 
 	/**
@@ -61,7 +72,6 @@ Router.route('/boards')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
-
 		var payload           = req.body;
 		    payload.createdBy = req.user.id;
 
@@ -252,7 +262,7 @@ Router.route('/boards/:board_id/export')
 
 				if(format == 'csv') {
 					return res.attachment('board.csv').send(200, exportAs.generateCSV(board, tickets));
-				} 
+				}
 
 				// Format json to plaintext if requested
 				if(format == 'plaintext') {
