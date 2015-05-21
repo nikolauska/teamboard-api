@@ -223,7 +223,7 @@ Router.route('/boards/:board_id')
 Router.route('/boards/:board_id/export')
 
 	/**
-	 * Download the 'board' as a 'json'-file.
+	 * Export board either json, csv, plaintext or image
 	 */
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('user', 'guest'))
@@ -238,8 +238,17 @@ Router.route('/boards/:board_id/export')
 			.select('-_id -__v -accessCode').lean();
 
 		boardQuery.exec(function(err, board) {
+			// Callback for webshot
+			function imageCallback(path, err) {
+				if(err) {
+					return next(utils.error(503, err))
+				}
+
+				return res.attachment('board.png').send(200, path);
+			}
+
 			if(err) {
-				return next(utils.error(501, err));
+				return next(utils.error(500, err));
 			}
 
 			var ticketQuery = Ticket.find({ 'board': req.resolved.board.id })
@@ -247,7 +256,7 @@ Router.route('/boards/:board_id/export')
 
 			ticketQuery.exec(function(err, tickets) {
 				if(err) {
-					return next(utils.error(502, err));
+					return next(utils.error(500, err));
 				}
 
 				if(format == 'csv') {
@@ -257,14 +266,16 @@ Router.route('/boards/:board_id/export')
 				if(format == 'plaintext') {
 					return res.attachment('board.txt').send(200, exportAs.generatePlainText(board, tickets));
 				}
-				if(format == 'image') {			
-					// Make get request here
+	
+				if(format == 'image') {
+					// Handle errors and attachment returns on callback
+					return exportAs.generateImage(req, tickets, imageCallback);
 				}
 
-				var boardObject         = board;
+				var boardObject     	= board;
 				    boardObject.tickets = tickets;
 
-				return res.attachment('board.json').json(200, boardObject);
+				return res.attachment('board.json').json(200, boardObject);		
 			});
 		});
 	});
@@ -276,7 +287,26 @@ Router.route('/boards/:board_id/export/image')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('user', 'guest'))
 	.get(function(req, res, next) {
+		var imagepath = 'image/board.png';
+		var jadePath = 'image/app.jade';
+		var options = {
+			tickets: board.tickets 
+		};
 
+		// Replace app.jade and image folder to smarter name
+		var html = jade.renderFile(jadePath, options);
+
+		// Callback for webshot
+		function imageCallback(err) {
+			if(err) {
+				return next(utils.error(503, err))
+			}
+
+			return res.attachment(path);
+		}
+
+		// Handle errors and attacment returns on callback
+		return exportAs.generateImage(html, path, imageCallback);
 	});
 
 Router.route('/boards/:board_id/tickets')

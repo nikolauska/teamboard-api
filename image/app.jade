@@ -1,12 +1,15 @@
 doctype html
 html(lang="en")
-	head
-		style(type="text/css"): include http://fonts.googleapis.com/css?family=Lato
-		style(type="text/css"): include http://fonts.googleapis.com/css?family=Lobster
-		style(type="text/css"): include http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css
-		style(type="text/css"): include app.css
-	body
-		#board
-			each ticket in tickets
-				.ticket(style="left: #{ticket.position.x}px; top: #{ticket.position.y}px; background-color: #{ticket.color}")
-	
+    head
+        link(rel='stylesheet', href='http://fonts.googleapis.com/css?family=Lato', type='text/css')
+        link(rel='stylesheet', href='http://fonts.googleapis.com/css?family=Lobster', type='text/css') 
+        link(rel='stylesheet', href='http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css', type='text/css') 
+        style(type="text/css"): include app.css
+    body
+        .board
+            if customBackground != null
+                style="background-image: #{customBackground}"
+            else
+                style="background-image: #{background}"
+            each ticket in tickets
+                .ticket(style="left: #{ticket.position.x}px; top: #{ticket.position.y}px; background-color: #{ticket.color}")
