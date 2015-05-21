@@ -157,8 +157,11 @@ Router.route('/boards/:board_id')
 
 					Ticket.find({ 'board': req.resolved.board.id,
 						$or: [{'position.x': {$gt: (req.resolved.board.size.width * 192) - 96}}, {'position.y': {$gt: (req.resolved.board.size.height * 108) - 54}}]}, function (err, tickets) {
+
 						if(tickets.length > 0) {
-							console.log("sadsasadsa " + tickets);
+
+							tickets.map(utils.clamper("asd"));
+
 						}
 
 					});
