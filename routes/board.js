@@ -152,6 +152,34 @@ Router.route('/boards/:board_id')
 				return next(utils.error(400, err));
 			}
 			Board.populate(board, 'createdBy', function(err, board) {
+
+				if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
+
+					Ticket.find({ 'board': req.resolved.board.id }, function (err, tickets) {
+						if(err) {
+							return next(utils.error(500, err));
+						}
+
+						tickets.map( function(ticket) {
+							console.log(ticket.position);
+							if(ticket.position.x >= req.resolved.board.size.width * 192) {
+								console.log("Ticket out of bounds in x position!");
+							}
+
+							if(ticket.position.y >= req.resolved.board.size.height * 108) {
+								console.log("Ticket out of bounds in y position!");
+							}
+						});
+
+						/*
+
+						 Ticket.Width    = 192;
+						 Ticket.Height   = 108;
+						 */
+
+					});
+				}
+
 				if(err) {
 					return next(utils.error(500, err));
 				}
