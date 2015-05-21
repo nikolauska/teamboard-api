@@ -2,4 +2,4 @@
 
 module.exports.error   = require('./error');
 module.exports.emitter = require('./emitter');
-module.exports.clamper = require('./clamper');
+module.exports.ticketClamper = require('./clamper');

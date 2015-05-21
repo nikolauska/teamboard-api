@@ -3,6 +3,7 @@
 var _        = require('lodash');
 var express  = require('express');
 var mongoose = require('mongoose');
+var Promise  = require('promise')
 
 var utils      = require('../utils');
 var config     = require('../config');
@@ -156,14 +157,17 @@ Router.route('/boards/:board_id')
 				if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
 
 					Ticket.find({ 'board': req.resolved.board.id,
-						$or: [{'position.x': {$gt: (req.resolved.board.size.width * 192) - 96}}, {'position.y': {$gt: (req.resolved.board.size.height * 108) - 54}}]}, function (err, tickets) {
+						$or: [
+								{'position.x': {$gt: (req.resolved.board.size.width * 192) - 96}},
+								{'position.y': {$gt: (req.resolved.board.size.height * 108) - 54}}
+						     ]}, function (err, tickets) {
 
 						if(tickets.length > 0) {
 
-							tickets.map(utils.clamper("asd"));
-
+							Promise.all(tickets.map(utils.ticketClamper(req.resolved.board))).then(function(){
+								console.log("done");
+							})
 						}
-
 					});
 				}
 

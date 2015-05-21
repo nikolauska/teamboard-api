@@ -1,9 +1,12 @@
 'use strict';
 
+var Promise = require('promise');
+
 module.exports = function(board) {
 
         return function(ticket) {
-            console.log(board);
-            console.log(ticket);
+            return new Promise(function(resolve, reject) {
+                console.log(ticket.id);
+            });
         }
 }
