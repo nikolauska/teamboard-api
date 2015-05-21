@@ -155,27 +155,11 @@ Router.route('/boards/:board_id')
 
 				if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
 
-					Ticket.find({ 'board': req.resolved.board.id }, function (err, tickets) {
-						if(err) {
-							return next(utils.error(500, err));
+					Ticket.find({ 'board': req.resolved.board.id,
+						$or: [{'position.x': {$gt: (req.resolved.board.size.width * 192) - 96}}, {'position.y': {$gt: (req.resolved.board.size.height * 108) - 54}}]}, function (err, tickets) {
+						if(tickets.length > 0) {
+							console.log("sadsasadsa " + tickets);
 						}
-
-						tickets.map( function(ticket) {
-							console.log(ticket.position);
-							if(ticket.position.x >= req.resolved.board.size.width * 192) {
-								console.log("Ticket out of bounds in x position!");
-							}
-
-							if(ticket.position.y >= req.resolved.board.size.height * 108) {
-								console.log("Ticket out of bounds in y position!");
-							}
-						});
-
-						/*
-
-						 Ticket.Width    = 192;
-						 Ticket.Height   = 108;
-						 */
 
 					});
 				}
