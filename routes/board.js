@@ -154,8 +154,8 @@ Router.route('/boards/:board_id')
 			}
 			Board.populate(board, 'createdBy', function(err, board) {
 
-				if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
 
+				if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
 					Ticket.find({ 'board': req.resolved.board.id,
 						$or: [
 								{'position.x': {$gt: (req.resolved.board.size.width * 192) - 96}},
@@ -163,9 +163,7 @@ Router.route('/boards/:board_id')
 						     ]}, function (err, tickets) {
 
 						if(tickets.length > 0) {
-
 							Promise.all(tickets.map(utils.ticketClamper(req.resolved.board))).then(function(){
-								console.log("done");
 							})
 						}
 					});
