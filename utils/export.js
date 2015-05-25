@@ -100,12 +100,12 @@ function generateImage(req, tickets, callback) {
 	var jadePath = 'image/app.jade';
 
 	// define zoom factor
-	var zoomFactor = 0.20;
+	var zoomFactor = 1;
 
 	// Define options to send to
 	var optionsJade = {
 		customBackground: req.resolved.board.customBackground,
-		background: req.resolved.board.customBackground,
+		background: req.resolved.board.background,
 		tickets: tickets					
 	};
 
