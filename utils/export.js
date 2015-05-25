@@ -1,10 +1,8 @@
 'use strict';
 
-var webshot  = require('webshot');
 var json2csv = require('nice-json2csv');
 var fs       = require('fs');
 var utils    = require('../utils');
-var jade 	 = require('jade');
 
 /**
  * Checks if value is undefined and returns defValue. Othervise value is returned 
@@ -94,46 +92,7 @@ function generateCSV(board, tickets) {
 	return csvBoard + '\n\n' + csvTickets;
 }
 
-function generateImage(req, tickets, callback) {
-	// defines paths
-	var imagepath = 'image/board.png';
-	var jadePath = 'image/app.jade';
-
-	// define zoom factor
-	var zoomFactor = 1;
-
-	// Define options to send to
-	var optionsJade = {
-		customBackground: req.resolved.board.customBackground,
-		background: req.resolved.board.background,
-		tickets: tickets					
-	};
-
-	// Replace app.jade and image folder to smarter name
-	var html = jade.renderFile(jadePath, optionsJade);
-
-	var optionsWebShot = {
-		siteType:   'html',
-		zoomFactor: zoomFactor,
-		shotSize: {
-			width:  1920 * zoomFactor,
-			height: 1080 * zoomFactor
-		}
-	}
-
-	//return res.attachment('board.txt').send(200, html);
-
-	return webshot(html, imagepath, optionsWebShot, function(err) {
-		if(err) {
-			return callback(imagepath, err);
-		}
-
-		return callback(imagepath);
-	});
-}
-
 module.exports = {
 	generatePlainText: generatePlainText,
-	generateCSV: generateCSV,
-	generateImage: generateImage
+	generateCSV: generateCSV
 }

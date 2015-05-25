@@ -1,8 +1,8 @@
 'use strict';
 
-var _        = require('lodash');
-var express  = require('express');
-var mongoose = require('mongoose');
+var _          = require('lodash');
+var express    = require('express');
+var mongoose   = require('mongoose');
 
 var utils      = require('../utils');
 var config     = require('../config');
@@ -244,7 +244,7 @@ Router.route('/boards/:board_id/export')
 					return next(utils.error(503, err))
 				}
 
-				return res.attachment('board.png').send(200, path);
+				return res.attachment('board.png').send(200, )
 			}
 
 			if(err) {
@@ -268,8 +268,7 @@ Router.route('/boards/:board_id/export')
 				}
 	
 				if(format == 'image') {
-					// Handle errors and attachment returns on callback
-					return exportAs.generateImage(req, tickets, imageCallback);
+					
 				}
 
 				var boardObject     	= board;
