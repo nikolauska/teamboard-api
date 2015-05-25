@@ -3,7 +3,7 @@
 var _        = require('lodash');
 var express  = require('express');
 var mongoose = require('mongoose');
-var Promise  = require('promise')
+var Promise  = require('promise');
 
 var utils      = require('../utils');
 var config     = require('../config');
