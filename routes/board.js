@@ -154,7 +154,6 @@ Router.route('/boards/:board_id')
 			}
 			Board.populate(board, 'createdBy', function(err, board) {
 
-
 				if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
 					Ticket.find({ 'board': req.resolved.board.id,
 						$or: [
