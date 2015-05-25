@@ -92,7 +92,28 @@ function generateCSV(board, tickets) {
 	return csvBoard + '\n\n' + csvTickets;
 }
 
+function generateImage(board, tickets) {
+	var GetData = {
+		'background': board.background,
+		'customBackground': board.customBackground,
+		'tickets': ticket.tickets
+	};
+
+	var options = {
+		hostname: 'localhost/image/board',
+		port: '9003',
+		method: 'GET',
+		path: '/',
+		headers: {
+			'Content-Type': 'application/json',
+			'content-Lenght': GetData.lenght
+	}
+};
+	return GetData + options;
+};
+
 module.exports = {
+	generateImage: generateImage,
 	generatePlainText: generatePlainText,
 	generateCSV: generateCSV
 }

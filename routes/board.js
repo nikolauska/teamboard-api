@@ -1,8 +1,9 @@
 'use strict';
 
-var _          = require('lodash');
+var _  		   = require('lodash');
 var express    = require('express');
 var mongoose   = require('mongoose');
+var http	   = require('http');
 
 var utils      = require('../utils');
 var config     = require('../config');
@@ -239,14 +240,7 @@ Router.route('/boards/:board_id/export')
 
 		boardQuery.exec(function(err, board) {
 			// Callback for webshot
-			function imageCallback(path, err) {
-				if(err) {
-					return next(utils.error(503, err))
-				}
-
-				return res.attachment('board.png').send(200, )
-			}
-
+			
 			if(err) {
 				return next(utils.error(500, err));
 			}
@@ -268,7 +262,7 @@ Router.route('/boards/:board_id/export')
 				}
 	
 				if(format == 'image') {
-					
+					return 
 				}
 
 				var boardObject     	= board;
@@ -753,5 +747,18 @@ Router.route('/boards/:board_id/access/:code')
 			.json(200, guestPayload);
 	});
 
+var req = http.request(exportAs.generateImage.options, function(res) {
+	console.log('STATUS' + res.statusCode);
+	res.on('data', function(chunk) {
+		console.log('BODY: ' + chunk);
+	});
+});
+
+res.on('error', function(err){
+		console.log('problem with body: ' + err.message);
+});
+
+req.write(exportAs.generateImage.GetData);
+req.end();
 
 module.exports = Router;
