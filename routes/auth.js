@@ -116,7 +116,6 @@ Router.route('/auth/register')
 		new User({ email: req.body.email, password: req.body.password })
 			.save(function(err, user) {
 				if(err) {
-					console.log(err);
 					if(err.name == 'ValidationError') {
 						return next(utils.error(400, err));
 					}
