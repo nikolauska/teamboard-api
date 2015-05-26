@@ -34,23 +34,22 @@ module.exports = function(ctx) {
 					var ticket = res.body;
 
 					ticket.should.have.properties([
-						'heading', 'content', 'color', 'position'
+						'content', 'color', 'position'
 					]);
 
-					ticket.heading.should.be.a.String;
 					ticket.content.should.be.a.String;
 
 					// TODO Validate the color somehow. Are the colors defined
 					//      somewhere, or do we only accept a specific format
 					//      such as 'hex' / #BABABA
 					ticket.color.should.be.a.String;
+					ticket.color.should.equal('#FFFFFF');
 
 					ticket.position.should.be.an.Object;
-					ticket.position.should.have.properties(['x', 'y', 'z']);
+					ticket.position.should.have.properties(['x', 'y']);
 
 					ticket.position.x.should.be.a.Number;
 					ticket.position.y.should.be.a.Number;
-					ticket.position.z.should.be.a.Number;
 
 					ctx.ticket = ticket;
 

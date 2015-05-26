@@ -45,36 +45,36 @@ describe('Application', function() {
 	describe('Signing up',
 		require('./spec/signing-up')(context));
 
-	// describe('Logging in',
-	// 	require('./spec/signing-in')(context));
+	describe('Logging in',
+		require('./spec/signing-in')(context));
 
-	// describe('Creating a board',
-	// 	require('./spec/creating-a-board')(context));
+	describe('Creating a board',
+		require('./spec/creating-a-board')(context));
 
-	// describe('Updating a board',
-	// 	require('./spec/updating-a-board')(context));
+	describe('Updating a board',
+		require('./spec/updating-a-board')(context));
 
-	// describe('Creating a ticket',
-	// 	require('./spec/creating-a-ticket')(context));
+	describe('Creating a ticket',
+		require('./spec/creating-a-ticket')(context));
 
-	// describe('Updating a ticket',
-	// 	require('./spec/updating-a-ticket')(context));
+	describe('Updating a ticket',
+		require('./spec/updating-a-ticket')(context));
 
 	// describe('Commenting on a ticket',
 	// 	require('./spec/posting-a-comment')(context));
 
-	// describe('Granting guest access',
-	// 	require('./spec/granting-guest-access')(context));
+	describe('Granting guest access',
+		require('./spec/granting-guest-access')(context));
 
 	// describe('Fetching board events',
 	// 	require('./spec/fetching-events')(context));
 
-	// describe('Using guest token',
-	// 	require('./spec/using-guest-token')(context));
+	describe('Using guest token',
+		require('./spec/using-guest-token')(context));
 
-	// describe('Revoking guest access',
-	// 	require('./spec/revoking-guest-access')(context));
+	describe('Revoking guest access',
+		require('./spec/revoking-guest-access')(context));
 
-	// describe('Exporting to a file',
-	// 	require('./spec/exporting-to-a-file')(context));
+	describe('Exporting to a file',
+		require('./spec/exporting-to-a-file')(context));
 });
