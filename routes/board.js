@@ -747,14 +747,26 @@ Router.route('/boards/:board_id/access/:code')
 			.json(200, guestPayload);
 	});
 
-var req = http.request(exportAs.generateImage.options, function(res) {
+var options = {
+	host: 'localhost',
+	port: 9003,
+	path: '/',
+	method: 'GET',
+	headers: {
+		'Content-Type': 'application/json',
+		'content-Lenght': exportAs.generateImage.GetData
+	}
+};
+
+var req = http.request(options, function(res) {
 	console.log('STATUS' + res.statusCode);
+	
 	res.on('data', function(chunk) {
 		console.log('BODY: ' + chunk);
 	});
 });
 
-res.on('error', function(err){
+req.on('error', function(err){
 		console.log('problem with body: ' + err.message);
 });
 
