@@ -23,7 +23,6 @@ var exportAs = require('../utils/export');
 Router.param('board_id',  middleware.resolve.board);
 Router.param('ticket_id', middleware.resolve.ticket);
 
-
 Router.route('/boards')
 
 	/**
@@ -262,7 +261,8 @@ Router.route('/boards/:board_id/export')
 				}
 	
 				if(format == 'image') {
-					return getImage();
+					return getImage(res, req, board, tickets, req.resolved.board.id) + exportAs.generateImage(res, req, board, tickets, req.resolved.board.id);
+					//return getImage(tickets,board,res);
 				}
 
 				var boardObject     	= board;
@@ -747,32 +747,40 @@ Router.route('/boards/:board_id/access/:code')
 			.json(200, guestPayload);
 	});
 
-function getImage(res, chunk) {
+function getImage(res, board, tickets, id) {
+	var GetData = JSON.stringify({
+		'id': board._id,
+		'background': board.background,
+		'customBackground': board.customBackground,
+		'tickets': tickets
+	});
+		console.log('GETDATA: '+ GetData);
+
 	var options = {
 		host: 'localhost',
 		port: 9003,
-		path: '/',
+		path: '/board',
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
-			'content-Lenght': exportAs.generateImage().lenght
+			'content-Lenght': GetData.lenght
 		}
 	};
-	
 	var req = http.request(options, function(res) {
-		console.log('STATUS' + res.statusCode);
-		
+		console.log('STATUS: ' + res.statusCode);
+		console.log('HEADERS: ' + JSON.stringify(res.headers));
 		res.on('data', function(chunk) {
 			console.log('BODY: ' + chunk);
 		});
 	});
 
 	req.on('error', function(err){
-			console.log('problem with body: ' + err.message);
+			console.log('error: ' + err.message);
 	});
 
-	req.write(exportAs.generateImage());
+	req.write(GetData); //exportAs.generateImage(board, tickets)
 	req.end();
 };
+
 
 module.exports = Router;

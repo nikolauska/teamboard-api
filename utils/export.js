@@ -93,11 +93,13 @@ function generateCSV(board, tickets) {
 }
 
 function generateImage(board, tickets) {
-	var GetData = {
+
+	var GetData = JSON.stringify({
+		'id': board._id,
 		'background': board.background,
 		'customBackground': board.customBackground,
-		'tickets': tickets.tickets
-	};
+		'tickets': tickets
+	});
 	return GetData;
 };
 
