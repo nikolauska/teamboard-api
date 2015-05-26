@@ -36,7 +36,7 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	 */
 	color: {
 		type:    String,
-		default: '#FFF'
+		default: '#FFFFFF'
 	},
 
 	/**
@@ -53,10 +53,6 @@ var TicketSchema = module.exports = new mongoose.Schema({
 			default: 0
 		},
 		y: {
-			type:    Number,
-			default: 0
-		},
-		z: {
 			type:    Number,
 			default: 0
 		}

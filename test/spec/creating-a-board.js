@@ -10,12 +10,6 @@ module.exports = function(ctx) {
 			this.app.post('/api/boards').expect(401, done);
 		});
 
-		it('should require a \'name\'', function(done) {
-			this.app.post('/api/boards')
-				.send({ 'access_token': ctx.credentials.token })
-				.expect(400, done);
-		});
-
 		it('should initialize the board to valid defaults', function(done) {
 			var self = this;
 
@@ -29,15 +23,14 @@ module.exports = function(ctx) {
 
 					var board = res.body;
 
-					// The server should only set attributes sent, so 'description'
-					// should not be undefined.
+					// The server should only set attributes sent, so
+					// 'description' should not be undefined.
 					board.name.should.equal('plankku');
-					board.description.should.equal('');
 
 					// Size is the board's size in 'tickets'.
 					//
-					// TODO Default values are hardcoded here, they should be read
-					//      from configuration.
+					// TODO Default values are hardcoded here, they should be
+					//      read from configuration.
 					board.size.should.be.an.Object;
 					board.size.width.should.equal(8);
 					board.size.height.should.equal(8);
@@ -47,8 +40,9 @@ module.exports = function(ctx) {
 					// TODO Background should be an enumeration.
 					board.background.should.equal('none');
 
-					// Check that the 'createdBy' field gets populated by the server
-					// and that the 'id' gets set to the requesting user's 'id'.
+					// Check that the 'createdBy' field gets populated by the
+					// server and that the 'id' gets set to the requesting
+					// user's 'id'.
 					board.createdBy.should.be.an.Object;
 					board.createdBy.id.should.be.a.String;
 					board.createdBy.id.should.equal(ctx.user.id);
