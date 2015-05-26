@@ -262,7 +262,7 @@ Router.route('/boards/:board_id/export')
 				}
 	
 				if(format == 'image') {
-					return 
+					return getImage();
 				}
 
 				var boardObject     	= board;
@@ -747,32 +747,32 @@ Router.route('/boards/:board_id/access/:code')
 			.json(200, guestPayload);
 	});
 
-var options = {
-	host: 'localhost',
-	port: 9003,
-	path: '/',
-	method: 'GET',
-	headers: {
-		'Content-Type': 'application/json',
-		'content-Lenght': exportAs.generateImage.GetData
-	}
-};
-
 function getImage(res, chunk) {
-var req = http.request(options, function(res) {
-	console.log('STATUS' + res.statusCode);
+	var options = {
+		host: 'localhost',
+		port: 9003,
+		path: '/',
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+			'content-Lenght': exportAs.generateImage().lenght
+		}
+	};
 	
-	res.on('data', function(chunk) {
-		console.log('BODY: ' + chunk);
+	var req = http.request(options, function(res) {
+		console.log('STATUS' + res.statusCode);
+		
+		res.on('data', function(chunk) {
+			console.log('BODY: ' + chunk);
+		});
 	});
-});
 
-req.on('error', function(err){
-		console.log('problem with body: ' + err.message);
-});
+	req.on('error', function(err){
+			console.log('problem with body: ' + err.message);
+	});
 
-req.write(exportAs.generateImage.GetData);
-req.end();
+	req.write(exportAs.generateImage());
+	req.end();
 };
 
 module.exports = Router;

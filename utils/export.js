@@ -93,11 +93,11 @@ function generateCSV(board, tickets) {
 }
 
 function generateImage(board, tickets) {
-var GetData = {
-	'background': board.background,
-	'customBackground': board.customBackground,
-	'tickets': ticket.tickets
-};
+	var GetData = {
+		'background': board.background,
+		'customBackground': board.customBackground,
+		'tickets': tickets.tickets
+	};
 	return GetData;
 };
 
