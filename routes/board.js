@@ -758,6 +758,7 @@ var options = {
 	}
 };
 
+function getImage(res, chunk) {
 var req = http.request(options, function(res) {
 	console.log('STATUS' + res.statusCode);
 	
@@ -772,5 +773,6 @@ req.on('error', function(err){
 
 req.write(exportAs.generateImage.GetData);
 req.end();
+};
 
 module.exports = Router;
