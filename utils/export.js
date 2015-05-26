@@ -92,19 +92,7 @@ function generateCSV(board, tickets) {
 	return csvBoard + '\n\n' + csvTickets;
 }
 
-function generateImage(board, tickets) {
-
-	var GetData = JSON.stringify({
-		'id': board._id,
-		'background': board.background,
-		'customBackground': board.customBackground,
-		'tickets': tickets
-	});
-	return GetData;
-};
-
 module.exports = {
-	generateImage: generateImage,
 	generatePlainText: generatePlainText,
 	generateCSV: generateCSV
 }

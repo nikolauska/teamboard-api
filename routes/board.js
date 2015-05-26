@@ -261,7 +261,7 @@ Router.route('/boards/:board_id/export')
 				}
 	
 				if(format == 'image') {
-					return getImage(res, req, board, tickets, req.resolved.board.id) + exportAs.generateImage(res, req, board, tickets, req.resolved.board.id);
+					return getImage(res,req, board, tickets); // + exportAs.generateImage(res, req, board, tickets, req.resolved.board.id);
 					//return getImage(tickets,board,res);
 				}
 
@@ -747,9 +747,9 @@ Router.route('/boards/:board_id/access/:code')
 			.json(200, guestPayload);
 	});
 
-function getImage(res, board, tickets, id) {
+function getImage(res, req, board, tickets) {
 	var GetData = JSON.stringify({
-		'id': board._id,
+		'id': req.resolved.board.id,
 		'background': board.background,
 		'customBackground': board.customBackground,
 		'tickets': tickets
@@ -758,7 +758,7 @@ function getImage(res, board, tickets, id) {
 
 	var options = {
 		host: 'localhost',
-		port: 9003,
+		port: 9001,
 		path: '/board',
 		method: 'GET',
 		headers: {
