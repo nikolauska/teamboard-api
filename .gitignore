@@ -5,3 +5,4 @@
 
 .vagrant/
 node_modules/
+nohup.out

@@ -25,6 +25,7 @@
     "passport-anonymous": "^1.0.1",
     "passport-http-bearer": "~1.0.1",
     "passport-local": "~1.0.0",
+    "promise": "~6.0.0",
     "redis": "^0.12.1",
     "request": "^2.39.0",
     "socket.io-emitter": "~0.2.0"
@@ -40,6 +41,7 @@
     "proxyquire": "^1.5.0",
     "purdy": "^1.0.1",
     "should": "~4.0.0",
-    "supertest": "~0.13.0"
+    "supertest": "~0.13.0",
+    "mockgoose": "~1.10.7"
   }
 }

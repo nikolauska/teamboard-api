@@ -3,6 +3,7 @@
 var _        = require('lodash');
 var express  = require('express');
 var mongoose = require('mongoose');
+var Promise  = require('promise');
 
 var utils      = require('../utils');
 var config     = require('../config');
@@ -147,6 +148,9 @@ Router.route('/boards/:board_id')
 		var old            = req.resolved.board.toObject();
 		req.resolved.board = _.merge(req.resolved.board, req.body);
 
+		var ticketWidth = 192;
+		var ticketHeight = 108;
+
 		return req.resolved.board.save(function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
@@ -155,42 +159,26 @@ Router.route('/boards/:board_id')
 				if(err) {
 					return next(utils.error(500, err));
 				}
-				new Event({
-					'type': 'BOARD_EDIT',
-					'board': board.id,
-					'user':  {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					},
-					'data': {
-						'oldAttributes': {
-							'name':             old.name,
-							'description':      old.description,
-							'background':       old.background,
-							'customBackground': old.customBackground,
-							'size': {
-								'width':  old.size.width,
-								'height': old.size.height,
-							}
-						},
-						'newAttributes': {
-							'name':             board.name,
-							'description':      board.description,
-							'background':       board.background,
-							'customBackground': board.customBackground,
-							'size': {
-								'width':  board.size.width,
-								'height': board.size.height,
-							}
+
+				if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
+					Ticket.find({ 'board': req.resolved.board.id,
+						$or: [
+								{'position.x': {$gt: (req.resolved.board.size.width * ticketWidth) - ticketWidth / 2}},
+								{'position.y': {$gt: (req.resolved.board.size.height * ticketHeight) - ticketHeight / 2}}
+						     ]}, function (err, tickets) {
+
+						if(tickets.length > 0) {
+							Promise.all(tickets.map(utils.ticketClamper(req.resolved.board))).then(function(){
+
+								utils.createEditBoardEvent(req, req.resolved.board, old);
+							})
 						}
-					}
-				}).save(function(err, ev) {
-					if(err) {
-						return console.error(err);
-					}
-					utils.emitter.to(board.id).emit('board:event', ev.toObject());
-				});
+					});
+				} else {
+
+					utils.createEditBoardEvent(req, req.resolved.board, old);
+				}
+
 				return res.json(200, board);
 			});
 		});
