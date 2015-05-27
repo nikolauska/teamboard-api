@@ -261,8 +261,8 @@ Router.route('/boards/:board_id/export')
 				}
 	
 				if(format == 'image') {
-					return getImage(res,req, board, tickets); // + exportAs.generateImage(res, req, board, tickets, req.resolved.board.id);
-					//return getImage(tickets,board,res);
+					return res.attachment('board.png').send(200, postImage(res,req, board, tickets)); // + exportAs.generateImage(res, req, board, tickets, req.resolved.board.id);
+					//return postImage(tickets,board,res);
 				}
 
 				var boardObject     	= board;
@@ -747,30 +747,32 @@ Router.route('/boards/:board_id/access/:code')
 			.json(200, guestPayload);
 	});
 
-function getImage(res, req, board, tickets) {
-	var GetData = JSON.stringify({
+function postImage(res, req, board, tickets) {
+	var PostData = JSON.stringify({
 		'id': req.resolved.board.id,
 		'background': board.background,
 		'customBackground': board.customBackground,
 		'tickets': tickets
 	});
-		console.log('GETDATA: '+ GetData);
+		console.log('PostData: '+ PostData);
 
 	var options = {
 		host: 'localhost',
-		port: 9001,
+		port: 9003,
 		path: '/board',
-		method: 'GET',
+		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'content-Lenght': GetData.lenght
+			'content-Lenght': PostData.lenght
 		}
 	};
+
 	var req = http.request(options, function(res) {
 		console.log('STATUS: ' + res.statusCode);
 		console.log('HEADERS: ' + JSON.stringify(res.headers));
 		res.on('data', function(chunk) {
 			console.log('BODY: ' + chunk);
+			return chunk;
 		});
 	});
 
@@ -778,9 +780,11 @@ function getImage(res, req, board, tickets) {
 			console.log('error: ' + err.message);
 	});
 
-	req.write(GetData); //exportAs.generateImage(board, tickets)
+	req.write(PostData); //exportAs.generateImage(board, tickets)
 	req.end();
 };
-
+/*postImage(function (req, res, result) {
+chunk = result;
+});*/
 
 module.exports = Router;
