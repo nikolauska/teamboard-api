@@ -4,6 +4,7 @@ var _  		   = require('lodash');
 var express    = require('express');
 var mongoose   = require('mongoose');
 var http	   = require('http');
+var request    = require('request');
 
 var utils      = require('../utils');
 var config     = require('../config');
@@ -749,6 +750,31 @@ Router.route('/boards/:board_id/access/:code')
 
 function postImage(res, req, board, tickets) {
 	var PostData = JSON.stringify({
+			'id': req.resolved.board.id,
+			'background': board.background,
+			'customBackground': board.customBackground,
+			'tickets': tickets
+	});
+	
+	var options = {
+		form: PostData,
+		headers: {
+			'Content-Type': 'application/json',
+			'content-Lenght': PostData.lenght
+		}
+	};
+	console.log('PostData: '+ PostData);
+	
+	request.post('http://localhost:9003/board', options, function(error, response) {
+		if (response.statusCode == 200) {
+		return res.attachment('Board.png').send(200, response.body)
+		}
+		if (error) {
+		console.log('Post error: ' + error);
+		}
+	})
+};
+	/*var PostData = JSON.stringify({
 		'id': req.resolved.board.id,
 		'background': board.background,
 		'customBackground': board.customBackground,
@@ -782,9 +808,8 @@ function postImage(res, req, board, tickets) {
 
 	req.write(PostData); //exportAs.generateImage(board, tickets)
 	req.end();
-};
-/*postImage(function (req, res, result) {
-chunk = result;
-});*/
+};*/
+
+
 
 module.exports = Router;
