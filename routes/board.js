@@ -261,8 +261,8 @@ Router.route('/boards/:board_id/export')
 				}
 	
 				if(format == 'image') {
-					return res.attachment('board.png').send(200, postImage(res,req, board, tickets)); // + exportAs.generateImage(res, req, board, tickets, req.resolved.board.id);
-					//return postImage(tickets,board,res);
+					//return res.attachment('board.png').send(200, postImage(res,req, board, tickets)); // + exportAs.generateImage(res, req, board, tickets, req.resolved.board.id);
+					return postImage(res,req, board, tickets);
 				}
 
 				var boardObject     	= board;
@@ -772,7 +772,7 @@ function postImage(res, req, board, tickets) {
 		console.log('HEADERS: ' + JSON.stringify(res.headers));
 		res.on('data', function(chunk) {
 			console.log('BODY: ' + chunk);
-			return chunk;
+			//return res.attachment('board.png').send(200, chunk);
 		});
 	});
 
