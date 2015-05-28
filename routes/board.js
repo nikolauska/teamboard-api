@@ -273,15 +273,7 @@ Router.route('/boards/:board_id/export')
 								'Content-Type': 'application/json',
 								'content-Lenght': PostData.lenght
 							}
-					}, function(err, response, body) {
-							if (err) {
-								return next(utils.error(501, err));
-							}						
-							if (response.statusCode == 200) {
-								return res.attachment('Board.png').contentType('image/png').send(200, response.body)
-							}
-							
-						})
+						}).pipe(res.attachment('board.png'));
 					});
 				}
 
