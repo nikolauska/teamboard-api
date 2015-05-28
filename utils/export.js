@@ -93,12 +93,12 @@ function generateCSV(board, tickets) {
 }
 
 function postImage(res, req, board, tickets, callback) {
-	var PostData = JSON.stringify({
+	var PostData = { 
 			'id': req.resolved.board.id,
 			'background': board.background,
 			'customBackground': board.customBackground,
 			'tickets': tickets
-	});
+	};
 	
 	var options = {
 		body: PostData,
@@ -107,7 +107,6 @@ function postImage(res, req, board, tickets, callback) {
 			'content-Lenght': PostData.lenght
 		}
 	};
-	console.log('PostData: '+ PostData);
 	
 	return callback(PostData, options);
 };
