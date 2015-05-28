@@ -261,19 +261,9 @@ Router.route('/boards/:board_id/export')
 					return res.attachment('board.txt').send(200, exportAs.generatePlainText(board, tickets));
 				}
 	
-				if(format == 'image') {
-					//return res.attachment('board.png').send(200, postImage(res,req, board, tickets)); 
-					return exportAs.postImage(res,req, board, tickets, function(PostData) {
-						console.log('PostData: '+ JSON.stringify(PostData));
-						request.post({
-							url: 'http://localhost:9003/board',
-							method: 'POST',
-							form: PostData,
-							headers: {
-								'Content-Type': 'application/json',
-								'content-Lenght': PostData.lenght
-							}
-						}).pipe(res.attachment('board.png'));
+				if(format == 'image') { 
+					return exportAs.postImage(res,req, board, tickets, function(PostData, options) {
+						request.post(options).pipe(res.attachment('board.png'));
 					});
 				}
 
