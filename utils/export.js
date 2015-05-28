@@ -101,7 +101,7 @@ function postImage(res, req, board, tickets, callback) {
 	});
 	
 	var options = {
-		form: PostData,
+		body: PostData,
 		headers: {
 			'Content-Type': 'application/json',
 			'content-Lenght': PostData.lenght
