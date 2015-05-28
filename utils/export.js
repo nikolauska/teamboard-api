@@ -92,7 +92,28 @@ function generateCSV(board, tickets) {
 	return csvBoard + '\n\n' + csvTickets;
 }
 
+function postImage(res, req, board, tickets, callback) {
+	var PostData = JSON.stringify({
+			'id': req.resolved.board.id,
+			'background': board.background,
+			'customBackground': board.customBackground,
+			'tickets': tickets
+	});
+	
+	var options = {
+		form: PostData,
+		headers: {
+			'Content-Type': 'application/json',
+			'content-Lenght': PostData.lenght
+		}
+	};
+	console.log('PostData: '+ PostData);
+	
+	return callback(PostData, options);
+};
+
 module.exports = {
 	generatePlainText: generatePlainText,
-	generateCSV: generateCSV
+	generateCSV: generateCSV,
+	postImage: postImage
 }

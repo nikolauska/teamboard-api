@@ -263,7 +263,17 @@ Router.route('/boards/:board_id/export')
 	
 				if(format == 'image') {
 					//return res.attachment('board.png').send(200, postImage(res,req, board, tickets)); // + exportAs.generateImage(res, req, board, tickets, req.resolved.board.id);
-					return postImage(res,req, board, tickets);
+					return exportAs.postImage(res,req, board, tickets, function(PostData, options) {
+						request.post('http://localhost:9003/board', options, function(err, response) {
+							if (err) {
+								return next(utils.error(501, err));
+							}						
+							if (response.statusCode == 200) {
+								return res.attachment('Board.png').contentType('image/png').send(200, response.body)
+							}
+							
+						})
+					});
 				}
 
 				var boardObject     	= board;
@@ -747,69 +757,5 @@ Router.route('/boards/:board_id/access/:code')
 		return res.set('x-access-token', guestToken)
 			.json(200, guestPayload);
 	});
-
-function postImage(res, req, board, tickets) {
-	var PostData = JSON.stringify({
-			'id': req.resolved.board.id,
-			'background': board.background,
-			'customBackground': board.customBackground,
-			'tickets': tickets
-	});
-	
-	var options = {
-		form: PostData,
-		headers: {
-			'Content-Type': 'application/json',
-			'content-Lenght': PostData.lenght
-		}
-	};
-	console.log('PostData: '+ PostData);
-	
-	request.post('http://localhost:9003/board', options, function(error, response) {
-		if (response.statusCode == 200) {
-		return res.attachment('Board.png').send(200, response.body)
-		}
-		if (error) {
-		console.log('Post error: ' + error);
-		}
-	})
-};
-	/*var PostData = JSON.stringify({
-		'id': req.resolved.board.id,
-		'background': board.background,
-		'customBackground': board.customBackground,
-		'tickets': tickets
-	});
-		console.log('PostData: '+ PostData);
-
-	var options = {
-		host: 'localhost',
-		port: 9003,
-		path: '/board',
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'content-Lenght': PostData.lenght
-		}
-	};
-
-	var req = http.request(options, function(res) {
-		console.log('STATUS: ' + res.statusCode);
-		console.log('HEADERS: ' + JSON.stringify(res.headers));
-		res.on('data', function(chunk) {
-			console.log('BODY: ' + chunk);
-			//return res.attachment('board.png').send(200, chunk);
-		});
-	});
-
-	req.on('error', function(err){
-			console.log('error: ' + err.message);
-	});
-
-	req.write(PostData); //exportAs.generateImage(board, tickets)
-	req.end();
-};*/
-
-
 
 module.exports = Router;
