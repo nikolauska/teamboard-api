@@ -239,7 +239,6 @@ Router.route('/boards/:board_id/export')
 			.select('-_id -__v -accessCode').lean();
 
 		boardQuery.exec(function(err, board) {
-			// Callback for webshot
 			
 			if(err) {
 				return next(utils.error(500, err));
