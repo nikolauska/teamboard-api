@@ -101,14 +101,16 @@ function postImage(res, req, board, tickets, callback) {
 	};
 	
 	var options = {
-		body: PostData,
+		url: 'http://localhost:9003/board',
+		method: 'POST',
+		form: PostData,
 		headers: {
 			'Content-Type': 'application/json',
 			'content-Lenght': PostData.lenght
 		}
 	};
 	
-	return callback(PostData, options);
+	return callback(options);
 };
 
 module.exports = {
