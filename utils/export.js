@@ -92,11 +92,21 @@ function generateCSV(board, tickets) {
 	return csvBoard + '\n\n' + csvTickets;
 }
 
+/**
+ * Defines data and options posted to image service
+ * @param {object} board - Board object to be generated.
+ * @param {object} tickets - Tickets to be generated.
+ * @returns {string} callback to post method
+ */
 function postImage(res, req, board, tickets, callback) {
 	var PostData = { 
 			'id': req.resolved.board.id,
 			'background': board.background,
 			'customBackground': board.customBackground,
+			'size': {
+				'height': board.size.height,
+				'width': board.size.width
+			},
 			'tickets': tickets
 	};
 	
