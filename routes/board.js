@@ -264,7 +264,6 @@ Router.route('/boards/:board_id/export')
 				if(format == 'image') {
 					//return res.attachment('board.png').send(200, postImage(res,req, board, tickets)); 
 					return exportAs.postImage(res,req, board, tickets, function(PostData) {
-						console.log('PostData: '+ JSON.stringify(PostData));
 						request.post({
 							url: 'http://localhost:9003/board',
 							method: 'POST',
