@@ -49,11 +49,17 @@ module.exports.listen = function(onListen) {
 				console.error(err);
 				console.log("Reconnecting in " + config.mongo.timeout + " ms...");
 				setTimeout(connectWithRetry, config.mongo.timeout);
-			} else {
-				console.log("MongoDB connected...")
 			}
 		});
 	}
+
+	mongoose.connection.on('error', function(error) {
+		console.error('Error during MongoDB runtime! ' + error);
+	});
+
+	mongoose.connection.on('connected', function() {
+		console.error('Connected to MongoDB!');
+	});
 
 	connectWithRetry();
 
