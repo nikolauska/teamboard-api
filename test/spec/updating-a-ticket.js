@@ -36,7 +36,7 @@ module.exports = function(ctx) {
 		var payload = {
 			'color':    '#FAFAFA',
 			'content':  'new-content',
-			'position': { 'x': 0, 'y': 8, 'z': 0 }
+			'position': { 'x': 0, 'y': 8 }
 		}
 
 		it('should return the updated ticket', function(done) {
@@ -50,20 +50,16 @@ module.exports = function(ctx) {
 
 					ticket.should.be.an.Object;
 					ticket.should.have.properties([
-						'heading', 'content', 'color', 'position'
+						'content', 'color', 'position'
 					]);
-
-					ticket.heading.should.equal(ctx.ticket.heading);
-					ticket.content.should.equal(payload.content);
 
 					ticket.color.should.equal(payload.color);
 
 					ticket.position.should.be.an.Object;
-					ticket.position.should.have.properties([ 'x', 'y', 'z' ]);
+					ticket.position.should.have.properties([ 'x', 'y' ]);
 
 					ticket.position.x.should.equal(payload.position.x);
 					ticket.position.y.should.equal(payload.position.y);
-					ticket.position.z.should.equal(payload.position.z);
 
 					ctx.ticket = ticket;
 
