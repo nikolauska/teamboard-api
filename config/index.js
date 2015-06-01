@@ -6,7 +6,7 @@ module.exports = {
             safe: true
         },
         url:       process.env.MONGODB_URL     || 'mongodb://localhost/test',
-        timeout: process.env.MONGODB_TIMEOUT   || 5000
+        timeout:   process.env.MONGODB_TIMEOUT || 5000
     },
     redis: {
         opts: {
