@@ -45,7 +45,7 @@ module.exports.listen = function(onListen) {
 
 	var connectWithRetry = function() {
 		mongoose.connect(config.mongo.url, config.mongo.opts, function (err) {
-			if (err) {
+			if(err) {
 				console.error(err);
 				console.log("Reconnecting in " + config.mongo.timeout + " ms...");
 				setTimeout(connectWithRetry, config.mongo.timeout);
