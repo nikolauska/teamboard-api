@@ -42,7 +42,21 @@ module.exports.app = app;
  *                               listening to incoming requests.
  */
 module.exports.listen = function(onListen) {
-	mongoose.connect(config.mongo.url, config.mongo.opts);
+
+	var connectWithRetry = function() {
+		mongoose.connect(config.mongo.url, config.mongo.opts, function (err) {
+			if (err) {
+				console.error(err);
+				console.log("Reconnecting in " + config.mongo.timeout + " ms...");
+				setTimeout(connectWithRetry, config.mongo.timeout);
+			} else {
+				console.log("MongoDB connected...")
+			}
+		});
+	}
+
+	connectWithRetry();
+
 	this.server = app.listen(config.port, onListen || function() {
 		console.log('server listening at', config.port);
 	});
