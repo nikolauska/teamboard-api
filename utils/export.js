@@ -54,8 +54,8 @@ function generatePlainText(board, tickets) {
 	tickets.map(function(t) {
 		return '\n' +
 				'------------------------------------------\n' +
-				'Ticket content:    	' + contentEdit(undefCheck(t.content, '')) + '\n' +
-				'Ticket color: 	    	' + hexToColor(t.color) + '\n' + 
+				'Content:    	' + contentEdit(undefCheck(t.content, 'empty')) + '\n\n' +
+				'Color: 	    	' + hexToColor(t.color) + '\n' + 
 				'------------------------------------------\n';
 	}).join('') + '\n' +
 	'=========================================';
