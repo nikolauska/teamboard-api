@@ -11,6 +11,23 @@ var utils = require('../../utils');
 var UserSchema = module.exports = new mongoose.Schema({
 
 	/**
+	 * User type. Either temporary (guest) or standard (authenticated with a provider).
+	 */
+	usertype: {
+		type:     String,
+		required: true,
+		default:  'temporary'
+	},
+
+	/**
+	 * Nickname of the user.
+	 */
+	name: {
+		type:     String,
+		required: true
+	},
+
+	/**
 	 * The email of the user. Basically the 'username' equivalent.
 	 *
 	 * TODO Improve validation.
@@ -18,7 +35,6 @@ var UserSchema = module.exports = new mongoose.Schema({
 	email: {
 		type:     String,
 		match:    /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-		unique:   true,
 		required: true
 	},
 
@@ -31,12 +47,43 @@ var UserSchema = module.exports = new mongoose.Schema({
 	},
 
 	/**
+	 * User's different possible authentication providers
+	 */
+	providers: {
+		basic:  {
+			email:    String,
+			password: String
+		},
+		github: {
+			name:     String,
+			email:    String,
+			avatar:   String
+		}
+	},
+
+	/**
+	 * Array of different device sessions of the user.
+	 */
+	sessions:[{
+		useragent:  String,
+		token:      String
+	}],
+
+	/**
 	 * The 'access-token' of the user. In a sense, it indicates whether there
 	 * is a valid session available.
 	 */
 	token: {
 		type: String
+	},
+
+	/**
+	 * Timestamp for the user creation date
+	 */
+	created_at: {
+		type:    Date
 	}
+
 });
 
 if(!UserSchema.options.toJSON) UserSchema.options.toJSON     = { }
