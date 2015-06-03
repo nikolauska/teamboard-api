@@ -98,8 +98,9 @@ function generateCSV(board, tickets) {
  * @param {object} tickets - Tickets to be generated.
  * @returns {string} callback to post method
  */
-function postImage(res, req, board, tickets, callback) {
-	var PostData = { 
+
+function postImage(req, board, tickets, callback) {
+	var postData = { 
 		'id': req.resolved.board.id,
 		'background': board.background,
 		'customBackground': board.customBackground,
@@ -113,13 +114,12 @@ function postImage(res, req, board, tickets, callback) {
 	var options = {
 		url: 'http://localhost:9003/board',
 		method: 'POST',
-		form: PostData,
+		form: postData,
 		headers: {
-			'Content-Type': 'application/json',
-			'content-Lenght': PostData.lenght
+			'Content-Type': 'application/json'
 		}
 	};
-	
+
 	return callback(options);
 };
 

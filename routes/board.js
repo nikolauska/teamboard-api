@@ -258,8 +258,8 @@ Router.route('/boards/:board_id/export')
 				}
 	
 				if(format == 'image') { 
-					return exportAs.postImage(res,req, board, tickets, function(options) {
-						request.post(options).pipe(res.attachment('board.png'));
+					return exportAs.postImage(req, board, tickets, function(options) {
+						request.post(options).pipe(res);
 					});
 				}
 
