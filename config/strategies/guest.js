@@ -12,6 +12,10 @@ var BearerStrategy = require('passport-http-bearer').Strategy;
  */
 module.exports = new BearerStrategy(function(token, done) {
 	jwt.verify(token, config.token.secret, function(err, decoded) {
+		console.log('hello world');
+		console.log(err);
+		console.log(decoded);
+
 		if(err) {
 			return done(null, null, err);
 		}

@@ -11,8 +11,7 @@ var BearerStrategy = require('passport-http-bearer').Strategy;
  * Authenticate the requestee as a 'user' based on the passed 'Bearer' token.
  */
 module.exports = new BearerStrategy(function(token, done) {
-	User.findOne({ 'sessions.token': token }, function(err, user) {
-		console.log(user);
+	User.findOne({ 'sessions.token': token, account_type:'standard' }, function(err, user) {
 		if(err) {
 			return done(utils.error(500, err));
 		}

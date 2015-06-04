@@ -692,9 +692,16 @@ Router.route('/boards/:board_id/access/:code')
 		// Generate the 'guest-token' for access.
 		var guestToken = jwt.sign(guestPayload, config.token.secret);
 
+		var session = {
+			user_agent: req.headers['user-agent'],
+			token:      guestToken,
+			created_at: new Date()
+		};
+
 		new User({ name: req.body.username,
 			account_type: 'temporary',
-			created_at: new Date()})
+			created_at: new Date(),
+			sessions: [session] })
 			.save(function(err, user) {
 				if(err) {
 					if(err.name == 'ValidationError') {
@@ -705,7 +712,6 @@ Router.route('/boards/:board_id/access/:code')
 					}
 					return next(utils.error(500, err));
 				}
-				//return res.json(201, user);
 			});
 
 
