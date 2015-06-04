@@ -66,7 +66,9 @@ Router.route('/auth/login')
 
 					var newtoken = jwt.sign(payload, secret);
 
-					user.token = jwt.sign(payload, secret);
+					console.log("new token is: " + newtoken);
+
+					//user.token = jwt.sign(payload, secret);
 
 					var session = {user_agent: req.headers['user-agent'],
 									token: newtoken};
@@ -83,7 +85,7 @@ Router.route('/auth/login')
 				}
 
 				// If the token was valid we reuse it.
-				return res.set('x-access-token', user.token)
+				return res.set('x-access-token', session.token)
 					.json(200, payload);
 			});
 		});
@@ -122,7 +124,7 @@ Router.route('/auth/logout')
 
 				}
 			}
-			user.token = null;
+			//user.token = null;
 			user.save(function(err) {
 				return err ? next(err) : res.send(200);
 			});

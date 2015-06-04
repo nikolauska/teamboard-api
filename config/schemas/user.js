@@ -17,7 +17,7 @@ var UserSchema = module.exports = new mongoose.Schema({
 	/**
 	 * User type. Either temporary (guest) or standard (authenticated with a provider).
 	 */
-	usertype: {
+	account_type: {
 		type:     String,
 		enum:     ['temporary', 'standard'],
 		required: true,
@@ -68,9 +68,10 @@ var UserSchema = module.exports = new mongoose.Schema({
 	 * The 'access-token' of the user. In a sense, it indicates whether there
 	 * is a valid session available.
 	 */
+		/*
 	token: {
 		type: String
-	},
+	},*/
 
 	/**
 	 * Timestamp for the user creation date
