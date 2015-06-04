@@ -5,6 +5,30 @@ var app      = require('./config/express');
 var mongoose = require('./config/mongoose');
 var passport = require('./config/passport');
 
+// Setup 'jarmo' integration for InfluxDB reporter.
+app.use(require('jarmo-express')({
+	resolve: function(req, res, duration) {
+		return {
+			tags: {
+				version:  process.env.VERSION  || 'unknown',
+				hostname: process.env.HOSTNAME || 'unknown',
+
+				path:   req.route.path,
+				method: req.method,
+
+				// InfluxDB tag values can't be numbers.
+				status: '' + res.statusCode + ''
+			},
+			fields: {
+				value: duration
+			},
+			name: 'response_time'
+		}
+	},
+	host: process.env.JARMO_HOST,
+	port: process.env.JARMO_PORT
+}));
+
 // Use 'passport' authentication.
 app.use(passport.initialize());
 
