@@ -1,6 +1,9 @@
 'use strict';
 
 var json2csv = require('nice-json2csv');
+var fs       = require('fs');
+var utils    = require('../utils');
+var config   = require('../config');
 
 /**
  * Checks if value is undefined and returns defValue. Othervise value is returned 
@@ -52,8 +55,8 @@ function generatePlainText(board, tickets) {
 	tickets.map(function(t) {
 		return '\n' +
 				'------------------------------------------\n' +
-				'Ticket content:    	' + contentEdit(undefCheck(t.content, '')) + '\n' +
-				'Ticket color: 	    	' + hexToColor(t.color) + '\n' + 
+				'Content:    	' + contentEdit(undefCheck(t.content, 'empty')) + '\n\n' +
+				'Color: 	    	' + hexToColor(t.color) + '\n' + 
 				'------------------------------------------\n';
 	}).join('') + '\n' +
 	'=========================================';
@@ -90,7 +93,39 @@ function generateCSV(board, tickets) {
 	return csvBoard + '\n\n' + csvTickets;
 }
 
+/**
+ * Defines data and options posted to image service
+ * @param {object} board - Board object to be generated.
+ * @param {object} tickets - Tickets to be generated.
+ * @returns {string} callback to post method
+ */
+
+function postImage(req, board, tickets, callback) {
+	var postData = { 
+		'id': req.resolved.board.id,
+		'background': board.background,
+		'customBackground': board.customBackground,
+		'size': {
+			'height': board.size.height,
+			'width': board.size.width
+		},
+		'tickets': tickets
+	};
+	
+	var options = {
+		url: config.img + '/board',
+		method: 'POST',
+		form: postData,
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	};
+
+	return callback(options);
+};
+
 module.exports = {
 	generatePlainText: generatePlainText,
-	generateCSV: generateCSV
+	generateCSV: generateCSV,
+	postImage: postImage
 }
