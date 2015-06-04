@@ -15,7 +15,7 @@ var opts = {
  * Authenticate the requestee as a 'user' based on the passed in credentials.
  */
 module.exports = new LocalStrategy(opts, function(email, password, done) {
-	User.findOne({ email: email }, function(err, user) {
+	User.findOne({ 'providers.basic.email': email }, function(err, user) {
 		if(err) {
 			return done(utils.error(500, err));
 		}
@@ -36,7 +36,7 @@ module.exports = new LocalStrategy(opts, function(email, password, done) {
 			return done(null, {
 				id:       user.id,
 				type:     'user',
-				username: user.email
+				username: user.name
 			});
 		});
 	});

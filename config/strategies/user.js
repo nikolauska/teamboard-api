@@ -28,7 +28,7 @@ module.exports = new BearerStrategy(function(token, done) {
 			return done(null, {
 				id:       user.id,
 				type:     decoded.type,
-				username: user.email
+				username: user.name
 			});
 		});
 	});

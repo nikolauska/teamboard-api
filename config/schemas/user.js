@@ -5,6 +5,10 @@ var mongoose = require('mongoose');
 
 var utils = require('../../utils');
 
+
+
+
+
 /**
  * Schema defining the 'user' model. Note that there is no model for 'guest'.
  */
@@ -15,6 +19,7 @@ var UserSchema = module.exports = new mongoose.Schema({
 	 */
 	usertype: {
 		type:     String,
+		enum:     ['temporary', 'standard'],
 		required: true,
 		default:  'temporary'
 	},
@@ -27,32 +32,21 @@ var UserSchema = module.exports = new mongoose.Schema({
 		required: true
 	},
 
-	/**
-	 * The email of the user. Basically the 'username' equivalent.
-	 *
-	 * TODO Improve validation.
-	 */
-	email: {
-		type:     String,
-		match:    /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-		required: true
-	},
-
-	/**
-	 * The password of the user.
-	 */
-	password: {
-		type:     String,
-		required: true
-	},
 
 	/**
 	 * User's different possible authentication providers
 	 */
 	providers: {
 		basic:  {
-			email:    String,
-			password: String
+			email: {
+				type: String,
+				match: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+			},
+
+			password: {
+				type: String
+				//required: true
+			}
 		},
 		github: {
 			name:     String,
@@ -65,8 +59,9 @@ var UserSchema = module.exports = new mongoose.Schema({
 	 * Array of different device sessions of the user.
 	 */
 	sessions:[{
-		useragent:  String,
-		token:      String
+		user_agent:  String,
+		token: {  type: String,
+			      unique: true }
 	}],
 
 	/**
@@ -81,6 +76,13 @@ var UserSchema = module.exports = new mongoose.Schema({
 	 * Timestamp for the user creation date
 	 */
 	created_at: {
+		type:    Date
+	},
+
+	/**
+	 * Timestamp for the last time the user was edited
+	 */
+	edited_at: {
 		type:    Date
 	}
 
@@ -116,14 +118,14 @@ UserSchema.options.toObject.transform = UserSchema.options.toJSON.transform;
  * Validates password with regexp.
  * Reference: https://kb.wisc.edu/page.php?id=4073
  */
-UserSchema.path('password').validate(function() {
+UserSchema.path('providers.basic.password').validate(function() {
 	var user = this;
 
-	if(!user.isModified('password')) {
+	if(!user.isModified('providers.basic.password')) {
 		return true;
 	}
 
-	return /^[a-zA-Z0-9!"#$%&'()*+,-.\/:;<=>?@\[\]^_`{|}~]{8,36}$/.test(user.password);
+	return /^[a-zA-Z0-9!"#$%&'()*+,-.\/:;<=>?@\[\]^_`{|}~]{8,36}$/.test(user.providers.basic.password);
 }, null);
 
 /**
@@ -132,7 +134,9 @@ UserSchema.path('password').validate(function() {
 UserSchema.pre('save', function hashPassword(next) {
 	var user = this;
 
-	if(!user.isModified('password')) {
+	user.edited_at = Date.now();
+
+	if(!user.isModified('providers.basic.password')) {
 		return next();
 	}
 
@@ -143,12 +147,12 @@ UserSchema.pre('save', function hashPassword(next) {
 			return next(utils.error(500, err));
 		}
 
-		bcrypt.hash(user.password, salt, function(err, hash) {
+		bcrypt.hash(user.providers.basic.password, salt, function(err, hash) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
 
-			user.password = hash;
+			user.providers.basic.password = hash;
 			return next();
 		});
 	});
@@ -158,5 +162,5 @@ UserSchema.pre('save', function hashPassword(next) {
  * Compare the given plaintext password with the stored (hashed) password.
  */
 UserSchema.methods.comparePassword = function(password, callback) {
-	bcrypt.compare(password, this.password, callback);
+	bcrypt.compare(password, this.providers.basic.password, callback);
 }
