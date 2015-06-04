@@ -145,7 +145,7 @@ Router.route('/auth/register')
 		req.body.username ? username = req.body.username : username = req.body.email;
 
 		new User({ name:      username,
-				   usertype: 'standard',
+			       account_type: 'standard',
 			       providers: {
 						basic: {
 								email:   req.body.email,

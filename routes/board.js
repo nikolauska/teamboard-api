@@ -12,6 +12,7 @@ var middleware = require('../middleware');
 var Event  = mongoose.model('event');
 var Board  = mongoose.model('board');
 var Ticket = mongoose.model('ticket');
+var User   = mongoose.model('user');
 
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
@@ -690,6 +691,23 @@ Router.route('/boards/:board_id/access/:code')
 
 		// Generate the 'guest-token' for access.
 		var guestToken = jwt.sign(guestPayload, config.token.secret);
+
+		new User({ name: req.body.username,
+			account_type: 'temporary',
+			created_at: new Date()})
+			.save(function(err, user) {
+				if(err) {
+					if(err.name == 'ValidationError') {
+						return next(utils.error(400, err));
+					}
+					if(err.name == 'MongoError' && err.code == 11000) {
+						return next(utils.error(409, 'User already exists'));
+					}
+					return next(utils.error(500, err));
+				}
+				//return res.json(201, user);
+			});
+
 
 		new Event({
 			'type': 'BOARD_GUEST_JOIN',
