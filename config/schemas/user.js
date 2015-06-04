@@ -46,7 +46,6 @@ var UserSchema = module.exports = new mongoose.Schema({
 
 			password: {
 				type: String
-				//required: true
 			}
 		},
 		github: {
@@ -63,16 +62,7 @@ var UserSchema = module.exports = new mongoose.Schema({
 		user_agent:  String,
 		token:       String
 	}],
-
-	/**
-	 * The 'access-token' of the user. In a sense, it indicates whether there
-	 * is a valid session available.
-	 */
-		/*
-	token: {
-		type: String
-	},*/
-
+	
 	/**
 	 * Timestamp for the user creation date
 	 */
