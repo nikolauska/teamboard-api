@@ -66,12 +66,9 @@ Router.route('/auth/login')
 
 					var newtoken = jwt.sign(payload, secret);
 
-					console.log("new token is: " + newtoken);
-
-					//user.token = jwt.sign(payload, secret);
-
 					var session = {user_agent: req.headers['user-agent'],
-									token: newtoken};
+									token: newtoken,
+									created_at: new Date()};
 
 					user.sessions.push(session);
 

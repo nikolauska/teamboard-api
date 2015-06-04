@@ -60,9 +60,10 @@ var UserSchema = module.exports = new mongoose.Schema({
 	 */
 	sessions:[{
 		user_agent:  String,
-		token:       String
+		token:       String,
+		created_at:  Date
 	}],
-	
+
 	/**
 	 * Timestamp for the user creation date
 	 */
