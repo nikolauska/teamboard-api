@@ -61,7 +61,7 @@ Router.route('/auth/login')
 				// generate a new one since correct credentials were provided.
 				if(err) {
 					var payload = {
-						id: user.id, type: 'user', username: user.email
+						id: user.id, type: 'user', username: user.name
 					}
 
 					user.token = jwt.sign(payload, secret);
@@ -132,9 +132,6 @@ Router.route('/auth/register')
 					created_at: new Date()})
 			.save(function(err, user) {
 				if(err) {
-
-					console.log(err)
-
 					if(err.name == 'ValidationError') {
 						return next(utils.error(400, err));
 					}
