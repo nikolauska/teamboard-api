@@ -58,7 +58,7 @@ module.exports.listen = function(onListen) {
 	});
 
 	mongoose.connection.on('connected', function() {
-		console.error('Connected to MongoDB!');
+		console.log('Connected to MongoDB!');
 	});
 
 	connectWithRetry();
