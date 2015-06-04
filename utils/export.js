@@ -3,6 +3,7 @@
 var json2csv = require('nice-json2csv');
 var fs       = require('fs');
 var utils    = require('../utils');
+var config   = require('../config');
 
 /**
  * Checks if value is undefined and returns defValue. Othervise value is returned 
@@ -112,7 +113,7 @@ function postImage(req, board, tickets, callback) {
 	};
 	
 	var options = {
-		url: 'http://localhost:9003/board',
+		url: config.img + '/board',
 		method: 'POST',
 		form: postData,
 		headers: {

@@ -18,5 +18,6 @@ module.exports = {
     token: {
         secret: process.env.TOKEN_SECRET || 'secret'
     },
-    port: process.env.PORT || 9002
+    port: process.env.PORT || 9002,
+    img: process.env.IMG_URL || 'http://localhost:9003/img'
 }
