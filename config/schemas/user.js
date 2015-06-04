@@ -39,8 +39,9 @@ var UserSchema = module.exports = new mongoose.Schema({
 	providers: {
 		basic:  {
 			email: {
-				type: String,
-				match: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+				type:   String,
+				unique: true,
+				match:  /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
 			},
 
 			password: {
@@ -60,8 +61,7 @@ var UserSchema = module.exports = new mongoose.Schema({
 	 */
 	sessions:[{
 		user_agent:  String,
-		token: {  type: String,
-			      unique: true }
+		token:       String
 	}],
 
 	/**

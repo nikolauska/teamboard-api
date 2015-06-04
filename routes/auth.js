@@ -108,21 +108,28 @@ Router.route('/auth/logout')
 Router.route('/auth/register')
 
 	/**
-	 * Creates a new 'user' account.
+	 * Creates a new 'user' account via the  basic provider method.
 	 *
 	 * {
+	 *   'username': 'Narsu'
 	 *   'email':    'narsu@man.fi',
 	 *   'password': 'sikapossu'
 	 * }
 	 */
 	.post(function(req, res, next) {
-		new User({ name: req.body.email,
-			       password: req.body.password,
+		var username = '';
+		// If username is not set, we use the email instead.
+		req.body.username ? username = req.body.username : username = req.body.email;
+
+		new User({ name:      username,
+				   usertype: 'standard',
 			       providers: {
 						basic: {
-							email: req.body.email,
-							password:req.body.password}
-								}})
+								email:   req.body.email,
+								password:req.body.password
+						       }
+				   },
+					created_at: new Date()})
 			.save(function(err, user) {
 				if(err) {
 
