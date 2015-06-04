@@ -64,13 +64,20 @@ Router.route('/auth/login')
 						id: user.id, type: 'user', username: user.name
 					}
 
+					var newtoken = jwt.sign(payload, secret);
+
 					user.token = jwt.sign(payload, secret);
+
+					var session = {user_agent: req.headers['user-agent'],
+									token: newtoken};
+
+					user.sessions.push(session);
 
 					return user.save(function(err, user) {
 						if(err) {
 							return next(utils.error(500, err));
 						}
-						return res.set('x-access-token', user.token)
+						return res.set('x-access-token', newtoken)
 							.json(200, payload);
 					});
 				}
@@ -97,7 +104,24 @@ Router.route('/auth/logout')
 			if(!user) {
 				return next(utils.error(404, 'User not found'));
 			}
+			// Get the token the user is trying to invalidate by logging out
+			var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
 
+			var sessionsLength = user.sessions.length;
+
+			for (var i = 0; i < sessionsLength; i++) {
+				if (user.sessions[i].token == tokenToInvalidate) {
+
+					User.update(
+						{'_id': req.user.id},
+						{ $pull: { "sessions" : { token: tokenToInvalidate } } } , function(err) {
+							if(err) {
+								return next(utils.error(500, err));
+							}
+						});
+
+				}
+			}
 			user.token = null;
 			user.save(function(err) {
 				return err ? next(err) : res.send(200);
