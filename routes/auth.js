@@ -105,7 +105,7 @@ Router.route('/auth/logout')
 			}
 			// Get the token the user is trying to invalidate by logging out
 			var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
-			
+
 			User.update(
 				{'_id': req.user.id},
 				{ $pull: { "sessions" : { token: tokenToInvalidate } } } , function(err) {

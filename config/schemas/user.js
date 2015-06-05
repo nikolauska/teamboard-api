@@ -95,9 +95,10 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
 	// delete ret.password;
 
 	return {
-		'id':       doc.id,
-		'type':     'user',
-		'username': doc.email
+		'id':           doc.id,
+		'type':         'user',
+		'username':     doc.name,
+		'account_type': doc.account_type
 	}
 }
 
