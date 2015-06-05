@@ -35,6 +35,8 @@ function hexToColor(hex) {
  */
 function contentEdit(content) {
 	content = content.replace(/\n/g, '\n 			');
+	// Replace markdown symbols with something a bit more sensible
+	content = content.replace(/[\)#_*~`\]\[]/g, '').replace(/\(/g, ':');
 	return content;
 }
 
