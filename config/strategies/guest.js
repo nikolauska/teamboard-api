@@ -24,10 +24,9 @@ module.exports = new BearerStrategy(function(token, done) {
 			if(!board) {
 				return done(null, null, 'Access denied.');
 			}
-
 			return done(null, {
 				id:       decoded.id,
-				type:     decoded.account_type,
+				type:     'temporary',
 				access:   board.id,
 				username: decoded.name
 			});

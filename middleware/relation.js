@@ -31,7 +31,7 @@ var _roles = {
 
 		var isGuest   = req.user.type   == 'temporary';
 		var hasAccess = req.user.access == req.resolved.board.id;
-
+		
 		return isGuest && hasAccess;
 	}
 }

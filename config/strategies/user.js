@@ -13,8 +13,6 @@ var BearerStrategy = require('passport-http-bearer').Strategy;
 module.exports = new BearerStrategy(function(token, done) {
 	User.findOne({ 'sessions.token': token, account_type:'standard' }, function(err, user) {
 		if(err) {
-			console.log("Error in user.js strategy!");
-			console.log(err);
 			return done(utils.error(500, err));
 		}
 

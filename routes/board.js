@@ -39,7 +39,7 @@ Router.route('/boards')
 	.get(function(req, res, next) {
 		var boardQuery = null;
 
-		if(req.user.type === 'guest') {
+		if(req.user.type === 'temporary') {
 			// Guests can only see the board they have access to...
 			boardQuery = Board.find({ _id: req.user.access });
 		}
@@ -717,7 +717,7 @@ Router.route('/boards/:board_id/access/:code')
 		// TODO Guest must have a valid 'username'.
 		var guestPayload = {
 			id:         require('crypto').randomBytes(4).toString('hex'),
-			type:       'guest',
+			type:       'temporary',
 			access:     board.id,
 			username:   req.body.username,
 			accessCode: board.accessCode
