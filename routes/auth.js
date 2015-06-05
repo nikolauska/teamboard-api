@@ -105,23 +105,15 @@ Router.route('/auth/logout')
 			}
 			// Get the token the user is trying to invalidate by logging out
 			var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
+			
+			User.update(
+				{'_id': req.user.id},
+				{ $pull: { "sessions" : { token: tokenToInvalidate } } } , function(err) {
+					if(err) {
+						return next(utils.error(500, err));
+					}
+				});
 
-			var sessionsLength = user.sessions.length;
-
-			for (var i = 0; i < sessionsLength; i++) {
-				if (user.sessions[i].token == tokenToInvalidate) {
-
-					User.update(
-						{'_id': req.user.id},
-						{ $pull: { "sessions" : { token: tokenToInvalidate } } } , function(err) {
-							if(err) {
-								return next(utils.error(500, err));
-							}
-						});
-
-				}
-			}
-			//user.token = null;
 			user.save(function(err) {
 				return err ? next(err) : res.send(200);
 			});
