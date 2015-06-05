@@ -61,7 +61,7 @@ Router.route('/auth/login')
 				// generate a new one since correct credentials were provided.
 				if(err) {
 					var payload = {
-						id: user.id, type: 'user', username: user.name
+						id: user.id, type: user.account_type, username: user.name
 					}
 
 					var newtoken = jwt.sign(payload, secret);
@@ -80,6 +80,7 @@ Router.route('/auth/login')
 							.json(200, payload);
 					});
 				}
+
 
 				// If the token was valid we reuse it.
 				return res.set('x-access-token', session.token)

@@ -5,10 +5,6 @@ var mongoose = require('mongoose');
 
 var utils = require('../../utils');
 
-
-
-
-
 /**
  * Schema defining the 'user' model. Note that there is no model for 'guest'.
  */
@@ -96,7 +92,6 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
 
 	return {
 		'id':           doc.id,
-		'type':         'user',
 		'username':     doc.name,
 		'account_type': doc.account_type
 	}
