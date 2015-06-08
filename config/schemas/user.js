@@ -52,15 +52,6 @@ var UserSchema = module.exports = new mongoose.Schema({
 	},
 
 	/**
-	 * Array of different device sessions of the user.
-	 */
-	sessions:[{
-		user_agent:  String,
-		token:       String,
-		created_at:  Date
-	}],
-
-	/**
 	 * Timestamp for the user creation date
 	 */
 	created_at: {

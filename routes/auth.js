@@ -7,8 +7,9 @@ var utils      = require('../utils');
 var config     = require('../config');
 var middleware = require('../middleware');
 
-var User   = require('mongoose').model('user');
-var Router = require('express').Router();
+var User    = require('mongoose').model('user');
+var Session = require('mongoose').model('session');
+var Router  = require('express').Router();
 
 Router.route('/auth')
 
@@ -42,6 +43,7 @@ Router.route('/auth/login')
 	 */
 	.post(middleware.authenticate('local'))
 	.post(function(req, res, next) {
+
 		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
 
@@ -51,7 +53,7 @@ Router.route('/auth/login')
 			if(err) {
 				return next(utils.error(500, err));
 			}
-
+			console.log(err);
 			// Make sure the token verified is not undefined. An empty string
 			// is not a valid token so this 'should' be ok.
 			var token = user.token || '';
@@ -64,18 +66,29 @@ Router.route('/auth/login')
 						id: user.id, type: user.account_type, username: user.name
 					}
 
-					var newtoken = jwt.sign(payload, secret);
-
-					var session = {user_agent: req.headers['user-agent'],
-									token: newtoken,
-									created_at: new Date()};
-
-					user.sessions.push(session);
-
 					return user.save(function(err, user) {
 						if(err) {
 							return next(utils.error(500, err));
 						}
+
+						var newtoken = jwt.sign(payload, secret);
+
+						new Session({
+							user:       user.id,
+							user_agent: req.headers['user-agent'],
+							token:      newtoken,
+							created_at: new Date()
+						}).save(function(err, newsession) {
+								if(err) {
+									if(err.name == 'ValidationError') {
+										return next(utils.error(400, err));
+									}
+									if(err.name == 'MongoError' && err.code == 11000) {
+										return next(utils.error(409, 'Creating new session failed'));
+									}
+									return next(utils.error(500, err));
+								}
+							});
 						return res.set('x-access-token', newtoken)
 							.json(200, payload);
 					});
@@ -85,6 +98,7 @@ Router.route('/auth/login')
 				// If the token was valid we reuse it.
 				return res.set('x-access-token', session.token)
 					.json(200, payload);
+
 			});
 		});
 	});
@@ -96,28 +110,16 @@ Router.route('/auth/logout')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
-		User.findOne({ '_id': req.user.id }, function(err, user) {
-			if(err) {
+		var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
+
+		Session.findOne({token: tokenToInvalidate}).remove(new function(err) {
+
+			if (err) {
 				return next(utils.error(500, err));
 			}
-
-			if(!user) {
-				return next(utils.error(404, 'User not found'));
+			else {
+				return res.send(200);
 			}
-			// Get the token the user is trying to invalidate by logging out
-			var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
-
-			User.update(
-				{'_id': req.user.id},
-				{ $pull: { "sessions" : { token: tokenToInvalidate } } } , function(err) {
-					if(err) {
-						return next(utils.error(500, err));
-					}
-				});
-
-			user.save(function(err) {
-				return err ? next(err) : res.send(200);
-			});
 		});
 	});
 
