@@ -56,7 +56,7 @@ Router.route('/auth/login')
 			console.log(err);
 			// Make sure the token verified is not undefined. An empty string
 			// is not a valid token so this 'should' be ok.
-			var token = user.token || '';
+			var token = req.headers.authorization.replace('Bearer ', '') || '';
 
 			jwt.verify(token, secret, function(err, payload) {
 				// If there was something wrong with the existing token, we
