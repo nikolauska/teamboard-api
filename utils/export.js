@@ -103,6 +103,7 @@ function generateCSV(board, tickets) {
 function postImage(req, board, tickets, callback) {
 	var postData = { 
 		'id': req.resolved.board.id,
+		'name': board.name,
 		'background': board.background,
 		'customBackground': board.customBackground,
 		'size': {
