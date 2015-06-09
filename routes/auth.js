@@ -49,7 +49,7 @@ Router.route('/auth')
 		return res.json(200, req.user);
 	});
 
-Router.route('/auth/basic/login')
+Router.route('/auth/login')
 
 	/**
 	 * Exchange an 'access-token' for valid credentials. If the user already
