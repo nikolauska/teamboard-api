@@ -5,13 +5,18 @@ var app      = require('./config/express');
 var mongoose = require('./config/mongoose');
 var passport = require('./config/passport');
 
+process.env.INSTANCE_NAME =
+	process.env.INSTANCE_NAME || process.env.HOSTNAME || 'unknown';
+
+console.log(process.env.INSTANCE_NAME);
+
 // Setup 'jarmo' integration for InfluxDB reporter.
 app.use(require('jarmo-express')({
 	resolve: function(req, res, duration) {
 		return {
 			tags: {
-				version:  process.env.VERSION  || 'unknown',
-				hostname: process.env.HOSTNAME || 'unknown',
+				version:  process.env.VERSION || 'unknown',
+				hostname: process.env.INSTANCE_NAME,
 
 				path:   req.route.path,
 				method: req.method,
@@ -22,7 +27,7 @@ app.use(require('jarmo-express')({
 			fields: {
 				value: duration
 			},
-			name: 'response_time'
+			name: '' + process.env.INSTANCE_NAME + '.response_time'
 		}
 	},
 	host: process.env.JARMO_HOST,
