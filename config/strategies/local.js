@@ -8,7 +8,8 @@ var LocalStrategy = require('passport-local').Strategy;
 // Defines the 'req.body' fields used to look for credentials.
 var opts = {
 	usernameField: 'email',
-	passwordField: 'password'
+	passwordField: 'password',
+    callbackURL: "http://localhost:8000/auth/basic/callback"
 }
 
 /**
