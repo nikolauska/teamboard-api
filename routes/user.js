@@ -1,8 +1,6 @@
 var _        = require('lodash');
 var express  = require('express');
 var mongoose = require('mongoose');
-var Promise  = require('promise');
-var request  = require('request');
 
 var utils      = require('../utils');
 var config     = require('../config');
@@ -13,7 +11,7 @@ var User   = mongoose.model('user');
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
 
-Router.route('/user')
+Router.route('/user/edit')
 
     /**
      * Change user name and password
@@ -26,12 +24,21 @@ Router.route('/user')
     .post(middleware.authenticate('user'))
     .post(function(req, res, next) {
         var payload = req.body;
-        var user    = req.user;
 
-        user.name                    = payload.name;
-        user.provider.basic.password = payload.password;
+        User.findOne({ '_id': req.user.id }, function(err, user) {
+            if(err) {
+                return next(utils.error(500, err));
+            }
 
-        user.save(function(err, user) {
+            if(!user) {
+                return next(utils.error(500, 'User not found'));
+            }
+
+            user.name                    = payload.name;
+            user.provider.basic.password = payload.password;
+            user.edited_at               = Date.now();
+
+            user.save(function(err, user) {
                 if(err) {
                     if(err.name == 'ValidationError') {
                         return next(utils.error(400, err));
@@ -40,4 +47,7 @@ Router.route('/user')
                 }
                 return res.json(201, user);
             });
+        });     
     });
+
+module.exports = Router;
