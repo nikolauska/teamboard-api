@@ -117,6 +117,9 @@ Router.route('/boards/:board_id')
 	.get(function(req, res, next) {
 		Board.populate(req.resolved.board, 'createdBy',
 			function(err, board) {
+				if (!board) {
+					return next(utils.error(404, 'Board not found'));
+				}
 				if(err) {
 					return next(utils.error(500, err));
 				}
