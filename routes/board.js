@@ -76,6 +76,15 @@ Router.route('/boards')
 		var payload           = req.body;
 		    payload.createdBy = req.user.id;
 
+		if(payload.size.height <= 0 || payload.size.width <= 0) {
+			return next(utils.error(400, 'Board size must be larger than 0!'));
+		}
+
+		if((!payload.size.height % 1 === 0) || (!payload.size.width % 1 === 0)) {
+			return next(utils.error(400, 'Board size must be whole numbers!'));
+		}
+
+		if (payload.size)
 		new Board(payload).save(function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
@@ -150,6 +159,14 @@ Router.route('/boards/:board_id')
 
 		var ticketWidth = 192;
 		var ticketHeight = 108;
+
+		if(req.resolved.board.size.height <= 0 || req.resolved.board.size.width <= 0) {
+			return next(utils.error(400, 'Board size must be larger than 0!'));
+		}
+
+		if((!req.resolved.board.height % 1 === 0) || (!req.resolved.board.size.width % 1 === 0)) {
+			return next(utils.error(400, 'Board size must be whole numbers!'));
+		}
 
 		return req.resolved.board.save(function(err, board) {
 			if(err) {
