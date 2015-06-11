@@ -17,35 +17,6 @@ var Github = require('passport-github');
 var TokenSecret = process.env.TOKEN_SECRET || 'narsuman';
 var RedirectURL = process.env.REDIRECT_URL || 'http://localhost:8000';
 
-function providers(req, res, next) {
-	var provider = req.params.providers;
-	return provider(req, res, next);
-}
-
-function authorize(req, res, next) {
-    var middleware = passport.authorize(req.params.provider, {
-            session: false
-    });
-    return middleware(req, res, next);
-}
-
-passport.use(new Bearer.Strategy(function(bearer, done){
- 
-        var token = user.token.find(function(t) { t.value === bearer});
- 
-        if(!token) {
-                return done(new Error('Token not found!'));
-        }
- 
-        var user = User.find(function(u) {u.id === token.user_id});
- 
-        if(!user) {
-                return done(new Error('User not found!'));
-        }
-        return done(null, user);
-}));
-
-Router.param('provider', providers);
 
 Router.route('/auth')
 
@@ -65,7 +36,7 @@ Router.route('/auth')
 		return res.json(200, req.user);
 	});
 
-Router.route('/auth/login')
+Router.route('/auth/:provider/login')
 
 	/**
 	 * Exchange an 'access-token' for valid credentials. If the user already
@@ -77,9 +48,12 @@ Router.route('/auth/login')
 	 *   'password': user.password
 	 * }
 	 */
-	.get(middleware.authenticate('local'))
+
+	 .get(function(req, res, next) {
+		return middleware.authenticate(req.params.provider)(req, res, next);
+	})
+
 	.get(function(req, res, next) {
-		console.log("asd");
 		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
 
@@ -140,7 +114,8 @@ Router.route('/auth/login')
 		});
 	});
 
-Router.route('/auth/:provider/callback')
+Router.route('/auth/:provider/callback');
+
 //.get(passport.authenticate('provider'));
 
 Router.route('/auth/:provider/link')
