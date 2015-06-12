@@ -363,6 +363,7 @@ Router.route('/boards/:board_id/tickets')
 					'id':       ticket._id,
 					'color':    ticket.color,
 					'content':  ticket.content,
+					'heading':  ticket.heading,
 					'position': ticket.position,
 				}
 			}).save(function(err, ev) {
@@ -400,6 +401,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	 *     'color':    '#FFF'
 	 *     'heading':  'new-heading'
 	 *     'content':  'new-content'
+	 *     'heading':  'new-heading'
 	 *     'position': {
 	 *       'x', 'y', 'z'
 	 *     }
@@ -434,15 +436,15 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 					'oldAttributes': {
 						'color':    old.color,
-						'heading':  old.heading,
 						'content':  old.content,
+						'heading':  old.heading,
 						'position': old.position,
 					},
 
 					'newAttributes': {
 						'color':    ticket.color,
-						'heading':  ticket.heading,
 						'content':  ticket.content,
+						'heading':  ticket.heading,
 						'position': ticket.position,
 					},
 				}
