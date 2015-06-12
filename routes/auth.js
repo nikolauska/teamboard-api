@@ -12,10 +12,6 @@ var Session = require('mongoose').model('session');
 var Router  = require('express').Router();
 
 var Bearer = require('passport-http-bearer');
-var Github = require('passport-github');
-
-var TokenSecret = process.env.TOKEN_SECRET || 'narsuman';
-var RedirectURL = process.env.REDIRECT_URL || 'http://localhost:8000';
 
 
 Router.route('/auth')
@@ -56,6 +52,7 @@ Router.route('/auth/:provider/login')
 	.get(function(req, res, next) {
 		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
+		var user = null;
 
 		// Find the user specified in the 'req.user' payload. Note that
 		// 'req.user' is not the 'user' model.
@@ -63,7 +60,6 @@ Router.route('/auth/:provider/login')
 			if(err) {
 				return next(utils.error(500, err));
 			}
-			console.log(err);
 			// Make sure the token verified is not undefined. An empty string
 			// is not a valid token so this 'should' be ok.
 			var token = req.headers.authorization.replace('Bearer ', '') || '';
@@ -101,7 +97,6 @@ Router.route('/auth/:provider/login')
 							});
 						return res.set('x-access-token', newtoken)
 							.json(200, payload);
-							//console.log(payload);
 					});
 				}
 
@@ -122,10 +117,15 @@ Router.route('/auth/:provider/callback')
  .get(function(req, res, next) {
 		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
+		var users = null;
 
-		// Find the user specified in the 'req.user' payload. Note that
+		if(req.query.state) {  
+			users = User.findOne(req.query.state.user_id);
+        	users.providers[req.params.provider] = req.account;
+    }
+    	// Find the user specified in the 'req.user' payload. Note that
 		// 'req.user' is not the 'user' model.
-		User.findOne({ _id: req.user.id }, function(err, user) {
+		User.findOne({ _id: req.account.id }, function(err, user) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
@@ -134,13 +134,13 @@ Router.route('/auth/:provider/callback')
 			var token = req.headers.authorization.replace('Bearer ', '') || '';
 
 			jwt.verify(token, secret, function(err, payload) {
+
 				// If there was something wrong with the existing token, we
 				// generate a new one since correct credentials were provided.
 				if(err) {
 					var payload = {
 						id: user.id, type: user.account_type, username: user.name
 					}
-
 					return user.save(function(err, user) {
 						if(err) {
 							return next(utils.error(500, err));
@@ -176,19 +176,6 @@ Router.route('/auth/:provider/callback')
 			});
 		});
 	});
-
-Router.route('/auth/:provider/link')
-
-    .get(passport.authenticate('bearer', {session: false }), function(req, res, next) {
-        var state = new Buffer(
-            JSON.stringify({ _id: req.user.id })).toString('base64');
- 
-        var authorize = passport.authorize(req.params.provider, {
-            state:   state,
-            session: false
-        });
-        return authorize(req, res, next);
-    });
 
 Router.route('/auth/logout')
 
