@@ -80,7 +80,7 @@ Router.route('/boards')
 			return next(utils.error(400, 'Board size must be larger than 0!'));
 		}
 
-		if((!payload.size.height % 1 === 0) || (!payload.size.width % 1 === 0)) {
+		if(!(payload.size.height % 1 === 0) || !(payload.size.width % 1 === 0)) {
 			return next(utils.error(400, 'Board size must be whole numbers!'));
 		}
 
@@ -160,11 +160,15 @@ Router.route('/boards/:board_id')
 		var ticketWidth = 192;
 		var ticketHeight = 108;
 
+		if (!req.resolved.board) {
+			return next(utils.error(404, 'Board not found!'));
+		}
+
 		if(req.resolved.board.size.height <= 0 || req.resolved.board.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
 		}
 
-		if((!req.resolved.board.height % 1 === 0) || (!req.resolved.board.size.width % 1 === 0)) {
+		if(!(req.resolved.board.size.height % 1 === 0) || !(req.resolved.board.size.width % 1 === 0)) {
 			return next(utils.error(400, 'Board size must be whole numbers!'));
 		}
 
