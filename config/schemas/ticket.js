@@ -20,6 +20,14 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	},
 
 	/**
+	 * The ticket header.
+	 */
+	heading: {
+		type:    String,
+		default: ''
+	},
+
+	/**
 	 * The ticket contents.
 	 *
 	 * TODO Should we allow HTML content?
