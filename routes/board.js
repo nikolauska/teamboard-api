@@ -270,12 +270,18 @@ Router.route('/boards/:board_id/export')
 					return next(utils.error(500, err));
 				}
 
+				if(board.name == '')
+					board.name = 'board';
+				else
+					// Edit board name incase name is not valid filename
+					board.name = utils.sanitize(board.name,'');
+
 				if(format == 'csv') {
-					return res.attachment('board.csv').send(200, exportAs.generateCSV(board, tickets));
+					return res.attachment(board.name + '.csv').send(200, exportAs.generateCSV(board, tickets));
 				}
 
 				if(format == 'plaintext') {
-					return res.attachment('board.txt').send(200, exportAs.generatePlainText(board, tickets));
+					return res.attachment(board.name + '.txt').send(200, exportAs.generatePlainText(board, tickets));
 				}
 	
 				if(format == 'image') { 
@@ -287,38 +293,9 @@ Router.route('/boards/:board_id/export')
 				var boardObject     	= board;
 				    boardObject.tickets = tickets;
 
-				return res.attachment('board.json').json(200, boardObject);		
+				return res.attachment(board.name + '.json').json(200, boardObject);		
 			});
 		});
-	});
-
-Router.route('/boards/:board_id/export/image')
-	/**
-	 * Export board image
-	 */
-	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
-	.get(function(req, res, next) {
-		var imagepath = 'image/board.png';
-		var jadePath = 'image/app.jade';
-		var options = {
-			tickets: board.tickets 
-		};
-
-		// Replace app.jade and image folder to smarter name
-		var html = jade.renderFile(jadePath, options);
-
-		// Callback for webshot
-		function imageCallback(err) {
-			if(err) {
-				return next(utils.error(503, err))
-			}
-
-			return res.attachment(path);
-		}
-
-		// Handle errors and attacment returns on callback
-		return exportAs.generateImage(html, path, imageCallback);
 	});
 
 Router.route('/boards/:board_id/tickets')
