@@ -101,8 +101,10 @@ function generateCSV(board, tickets) {
  */
 
 function postImage(req, board, tickets, callback) {
+	if(tickets == null)
+		var tickets = [];
+
 	var postData = { 
-		'id': req.resolved.board.id,
 		'name': board.name,
 		'background': board.background,
 		'customBackground': board.customBackground,
