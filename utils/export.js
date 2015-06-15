@@ -12,7 +12,7 @@ var config   = require('../config');
  * @returns {*} defValue if value it undefined, otherwise return value
  */
 function undefCheck(value, defValue) {
-	if(typeof value === 'undefined') {return defValue}
+	if(typeof value === 'undefined' || value == '') {return defValue}
 	return value;
 }
 /**
@@ -57,7 +57,8 @@ function generatePlainText(board, tickets) {
 	tickets.map(function(t) {
 		return '\n' +
 				'------------------------------------------\n' +
-				'Content:    	' + contentEdit(undefCheck(t.content, 'empty')) + '\n\n' +
+			'Heading:    	' + contentEdit(undefCheck(t.heading, 'empty')) + '\n\n' +
+			'Content:    	' + contentEdit(undefCheck(t.content, 'empty')) + '\n\n' +
 				'Color: 	    	' + hexToColor(t.color) + '\n' + 
 				'------------------------------------------\n';
 	}).join('') + '\n' +
