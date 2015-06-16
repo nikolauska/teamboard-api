@@ -23,8 +23,7 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	 * The ticket heading.
 	 */
 	heading: {
-		type:     String,
-		required: true
+		type:     String
 	},
 
 	/**
@@ -46,6 +45,24 @@ var TicketSchema = module.exports = new mongoose.Schema({
 		type:    String,
 		default: '#FFF'
 	},
+
+	/**
+	 * Comments of the ticket
+	 */
+	comments: [{
+		user: {
+			ref: 'user',
+			type: mongoose.Schema.Types.ObjectId
+		},
+		content:{
+			type:    String,
+			default: ''
+		},
+		created_at: {
+			type: Date,
+			default: Date.now()
+		}
+		}],
 
 	/**
 	 * The ticket's position. The ticket moves in a 2D-plane (x, y) with z

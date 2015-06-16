@@ -65,6 +65,7 @@ Router.route('/boards')
 
 		new Board(payload).save(function(err, board) {
 			if(err) {
+				console.log(err);
 				return next(utils.error(400, err));
 			}
 
@@ -468,6 +469,18 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
+
+		Ticket.find({'_id': req.resolved.ticket.id}, function(err, ticket) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			ticket.comments.push( {user: req.user.id, content: req.body.comment}).save(function(err, ticket) {
+				console.log(err);
+				console.log(ticket);
+			});
+		});
+
+		/*
 		new Event({
 			'type': 'TICKET_COMMENT',
 			'board': req.resolved.board.id,
@@ -486,7 +499,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 			if(err) return next(utils.error(500, err));
 			emitter.to(ev.board).emit('board:event', ev.toObject());
 			return res.json(201, ev.toObject());
-		});
+		});*/
 	});
 
 

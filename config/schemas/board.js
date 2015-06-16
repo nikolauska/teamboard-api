@@ -12,7 +12,7 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	 */
 	name: {
 		type:     String,
-		required: true
+		default: ''
 	},
 
 	/**
