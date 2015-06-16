@@ -24,12 +24,11 @@ module.exports = new BearerStrategy(function(token, done) {
 			if(!board) {
 				return done(null, null, 'Access denied.');
 			}
-
 			return done(null, {
 				id:       decoded.id,
-				type:     decoded.type,
+				type:     'temporary',
 				access:   board.id,
-				username: decoded.username
+				username: decoded.name
 			});
 		});
 	});

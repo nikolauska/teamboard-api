@@ -33,7 +33,7 @@ var EventSchema = module.exports = new mongoose.Schema({
 		 */
 		type: {
 			type: String,
-			enum: [ 'user', 'guest' ]
+			enum: [ 'standard', 'temporary' ]
 		},
 
 		/**
