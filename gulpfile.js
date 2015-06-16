@@ -7,6 +7,7 @@ var mocha = require('gulp-mocha');
 gulp.task('test', function() {
 	return gulp.src( ['./test/**/*.js'] )
 		.pipe(mocha({
+			'timeout':  10000,
 			'reporter': 'spec',
 			'globals': {
 				'should': require('should')
@@ -17,7 +18,10 @@ gulp.task('test', function() {
 gulp.task('test:exit', ['test'], process.exit);
 
 gulp.task('watch', ['test'], function() {
-	return gulp.watch(['./**/*.js', '!./gulpfile.js'], ['test']);
+	return gulp.watch(['./**/*.js',
+		'!./gulpfile.js',
+		'!./node_modules/**/*.js',
+	], ['test']);
 });
 
 gulp.task('default', ['watch']);

@@ -14,15 +14,6 @@ var BoardSchema = module.exports = new mongoose.Schema({
 		type:     String,
 		default: ''
 	},
-
-	/**
-	 * Description of the board.
-	 */
-	description: {
-		type:    String,
-		default: ''
-	},
-
 	/**
 	 * Size of the board, in the unit of 'tickets'. Eg. a width of 8 would
 	 * imply the board is as wide as 8 tickets.
@@ -47,6 +38,16 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	background: {
 		type:    String,
 		default: 'none'
+	},
+
+	/**
+	 * Custom background URL.
+	 *
+	 * TODO Validate to be an URL.
+	 */
+	customBackground: {
+		type:    String,
+		default: null
 	},
 
 	/**

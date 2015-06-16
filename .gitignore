@@ -3,6 +3,7 @@
 *.sublime-project
 *.sublime-workspace
 
+.vagrant/
 node_modules/
 
-
+nohup.out

@@ -1,7 +1,6 @@
 'use strict';
 
 var jwt      = require('jsonwebtoken');
-var boom     = require('boom');
 var passport = require('passport');
 
 var utils      = require('../utils');
@@ -56,6 +55,7 @@ Router.route('/auth/login')
 			// Make sure the token verified is not undefined. An empty string
 			// is not a valid token so this 'should' be ok.
 			var token = user.token || '';
+
 			jwt.verify(token, secret, function(err, payload) {
 				// If there was something wrong with the existing token, we
 				// generate a new one since correct credentials were provided.
@@ -65,7 +65,8 @@ Router.route('/auth/login')
 					}
 
 					user.token = jwt.sign(payload, secret);
-					user.save(function(err, user) {
+
+					return user.save(function(err, user) {
 						if(err) {
 							return next(utils.error(500, err));
 						}
@@ -73,8 +74,9 @@ Router.route('/auth/login')
 							.json(200, payload);
 					});
 				}
+
 				// If the token was valid we reuse it.
-				else return res.set('x-access-token', user.token)
+				return res.set('x-access-token', user.token)
 					.json(200, payload);
 			});
 		});
@@ -117,9 +119,13 @@ Router.route('/auth/register')
 		new User({ email: req.body.email, password: req.body.password })
 			.save(function(err, user) {
 				if(err) {
-					// TODO Make sure the type of 'err' is 'ValidationError' if
-					//      we are sending a '400' response.
-					return next(utils.error(400, err));
+					if(err.name == 'ValidationError') {
+						return next(utils.error(400, err));
+					}
+					if(err.name == 'MongoError' && err.code == 11000) {
+						return next(utils.error(409, 'User already exists'));
+					}
+					return next(utils.error(500, err));
 				}
 				return res.json(201, user);
 			});

@@ -1,0 +1,144 @@
+Changelog
+=========
+
+v0.2.12 (2014-11-28)
+--------------------
+
+- Add support for vagrant development. [tanelih]
+
+- Fix invalid error message with duplicate user creation. [tanelih]
+
+v0.2.11 (2014-11-26)
+--------------------
+
+- Add documentation for 'utils/error'. [tanelih]
+
+v0.2.4 (2014-11-26)
+-------------------
+
+- Fix issue with 'passport' not propagating errors. [tanelih]
+
+- Fix issue with 'gulp.watch' tracking too many files. Damn you
+  'node_modules'... [tanelih]
+
+v0.2.1 (2014-11-18)
+-------------------
+
+- Fix issue with request body size being set too low. [tanelih]
+
+v0.2.0 (2014-11-18)
+-------------------
+
+- Disable 'newrelic' by default. [Taneli Hartikainen]
+
+- Small change to PUT /boards/:id. [Taneli Hartikainen]
+
+- Disable 'newrelic' for test runs. [Taneli Hartikainen]
+
+- Fix issues with updating a board, due to invalid payload. [Taneli
+  Hartikainen]
+
+- Add ignore rules to 'newrelic' configuration for 400 status codes.
+  [Taneli Hartikainen]
+
+- Fix issue with ticket updating. [Taneli Hartikainen]
+
+- Add missing package to deps. [Taneli Hartikainen]
+
+- Add csv-export. [Taneli Hartikainen]
+
+- Add 'export' for 'json' format. [Taneli Hartikainen]
+
+- Add documentation. [Taneli Hartikainen]
+
+- Add commenting. [Taneli Hartikainen]
+
+- Prefix /api on routes. [Taneli Hartikainen]
+
+- Fixed invalid password test in sign up. Cleaning up. [Petri
+  Matilainen]
+
+- Added password and email validation. More unit tests. [Petri
+  Matilainen]
+
+- Change static mongoose version to package.json. [spherelot]
+
+- Add 'board' attribute to emitted events. [Taneli Hartikainen]
+
+- Add new '_members' attribute that represents what the API will be in
+  the future. [Taneli Hartikainen]
+
+- Add background and size options for board. [Taneli Hartikainen]
+
+- Add population to PUT board. [Taneli Hartikainen]
+
+- Add population to create-board. [Taneli Hartikainen]
+
+- Remove stuff, add some comments. [Taneli Hartikainen]
+
+- Remove 'err' utility function, replace with inline error handling.
+  [Taneli Hartikainen]
+
+  Reformatted codebase while at it, will add some comments and new-
+  lines next.
+
+- Remove crypt-service request retries. Remove bcrypt dependency.
+  [Taneli Hartikainen]
+
+- Remove teamboard-crypt dependency. [Taneli Hartikainen]
+
+- Add more logging. [Taneli Hartikainen]
+
+- Add cleaner comparison to retries. [Taneli Hartikainen]
+
+- Add retry on request-fail. [Taneli Hartikainen]
+
+- Tone sockets down to 128. [Taneli Hartikainen]
+
+- Set http.globalAgent.maxSockets to 512. [Taneli Hartikainen]
+
+- Add logging to crypt-server requests. [Taneli Hartikainen]
+
+- Fix logging in on multiple clients destroying sessions. [Taneli
+  Hartikainen]
+
+- Add support for crypt-service. [Taneli Hartikainen]
+
+- Add DELETE route for multiple boards, as with tickets. [Taneli
+  Hartikainen]
+
+- Fix issue with board being stuck in public state. [Taneli Hartikainen]
+
+- Fix issues with 500 from authentication. [Taneli Hartikainen]
+
+- Fix error handling in screenshot API. [Taneli Hartikainen]
+
+- Add multiple ticket deletion API. Remove guest routes and resolve.
+  [Taneli Hartikainen]
+
+- Remove some debug code. [Taneli Hartikainen]
+
+- Add implementation to screenshot api. [Taneli Hartikainen]
+
+- Remove guest schema. Rework authentication into 'bearer' and
+  'anonymous' strategies. Add stub route for screenshots. [Taneli
+  Hartikainen]
+
+- Modify emitter payload to include both ticket and user. [Taneli
+  Hartikainen]
+
+- Update README.md. [Taneli Hartikainen]
+
+- Rename MONGODB_HOST to MONGODB_URL for clarity. [Taneli Hartikainen]
+
+- Add installation instructions. [Taneli Hartikainen]
+
+- Update and rename LICENCE.md to LICENSE. [Taneli Hartikainen]
+
+  Typos!
+
+- Create LICENCE.md. [Taneli Hartikainen]
+
+- Initial commit. [Taneli Hartikainen]
+
+
