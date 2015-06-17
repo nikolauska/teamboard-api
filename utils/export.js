@@ -72,6 +72,8 @@ function generatePlainText(board, tickets) {
  * @returns {string} csv text
  */
 function generateCSV(board, tickets) {
+	console.log("asdasd");
+
 	var boardCSVData = {
 		'NAME':        board.name,
 		'DESCRIPTION': board.description,
@@ -85,6 +87,7 @@ function generateCSV(board, tickets) {
 			'HEADING':    t.heading,
 			'CONTENT':    t.content,
 			'COLOR':      t.color,
+			'COMMENTS':   t.comments.map(function(c) {return c.user.username + ': ' + c.content;}) + '',
 			'POSITION_X': '' + t.position.x + '',
 			'POSITION_Y': '' + t.position.y + '',
 			'POSITION_Z': '' + t.position.z + '',

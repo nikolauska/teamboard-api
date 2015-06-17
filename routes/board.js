@@ -550,16 +550,37 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
-
-		console.log(req.user);
-
 		Ticket.findByIdAndUpdate(
 			req.resolved.ticket.id,
 			{$push: {"comments": {user: {id: req.user.id, username: req.user.username}, content: req.body.comment}}},
 			{safe: true, upsert: true},
 			function(err, ticket) {
-				console.log(err);
-				console.log(ticket);
+
+				new Event({
+					'type': 'TICKET_EDIT',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'id': ticket._id,
+						'newAttributes': {
+							'color':    ticket.color,
+							'content':  ticket.content,
+							'heading':  ticket.heading,
+							'position': ticket.position,
+						},
+					}
+				}).save(function(err, ev) {
+						if(err) {
+							return console.error(err);
+						}
+						utils.emitter.to(ev.board)
+							.emit('board:event', ev.toObject());
+					});
+
 			}
 		);
 
