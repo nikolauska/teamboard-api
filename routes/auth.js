@@ -221,7 +221,8 @@ Router.route('/auth/register')
 								password:req.body.password
 						       }
 				   },
-					created_at: new Date()})
+					created_at: new Date(),
+					boards:[]})
 			.save(function(err, user) {
 				if(err) {
 					if(err.name == 'ValidationError') {
