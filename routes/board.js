@@ -551,15 +551,17 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
 
-		Ticket.find({'_id': req.resolved.ticket.id}, function(err, ticket) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
-			ticket.comments.push( {user: req.user.id, content: req.body.comment}).save(function(err, ticket) {
+		console.log(req.user);
+
+		Ticket.findByIdAndUpdate(
+			req.resolved.ticket.id,
+			{$push: {"comments": {user: {id: req.user.id, username: req.user.username}, content: req.body.comment}}},
+			{safe: true, upsert: true},
+			function(err, ticket) {
 				console.log(err);
 				console.log(ticket);
-			});
-		});
+			}
+		);
 
 		/*
 		new Event({
