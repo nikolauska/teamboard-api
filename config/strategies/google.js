@@ -2,20 +2,22 @@
 
 var utils = require('../../utils');
 
-var User          = require('mongoose').model('user');
-var BasicStrategy =	require('passport-http').BasicStrategy;
+var User           =    require('mongoose').model('user');
+var GoogleStrategy =	require('passport-google').Strategy;
 
 // Defines the 'req.body' fields used to look for credentials.
 var opts = {
-	usernameField: 'email',
-	passwordField: 'password',
-
+	client_id: '161571982407-o698t9ofu4nl56efcu3dkl2f2nftb5du.apps.googleusercontent.com',
+	client_secret: 'Dd0Me0lL3HT4k8vCdMfvBXBa',
+    returnURL: 'http://localhost:9002/api/auth/login/callback',
+    realm: 'http://localhost:9002/',
+    token: 'asd'
 }
 
 /**
  * Authenticate the requestee as a 'user' based on the passed in credentials.
  */
-module.exports = new BasicStrategy(opts, function(email, password, done) {
+module.exports = new GoogleStrategy(opts, function(accestoken, profile, done) {
 	User.findOne({ 'providers.basic.email': email }, function(err, user, res) {
 		if(err) {
 			return done(utils.error(500, err));
