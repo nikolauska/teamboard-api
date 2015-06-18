@@ -555,9 +555,71 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 		var old             = req.resolved.ticket.toObject();
 		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
 
-		Ticket.findByIdAndUpdate(
+		Ticket.findById(req.resolved.ticket.id, function (err, ticket) {
+			ticket.comments.unshift( {'user': {id: req.user.id,
+												'username': req.user.username},
+									'content': req.body.comment});
+
+			ticket.save(function (err, ticket) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
+
+				if (!ticket) {
+					return next(utils.error(404, 'Ticket not found'));
+				}
+
+				new Event({
+					'type': 'TICKET_EDIT',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'id': ticket._id,
+
+						'oldAttributes': {
+							'color':    old.color,
+							'content':  old.content,
+							'heading':  old.heading,
+							'position': old.position,
+							'comments': old.comments
+						},
+
+						'newAttributes': {
+							'color':    ticket.color,
+							'content':  ticket.content,
+							'heading':  ticket.heading,
+							'position': ticket.position,
+							'comments': ticket.comments
+						},
+					}
+				}).save(function(err, ev) {
+						if(err) {
+							return console.error(err);
+						}
+						utils.emitter.to(ev.board)
+							.emit('board:event', ev.toObject());
+					});
+				return res.json(200, ticket);
+
+			})
+		});
+
+
+		/*Ticket.findByIdAndUpdate(
 			req.resolved.ticket.id,
-			{ $push: {'comments': {user: {id: req.user.id, username: req.user.username}, content: req.body.comment}}},
+			{
+				$push: {
+					'comments': {
+						user: {
+							id:       req.user.id,
+							username: req.user.username },
+
+						content: req.body.comment} }
+			},
 			{safe: true, upsert: true},
 			function(err, ticket) {
 				if(err) {
@@ -592,7 +654,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 							'content':  ticket.content,
 							'heading':  ticket.heading,
 							'position': ticket.position,
-							'comments': ticket.comments.reverse()
+							'comments': ticket.comments
 						},
 					}
 				}).save(function(err, ev) {
@@ -604,7 +666,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 					});
 				return res.json(200, ticket);
 			}
-		);
+		);/*
 
 		/*
 		new Event({

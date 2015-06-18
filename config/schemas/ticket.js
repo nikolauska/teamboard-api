@@ -96,11 +96,7 @@ if(!TicketSchema.options.toObject) TicketSchema.options.toObject = { }
 
 TicketSchema.options.toJSON.transform = function(doc, ret) {
 	ret.id = doc.id;
-	// Mongoose does not support unshift operators, so here we reverse the doc
-	// comment so they show up as newest first...
-	if(ret.comments) {
-		ret.comments.reverse();
-	}
+
 	delete ret._id;
 	delete ret.__v;
 }
