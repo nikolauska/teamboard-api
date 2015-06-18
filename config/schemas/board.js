@@ -70,8 +70,7 @@ var BoardSchema = module.exports = new mongoose.Schema({
      * }
      */
     members: {
-        type: mongoose.Schema.Types.Mixed,
-        ref: 'user' 
+        type: mongoose.Schema.Types.Mixed
     }
 });
 

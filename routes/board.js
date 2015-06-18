@@ -44,8 +44,8 @@ Router.route('/boards')
 			boardQuery = Board.find({ _id: req.user.access });
 		}
 		else {
-			// Normal users see the boards they have created.
-			boardQuery = Board.find({ 'members.user': req.user.id });
+			// Normal users see the boards they are member or admin to.
+			boardQuery = Board.find({ 'members[req.user.id]': { $ne: null } });
 		}
 
 		boardQuery.exec(function(err, boards) {
