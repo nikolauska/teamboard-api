@@ -88,10 +88,16 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
 	// delete ret.token;
 	// delete ret.password;
 
+	if (doc.providers.basic) {
+		doc.providers.basic.password = '';
+	}
+
+
 	return {
 		'id':           doc.id,
 		'username':     doc.name,
-		'account_type': doc.account_type
+		'account_type': doc.account_type,
+		'providers':    doc.providers
 	}
 }
 
@@ -129,6 +135,7 @@ UserSchema.pre('save', function hashPassword(next) {
 	var SALT_FACTOR = 10;
 
 	bcrypt.genSalt(SALT_FACTOR, function(err, salt) {
+
 		if(err) {
 			return next(utils.error(500, err));
 		}

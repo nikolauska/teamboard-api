@@ -184,6 +184,7 @@ Router.route('/auth/logout')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
+
 		var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
 
 		Session.findOne({token: tokenToInvalidate}).remove(new function(err) {
