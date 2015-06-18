@@ -556,7 +556,14 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
 
 		Ticket.findById(req.resolved.ticket.id, function (err, ticket) {
-			ticket.comments.unshift( {'user': {id: req.user.id,
+
+			var userId = null;
+
+			if (ObjectId.isValid(req.user.id)) {
+				userId = req.user.id
+			}
+
+			ticket.comments.unshift( {'user': {id: userId,
 												'username': req.user.username},
 									'content': req.body.comment});
 
