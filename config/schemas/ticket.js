@@ -56,9 +56,9 @@ var TicketSchema = module.exports = new mongoose.Schema({
 						type: mongoose.Schema.Types.ObjectId
 					},
 				username: {
-					type: String,
-					required: true,
-					default: 'test'
+					    type: String,
+					    required: true,
+					    default: ''
 				}
 		},
 		content:{
@@ -66,7 +66,7 @@ var TicketSchema = module.exports = new mongoose.Schema({
 			default: ''
 		},
 		created_at: {
-			type: Date,
+			type:    Date,
 			default: Date.now()
 		}
 		}],

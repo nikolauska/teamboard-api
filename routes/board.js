@@ -364,6 +364,7 @@ Router.route('/boards/:board_id/tickets')
 					'content':  ticket.content,
 					'heading':  ticket.heading,
 					'position': ticket.position,
+					'comments': ticket.comments
 				}
 			}).save(function(err, ev) {
 				if(err) {
@@ -550,13 +551,25 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
+
+		var old             = req.resolved.ticket.toObject();
+		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
+
 		Ticket.findByIdAndUpdate(
 			req.resolved.ticket.id,
 			{$push: {"comments": {user: {id: req.user.id, username: req.user.username}, content: req.body.comment}}},
 			{safe: true, upsert: true},
 			function(err, ticket) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
 
-				new Event({
+				if (!ticket) {
+					return next(utils.error(404, 'Ticket not found'));
+				}
+
+				return res.json(200, ticket);
+				/*new Event({
 					'type': 'TICKET_EDIT',
 					'board': ticket.board,
 					'user': {
@@ -566,11 +579,21 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 					},
 					'data': {
 						'id': ticket._id,
+
+						'oldAttributes': {
+							'color':    old.color,
+							'content':  old.content,
+							'heading':  old.heading,
+							'position': old.position,
+							'comments': old.comments
+						},
+
 						'newAttributes': {
 							'color':    ticket.color,
 							'content':  ticket.content,
 							'heading':  ticket.heading,
 							'position': ticket.position,
+							'comments': ticket.comments
 						},
 					}
 				}).save(function(err, ev) {
@@ -579,8 +602,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 						}
 						utils.emitter.to(ev.board)
 							.emit('board:event', ev.toObject());
-					});
-
+					});*/
 			}
 		);
 
