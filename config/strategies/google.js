@@ -3,15 +3,16 @@
 var utils = require('../../utils');
 
 var User           =    require('mongoose').model('user');
-var GoogleStrategy =	require('passport-google').Strategy;
+var GoogleStrategy =	require('passport-google-oauth2').Strategy;
 
 // Defines the 'req.body' fields used to look for credentials.
 var opts = {
-	client_id: '161571982407-o698t9ofu4nl56efcu3dkl2f2nftb5du.apps.googleusercontent.com',
-	client_secret: 'Dd0Me0lL3HT4k8vCdMfvBXBa',
-    returnURL: 'http://localhost:9002/api/auth/login/callback',
+	clientID: '161571982407-o698t9ofu4nl56efcu3dkl2f2nftb5du.apps.googleusercontent.com',
+	clientSecret: 'Dd0Me0lL3HT4k8vCdMfvBXBa',
+    callbackURL: 'http://localhost:9002/api/auth/login/callback',
     realm: 'http://localhost:9002/',
-    token: 'asd'
+    token: 'aasi',
+    scope: [ 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.profile.emails.read' ]
 }
 
 /**
@@ -41,6 +42,5 @@ module.exports = new GoogleStrategy(opts, function(accestoken, profile, done) {
 				username: user.name
 			});
 		});
-		//return res.redirect('/auth/:provider/callback');
 	});
 });

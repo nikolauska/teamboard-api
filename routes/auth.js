@@ -46,16 +46,6 @@ Router.route('/auth/:provider/login')
 	 * }
 	 */
 
-	/*authenticate...
-
-	-> res.redirect('client?access_token=213123123')
-
-	client/app.js (router)
-
-	page('/', (ctx) => {
-		localStorage = ctx.params.access_token
-	}*/
-
 	.get(function(req, res, next) {
 		return middleware.authenticate(req.params.provider)(req, res, next);	
 	})
@@ -119,36 +109,81 @@ Router.route('/auth/:provider/login')
 
 Router.route('/auth/:provider/callback')
 
- .get(function(req, res, next) {
+ /*.get(function(req, res, next) {
 		return middleware.authenticate(req.params.provider)(req, res, next);
-	})
+	})*/
 
  .get(function(req, res, next) {
        var user = null;
  
-        if(req.query.state) {
-                // passing in 'state' here, from the OAuth request as seen above can be
-                // seen as attempting to link an account to an existing one, so we do
-                // just that...
-                user = linkAccount( findUser(req.query.state.user_id), req.account );
-        }
-        else {
-                // we find the user based on the account somehow, probably 'email' or
-                // something similar is used to make sure we get the right guy
-                User.findOne({ _id: req.account.email }, function(err, user) {
-					if(err) {
+	if(req.query.state) {
+		// passing in 'state' here, from the OAuth request as seen above can be
+		// seen as attempting to link an account to an existing one, so we do
+		// just that...
+
+			User.findOne({ _email: req.account.email }, function(err, user) { 
+				if(err) {
+				return next(utils.error(500, err));
+				}
+
+
+            });
+        } else {
+			// we find the user based on the account somehow, probably 'email' or
+			// something similar is used to make sure we get the right guy
+			User.findOne({ _email: req.account.email }, function(err, user) {
+				if(err) {
 				return next(utils.error(500, err));
 			}
+
         });
    
- 
-        if(!user) {
                 // if the user is not found, we create a new user, this is effectively
                 // like registering in the current application, this also should link
                 // the account to the user
                 // note that 'user.create' is just pseudo code meant to illustrate the
                 // flow of the authentication
-                user = (req.account)
+        if(!user) {      
+
+			var newUser = new User();
+				// set all of the relevant information
+				newUser.providers.google.id    = profile.id;
+				newUser.providers.google.token = token;
+				newUser.providers.google.name  = profile.displayName;
+				newUser.providers.google.email = profile.emails[0].value; // pull the first email
+
+            // save the user
+				newUser.save(function(err, user) {
+				if(err) {
+					if(err.name == 'ValidationError') {
+						return next(utils.error(400, err));
+					}
+					if(err.name == 'MongoError' && err.code == 11000) {
+						return next(utils.error(409, 'User already exists'));
+					}
+					return next(utils.error(500, err));
+				}
+				return res.json(201, user);
+			});
+
+			var newtoken = jwt.sign(payload, secret);
+
+				new Session({
+					user:       user.id,
+					user_agent: req.headers['user-agent'],
+					token:      newtoken,
+					created_at: new Date()
+						}).save(function(err, newsession) {
+							if(err) {
+								if(err.name == 'ValidationError') {
+									return next(utils.error(400, err));
+								}
+								if(err.name == 'MongoError' && err.code == 11000) {
+									return next(utils.error(409, 'Creating new session failed'));
+								}
+								return next(utils.error(500, err));
+							}
+						});
         };
  
         // here we create the session for the user, and store a reference of it to

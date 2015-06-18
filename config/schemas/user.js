@@ -50,9 +50,10 @@ var UserSchema = module.exports = new mongoose.Schema({
 			avatar:   String
 		},
 		google: {
-			name:     String,
-			email:    String,
-			avatar:   String
+			id:      String,
+			token:   String,
+			email:   String,
+			name:    String
 		}
 	},
 
