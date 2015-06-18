@@ -557,7 +557,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
 		Ticket.findByIdAndUpdate(
 			req.resolved.ticket.id,
-			{$push: {"comments": {user: {id: req.user.id, username: req.user.username}, content: req.body.comment}}},
+			{ $push: {'comments': {user: {id: req.user.id, username: req.user.username}, content: req.body.comment}}},
 			{safe: true, upsert: true},
 			function(err, ticket) {
 				if(err) {
@@ -568,8 +568,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 					return next(utils.error(404, 'Ticket not found'));
 				}
 
-				return res.json(200, ticket);
-				/*new Event({
+				new Event({
 					'type': 'TICKET_EDIT',
 					'board': ticket.board,
 					'user': {
@@ -593,7 +592,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 							'content':  ticket.content,
 							'heading':  ticket.heading,
 							'position': ticket.position,
-							'comments': ticket.comments
+							'comments': ticket.comments.reverse()
 						},
 					}
 				}).save(function(err, ev) {
@@ -602,7 +601,8 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 						}
 						utils.emitter.to(ev.board)
 							.emit('board:event', ev.toObject());
-					});*/
+					});
+				return res.json(200, ticket);
 			}
 		);
 
