@@ -521,31 +521,6 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
 	/**
-	 * Get a list of 'events' of the type of 'TICKET_COMMENT' for the board
-	 * specified by 'board_id'.
-	 *
-	 * returns:
-	 *   [ EventObject ]
-	 */
-	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
-	.get(function(req, res, next) {
-
-		var commentQuery = Event.find({
-			'type':    'TICKET_COMMENT',
-			'board':   req.resolved.board.id,
-			'data.id': req.resolved.ticket.id,
-		});
-
-		return commentQuery.exec(function(err, comments) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
-			return res.json(200, comments);
-		});
-	})
-
-	/**
 	 * Post a new comment on the specified ticket.
 	 */
 	.post(middleware.authenticate('user', 'guest'))
@@ -555,19 +530,18 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 		var old             = req.resolved.ticket.toObject();
 		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
 
-		Ticket.findById(req.resolved.ticket.id, function (err, ticket) {
-
 			var userId = null;
 
-			if (ObjectId.isValid(req.user.id)) {
+			// Backwards compatibility for older clients for guest users
+			if(ObjectId.isValid(req.user.id)) {
 				userId = req.user.id
 			}
 
-			ticket.comments.unshift( {'user': {id: userId,
-												'username': req.user.username},
-									'content': req.body.comment});
+		req.resolved.ticket.comments.unshift({ 'user': { 'id': userId,
+											   'username': req.user.username},
+									           'content': req.body.comment});
 
-			ticket.save(function (err, ticket) {
+		req.resolved.ticket.save(function (err, ticket) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
@@ -575,7 +549,9 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 				if (!ticket) {
 					return next(utils.error(404, 'Ticket not found'));
 				}
-
+				/*
+				 * TODO: TICKET_COMMENT edit?
+				 */
 				new Event({
 					'type': 'TICKET_EDIT',
 					'board': ticket.board,
@@ -611,93 +587,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 							.emit('board:event', ev.toObject());
 					});
 				return res.json(200, ticket);
-
 			})
-		});
-
-
-		/*Ticket.findByIdAndUpdate(
-			req.resolved.ticket.id,
-			{
-				$push: {
-					'comments': {
-						user: {
-							id:       req.user.id,
-							username: req.user.username },
-
-						content: req.body.comment} }
-			},
-			{safe: true, upsert: true},
-			function(err, ticket) {
-				if(err) {
-					return next(utils.error(500, err));
-				}
-
-				if (!ticket) {
-					return next(utils.error(404, 'Ticket not found'));
-				}
-
-				new Event({
-					'type': 'TICKET_EDIT',
-					'board': ticket.board,
-					'user': {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					},
-					'data': {
-						'id': ticket._id,
-
-						'oldAttributes': {
-							'color':    old.color,
-							'content':  old.content,
-							'heading':  old.heading,
-							'position': old.position,
-							'comments': old.comments
-						},
-
-						'newAttributes': {
-							'color':    ticket.color,
-							'content':  ticket.content,
-							'heading':  ticket.heading,
-							'position': ticket.position,
-							'comments': ticket.comments
-						},
-					}
-				}).save(function(err, ev) {
-						if(err) {
-							return console.error(err);
-						}
-						utils.emitter.to(ev.board)
-							.emit('board:event', ev.toObject());
-					});
-				return res.json(200, ticket);
-			}
-		);/*
-
-		/*
-		new Event({
-			'type': 'TICKET_COMMENT',
-			'board': req.resolved.board.id,
-
-			'user': {
-				'id':       req.user.id,
-				'type':     req.user.type,
-				'username': req.user.username,
-			},
-
-			'data': {
-				'id':      req.resolved.ticket.id,
-				'comment': req.body.comment,
-			}
-		}).save(function(err, ev) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
-			utils.emitter.to(ev.board)
-				.emit('board:event', ev.toObject());
-			return res.json(201, ev.toObject());
-		});*/
 	});
 
 
