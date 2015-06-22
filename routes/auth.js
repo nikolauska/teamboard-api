@@ -69,7 +69,10 @@ Router.route('/auth/:provider/login')
 				// generate a new one since correct credentials were provided.
 				if(err) {
 					var payload = {
-						id: user.id, type: user.account_type, username: user.name
+						id:       user.id, 
+						type:     user.account_type, 
+						username: user.name, 
+						boards:   user.boards
 					}
 
 					return user.save(function(err, user) {

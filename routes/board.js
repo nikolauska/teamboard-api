@@ -75,8 +75,8 @@ Router.route('/boards')
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
 		var payload           			 = req.body;
-		    payload.members				 = [];
-		    payload.members.push({ user: req.user.id, role: 'admin'});
+			payload.members              = {};
+		    payload.members[req.user.id] = 'admin';
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -94,6 +94,7 @@ Router.route('/boards')
 
 			User.findOne({ _id: req.user.id }, function(err, doc) {
 				doc.boards.push(board._id);
+				console.log(doc);
 				doc.save(function(err) {
 					if(err) return console.error(err);
 
