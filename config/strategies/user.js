@@ -42,6 +42,7 @@ module.exports = new BearerStrategy(function(token, done) {
 					type:      user.account_type,
 					username:  user.name,
 					provider:  user.providers,
+					boards:    user.boards,
 					edited_at: user.edited_at
 				});
 			});

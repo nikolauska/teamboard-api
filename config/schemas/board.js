@@ -69,9 +69,10 @@ var BoardSchema = module.exports = new mongoose.Schema({
      *      user2._id: 'member'
      * }
      */
-    members: {
-        type: mongoose.Schema.Types.Mixed
-    }
+    members: [{
+        id:  {type: mongoose.Schema.Types.ObjectId},
+        role: {type: String}
+    }]
 });
 
 if(!BoardSchema.options.toJSON) BoardSchema.options.toJSON     = { }

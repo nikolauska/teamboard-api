@@ -45,7 +45,8 @@ Router.route('/boards')
 		}
 		else {
 			// Normal users see the boards they are member or admin to.
-			boardQuery = Board.find({ 'members[req.user.id]': { $ne: null } });
+			boardQuery = Board.find({'members.id': req.user.id });
+
 		}
 
 		boardQuery.exec(function(err, boards) {
@@ -75,8 +76,9 @@ Router.route('/boards')
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
 		var payload           			 = req.body;
-			payload.members              = {};
-		    payload.members[req.user.id] = 'admin';
+		payload.members                  = [];
+		    //payload.members[req.user.id] = 'admin';
+		payload.members.push({id: req.user.id, role: 'admin'});
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -94,7 +96,6 @@ Router.route('/boards')
 
 			User.findOne({ _id: req.user.id }, function(err, doc) {
 				doc.boards.push(board._id);
-				console.log(doc);
 				doc.save(function(err) {
 					if(err) return console.error(err);
 
@@ -128,8 +129,7 @@ Router.route('/boards/:board_id')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
-		var userId = req.user.id;
-		var boardQuery = Board.findOne({ id: req.resolved.board, 'members.userId': { '$ne': null } });
+		var boardQuery = Board.findOne({ id: req.resolved.board, 'members.id': req.user.id });
 
 		boardQuery.exec(function(err, board) {
 				if(err) {

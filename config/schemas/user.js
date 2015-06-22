@@ -94,9 +94,9 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
     // delete ret.token;
     // delete ret.password;
 
-    if (doc.providers.basic) {
+   /* if (doc.providers.basic) {
         doc.providers.basic.password = '';
-    }
+    }*/
 
 
     return {

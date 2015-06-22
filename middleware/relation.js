@@ -12,7 +12,6 @@ var _roles = {
 		if(!req.user || !req.resolved.board) {
 			return false;
 		}
-
 		var isUser    = req.user.type == 'standard';
 		var hasAccess = req.resolved.board.members[req.user.id] != null && req.resolved.board.members[req.user.id] == 'admin'
 
