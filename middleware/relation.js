@@ -15,6 +15,17 @@ var _roles = {
 		var isUser    = req.user.type == 'standard';
 		var hasAccess = req.resolved.board.members[req.user.id] != null && req.resolved.board.members[req.user.id] == 'admin'
 
+		var hasAccess = false;
+
+		if (req.resolved.board.members) {
+			req.resolved.board.members.map(function (item) {
+				if (item.id == req.user.id) {
+					hasAccess = true;
+					return isUser && hasAccess;
+				}
+			})
+		}
+
 		return isUser && hasAccess;
 	},
 
@@ -28,7 +39,16 @@ var _roles = {
 		}
 
 		var isUser    = req.user.type == 'standard';
-		var hasAccess = req.resolved.board.members[req.user.id] != null && req.resolved.board.members[req.user.id] == 'member'
+		var hasAccess = false;
+
+		if (req.resolved.board.members) {
+			req.resolved.board.members.map(function (item) {
+				if (item.id == req.user.id) {
+					hasAccess = true;
+					return isUser && hasAccess;
+				}
+			})
+		}
 
 		return isUser && hasAccess;
 	},
