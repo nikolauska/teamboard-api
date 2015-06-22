@@ -75,8 +75,8 @@ Router.route('/boards')
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
 		var payload           			 = req.body;
-		    payload.members				 = [];
-		    payload.members.push({ user: req.user.id, role: 'admin'});
+			payload.members              = {};
+		    payload.members[req.user.id] = 'admin';
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -94,6 +94,7 @@ Router.route('/boards')
 
 			User.findOne({ _id: req.user.id }, function(err, doc) {
 				doc.boards.push(board._id);
+				console.log(doc);
 				doc.save(function(err) {
 					if(err) return console.error(err);
 
@@ -368,9 +369,7 @@ Router.route('/boards/:board_id/tickets')
 					'id':       ticket._id,
 					'color':    ticket.color,
 					'content':  ticket.content,
-					'heading':  ticket.heading,
 					'position': ticket.position,
-					'comments': ticket.comments
 				}
 			}).save(function(err, ev) {
 				if(err) {
@@ -407,7 +406,6 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	 *     'color':    '#FFF'
 	 *     'heading':  'new-heading'
 	 *     'content':  'new-content'
-	 *     'heading':  'new-heading'
 	 *     'position': {
 	 *       'x', 'y', 'z'
 	 *     }
@@ -442,15 +440,15 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 					'oldAttributes': {
 						'color':    old.color,
-						'content':  old.content,
 						'heading':  old.heading,
+						'content':  old.content,
 						'position': old.position,
 					},
 
 					'newAttributes': {
 						'color':    ticket.color,
-						'content':  ticket.content,
 						'heading':  ticket.heading,
+						'content':  ticket.content,
 						'position': ticket.position,
 					},
 				}
@@ -527,101 +525,33 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
 	/**
-<<<<<<< HEAD
-=======
-	 * Get a list of 'events' of the type of 'TICKET_COMMENT' for the board
-	 * specified by 'board_id'.
-	 *
-	 * returns:
-	 *   [ EventObject ]
-	 */
-	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('admin', 'user', 'guest'))
-	.get(function(req, res, next) {
-
-		var commentQuery = Event.find({
-			'type':    'TICKET_COMMENT',
-			'board':   req.resolved.board.id,
-			'data.id': req.resolved.ticket.id,
-		});
-
-		return commentQuery.exec(function(err, comments) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
-			return res.json(200, comments);
-		});
-	})
-
-	/**
->>>>>>> 4d8599880db31e846039569636363b3efc834af0
 	 * Post a new comment on the specified ticket.
 	 */
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('admin', 'user', 'guest'))
 	.post(function(req, res, next) {
+		new Event({
+			'type': 'TICKET_COMMENT',
+			'board': req.resolved.board.id,
 
-		var old             = req.resolved.ticket.toObject();
-		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
+			'user': {
+				'id':       req.user.id,
+				'type':     req.user.type,
+				'username': req.user.username,
+			},
 
-			var userId = null;
-
-			// Backwards compatibility for older clients for guest users
-			if(ObjectId.isValid(req.user.id)) {
-				userId = req.user.id
+			'data': {
+				'id':      req.resolved.ticket.id,
+				'comment': req.body.comment,
 			}
-
-		req.resolved.ticket.comments.unshift({ 'user': { 'id': userId,
-											   'username': req.user.username},
-									           'content': req.body.comment});
-
-		req.resolved.ticket.save(function (err, ticket) {
-				if(err) {
-					return next(utils.error(500, err));
-				}
-
-				if (!ticket) {
-					return next(utils.error(404, 'Ticket not found'));
-				}
-				/*
-				 * TODO: TICKET_COMMENT edit?
-				 */
-				new Event({
-					'type': 'TICKET_EDIT',
-					'board': ticket.board,
-					'user': {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					},
-					'data': {
-						'id': ticket._id,
-
-						'oldAttributes': {
-							'color':    old.color,
-							'content':  old.content,
-							'heading':  old.heading,
-							'position': old.position,
-							'comments': old.comments
-						},
-
-						'newAttributes': {
-							'color':    ticket.color,
-							'content':  ticket.content,
-							'heading':  ticket.heading,
-							'position': ticket.position,
-							'comments': ticket.comments
-						},
-					}
-				}).save(function(err, ev) {
-						if(err) {
-							return console.error(err);
-						}
-						utils.emitter.to(ev.board)
-							.emit('board:event', ev.toObject());
-					});
-				return res.json(200, ticket);
-			})
+		}).save(function(err, ev) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			utils.emitter.to(ev.board)
+				.emit('board:event', ev.toObject());
+			return res.json(201, ev.toObject());
+		});
 	});
 
 
