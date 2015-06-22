@@ -87,7 +87,6 @@ Router.route('/boards')
 		if (payload.size)
 		new Board(payload).save(function(err, board) {
 			if(err) {
-				console.log(err);
 				return next(utils.error(400, err));
 			}
 

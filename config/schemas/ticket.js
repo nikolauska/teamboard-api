@@ -52,22 +52,22 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	 */
 	comments: [{
 		user: { id: {
-						ref: 'user',
-						type: mongoose.Schema.Types.ObjectId
-					},
-				username: {
-					    type: String,
-					    required: true,
-					    default: ''
-				}
+                        ref: 'user',
+                        type: mongoose.Schema.Types.ObjectId
+                    },
+                username: {
+                        type:     String,
+                        required: true,
+                        default:  ''
+                   }
 		},
 		content:{
-			type:    String,
-			default: ''
+            type:    String,
+            default: ''
 		},
-		created_at: {
-			type:    Date,
-			default: Date.now()
+        created_at: {
+            type:    Date,
+            default: Date.now()
 		}
 		}],
 
