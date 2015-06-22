@@ -3,19 +3,20 @@
 var utils = require('../../utils');
 
 var User          = require('mongoose').model('user');
-var LocalStrategy = require('passport-local').Strategy;
+var BasicStrategy =	require('passport-http').BasicStrategy;
 
 // Defines the 'req.body' fields used to look for credentials.
 var opts = {
 	usernameField: 'email',
-	passwordField: 'password'
+	passwordField: 'password',
+
 }
 
 /**
  * Authenticate the requestee as a 'user' based on the passed in credentials.
  */
-module.exports = new LocalStrategy(opts, function(email, password, done) {
-	User.findOne({ email: email }, function(err, user) {
+module.exports = new BasicStrategy(opts, function(email, password, done) {
+	User.findOne({ 'providers.basic.email': email }, function(err, user, res) {
 		if(err) {
 			return done(utils.error(500, err));
 		}
@@ -32,12 +33,13 @@ module.exports = new LocalStrategy(opts, function(email, password, done) {
 			if(!match) {
 				return done(null, null, 'Invalid password');
 			}
-
-			return done(null, {
+			return done(null, { 
 				id:       user.id,
 				type:     'user',
-				username: user.email
+				username: user.name,
+				boards:   user.boards
 			});
 		});
+		//return res.redirect('/auth/:provider/callback');
 	});
 });

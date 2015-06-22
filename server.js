@@ -39,12 +39,15 @@ app.use(passport.initialize());
 
 // Attach 'CORS' middleware to every route.
 app.all('*', require('cors')({
-	exposedHeaders: ['x-access-token']
+	exposedHeaders: ['x-access-token', 'X-Requested-With'],
+	headers: ['Content-Type', 'Authorization', 'X-Requested-With'],
+	preflightContinue: 'localhost:8000/login/callback'
 }));
 
 // Setup API Routes.
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/board'));
+app.use('/api', require('./routes/user'));
 
 /**
  * Error handling middleware. All errors passed to 'next' will eventually end
@@ -87,7 +90,7 @@ module.exports.listen = function(onListen) {
 	});
 
 	mongoose.connection.on('connected', function() {
-		console.error('Connected to MongoDB!');
+		console.log('Connected to MongoDB!');
 	});
 
 	connectWithRetry();

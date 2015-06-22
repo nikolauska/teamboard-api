@@ -4,9 +4,23 @@ var _     = require('lodash');
 var utils = require('../utils');
 
 var _roles = {
+	/**
+	 * Check that the requestee is the 'user' that is admin of 'board'
+	 * specified in 'req.resolved'.
+	 */
+	admin: function(req) {
+		if(!req.user || !req.resolved.board) {
+			return false;
+		}
+
+		var isUser    = req.user.type == 'standard';
+		var hasAccess = req.resolved.board.members[req.user.id] != null && req.resolved.board.members[req.user.id] == 'admin'
+
+		return isUser && hasAccess;
+	},
 
 	/**
-	 * Check that the requestee is the 'user' that created the 'board'
+	 * Check that the requestee is the 'user' that has acces to 'board'
 	 * specified in 'req.resolved'.
 	 */
 	user: function(req) {
@@ -14,8 +28,8 @@ var _roles = {
 			return false;
 		}
 
-		var isUser    = req.user.type == 'user';
-		var hasAccess = req.user.id   == req.resolved.board.createdBy;
+		var isUser    = req.user.type == 'standard';
+		var hasAccess = req.resolved.board.members[req.user.id] != null && req.resolved.board.members[req.user.id] == 'member'
 
 		return isUser && hasAccess;
 	},
@@ -29,9 +43,9 @@ var _roles = {
 			return false;
 		}
 
-		var isGuest   = req.user.type   == 'guest';
+		var isGuest   = req.user.type   == 'temporary';
 		var hasAccess = req.user.access == req.resolved.board.id;
-
+		
 		return isGuest && hasAccess;
 	}
 }

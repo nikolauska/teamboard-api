@@ -13,6 +13,7 @@ var middleware = require('../middleware');
 var Event  = mongoose.model('event');
 var Board  = mongoose.model('board');
 var Ticket = mongoose.model('ticket');
+var User   = mongoose.model('user');
 
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
@@ -38,13 +39,13 @@ Router.route('/boards')
 	.get(function(req, res, next) {
 		var boardQuery = null;
 
-		if(req.user.type === 'guest') {
+		if(req.user.type === 'temporary') {
 			// Guests can only see the board they have access to...
 			boardQuery = Board.find({ _id: req.user.access });
 		}
 		else {
-			// Normal users see the boards they have created.
-			boardQuery = Board.find({ createdBy: req.user.id });
+			// Normal users see the boards they are member or admin to.
+			boardQuery = Board.find({ 'members[req.user.id]': { $ne: null } });
 		}
 
 		boardQuery.exec(function(err, boards) {
@@ -73,8 +74,9 @@ Router.route('/boards')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
-		var payload           = req.body;
-		    payload.createdBy = req.user.id;
+		var payload           			 = req.body;
+		    payload.members				 = [];
+		    payload.members.push({ user: req.user.id, role: 'admin'});
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -90,24 +92,25 @@ Router.route('/boards')
 				return next(utils.error(400, err));
 			}
 
-			Board.populate(board, 'createdBy', function(err, board) {
-				if(err) {
-					return next(utils.error(500, err));
-				}
-
-				new Event({
-					'type': 'BOARD_CREATE',
-					'board': board.id,
-					'user':  {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					}
-				}).save(function(err) {
+			User.findOne({ _id: req.user.id }, function(err, doc) {
+				doc.boards.push(board._id);
+				doc.save(function(err) {
 					if(err) return console.error(err);
-				});
 
-				return res.json(201, board);
+					new Event({
+						'type': 'BOARD_CREATE',
+						'board': board.id,
+						'user':  {
+							'id':       req.user.id,
+							'type':     req.user.type,
+							'username': req.user.username,
+						}
+					}).save(function(err) {
+						if(err) return console.error(err);
+					});
+
+					return res.json(201, board);
+				});
 			});
 		});
 	});
@@ -122,10 +125,12 @@ Router.route('/boards/:board_id')
 	 *   The specified board object.
 	 */
 	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
-		Board.populate(req.resolved.board, 'createdBy',
-			function(err, board) {
+		var userId = req.user.id;
+		var boardQuery = Board.findOne({ id: req.resolved.board, 'members.userId': { '$ne': null } });
+
+		boardQuery.exec(function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
@@ -152,7 +157,7 @@ Router.route('/boards/:board_id')
 	 *   The updated board object.
 	 */
 	.put(middleware.authenticate('user'))
-	.put(middleware.relation('user'))
+	.put(middleware.relation('admin'))
 	.put(function(req, res, next) {
 		var old            = req.resolved.board.toObject();
 		req.resolved.board = _.merge(req.resolved.board, req.body);
@@ -212,12 +217,14 @@ Router.route('/boards/:board_id')
 	 *   The removed board object.
 	 */
 	.delete(middleware.authenticate('user'))
-	.delete(middleware.relation('user'))
+	.delete(middleware.relation('admin'))
 	.delete(function(req, res, next) {
 		req.resolved.board.remove(function(err) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
+
+			var userQuery = User.find
 
 			new Event({
 				'type':  'BOARD_REMOVE',
@@ -245,7 +252,7 @@ Router.route('/boards/:board_id/export')
 	 * Export board either json, csv, plaintext or image
 	 */
 	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
 		var format = req.query.format ? req.query.format : 'json';
 		
@@ -307,7 +314,7 @@ Router.route('/boards/:board_id/tickets')
 	 *   An array of ticket objects.
 	 */
 	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res) {
 		var board = req.resolved.board;
 		Ticket.find({ 'board': board.id }, function(err, tickets) {
@@ -338,7 +345,7 @@ Router.route('/boards/:board_id/tickets')
 	 *   The created ticket object.
 	 */
 	.post(middleware.authenticate('user', 'guest'))
-	.post(middleware.relation('user', 'guest'))
+	.post(middleware.relation('admin', 'user', 'guest'))
 	.post(function(req, res, next) {
 
 		var payload       = req.body;
@@ -410,7 +417,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	 *   The updated ticket object.
 	 */
 	.put(middleware.authenticate('user', 'guest'))
-	.put(middleware.relation('user', 'guest'))
+	.put(middleware.relation('admin', 'user', 'guest'))
 	.put(function(req, res, next) {
 		var old             = req.resolved.ticket.toObject();
 		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
@@ -476,7 +483,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	 *   The deleted ticket object.
 	 */
 	.delete(middleware.authenticate('user', 'guest'))
-	.delete(middleware.relation('user', 'guest'))
+	.delete(middleware.relation('admin', 'user', 'guest'))
 	.delete(function(req, res, next) {
 		req.resolved.ticket.remove(function(err) {
 			if(err) {
@@ -520,10 +527,38 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
 	/**
+<<<<<<< HEAD
+=======
+	 * Get a list of 'events' of the type of 'TICKET_COMMENT' for the board
+	 * specified by 'board_id'.
+	 *
+	 * returns:
+	 *   [ EventObject ]
+	 */
+	.get(middleware.authenticate('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
+	.get(function(req, res, next) {
+
+		var commentQuery = Event.find({
+			'type':    'TICKET_COMMENT',
+			'board':   req.resolved.board.id,
+			'data.id': req.resolved.ticket.id,
+		});
+
+		return commentQuery.exec(function(err, comments) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			return res.json(200, comments);
+		});
+	})
+
+	/**
+>>>>>>> 4d8599880db31e846039569636363b3efc834af0
 	 * Post a new comment on the specified ticket.
 	 */
 	.post(middleware.authenticate('user', 'guest'))
-	.post(middleware.relation('user', 'guest'))
+	.post(middleware.relation('admin', 'user', 'guest'))
 	.post(function(req, res, next) {
 
 		var old             = req.resolved.ticket.toObject();
@@ -599,7 +634,7 @@ Router.route('/boards/:board_id/events')
 	 *   [ EventObject ]
 	 */
 	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
 		Event.find({ 'board': req.resolved.board.id }, function(err, evs) {
 			if(err) {
@@ -621,7 +656,7 @@ Router.route('/boards/:board_id/access')
 	 *   }
 	 */
 	.get(middleware.authenticate('user'))
-	.get(middleware.relation('user'))
+	.get(middleware.relation('admin'))
 	.get(function(req, res) {
 		return res.json(200, {
 			accessCode: req.resolved.board.accessCode || ''
@@ -638,7 +673,7 @@ Router.route('/boards/:board_id/access')
 	 *   }
 	 */
 	.post(middleware.authenticate('user'))
-	.post(middleware.relation('user'))
+	.post(middleware.relation('admin'))
 	.post(function(req, res, next) {
 		// Generate an 'access-code' for the specified board.
 		var accessCode = require('crypto').randomBytes(4).toString('hex');
@@ -678,7 +713,7 @@ Router.route('/boards/:board_id/access')
 	 * to it. This will essentially hide the board from outside eyes.
 	 */
 	.delete(middleware.authenticate('user'))
-	.delete(middleware.relation('user'))
+	.delete(middleware.relation('admin'))
 	.delete(function(req, res, next) {
 		req.resolved.board.accessCode = null;
 		req.resolved.board.save(function(err) {
@@ -732,7 +767,7 @@ Router.route('/boards/:board_id/access/:code')
 		// TODO Guest must have a valid 'username'.
 		var guestPayload = {
 			id:         require('crypto').randomBytes(4).toString('hex'),
-			type:       'guest',
+			type:       'temporary',
 			access:     board.id,
 			username:   req.body.username,
 			accessCode: board.accessCode
@@ -740,6 +775,29 @@ Router.route('/boards/:board_id/access/:code')
 
 		// Generate the 'guest-token' for access.
 		var guestToken = jwt.sign(guestPayload, config.token.secret);
+
+		var session = {
+			user_agent: req.headers['user-agent'],
+			token:      guestToken,
+			created_at: new Date()
+		};
+
+		new User({ name: req.body.username,
+			account_type: 'temporary',
+			created_at: new Date(),
+			sessions: [session] })
+			.save(function(err, user) {
+				if(err) {
+					if(err.name == 'ValidationError') {
+						return next(utils.error(400, err));
+					}
+					if(err.name == 'MongoError' && err.code == 11000) {
+						return next(utils.error(409, 'User already exists'));
+					}
+					return next(utils.error(500, err));
+				}
+			});
+
 
 		new Event({
 			'type': 'BOARD_GUEST_JOIN',
