@@ -95,7 +95,7 @@ Router.route('/boards')
 			}
 
 			User.findOne({ _id: req.user.id }, function(err, doc) {
-				doc.boards.push(board._id);
+				doc.boards.push({id: board._id});
 				doc.save(function(err) {
 					if(err) return console.error(err);
 

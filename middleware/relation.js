@@ -13,13 +13,11 @@ var _roles = {
 			return false;
 		}
 		var isUser    = req.user.type == 'standard';
-		var hasAccess = req.resolved.board.members[req.user.id] != null && req.resolved.board.members[req.user.id] == 'admin'
-
 		var hasAccess = false;
 
 		if (req.resolved.board.members) {
 			req.resolved.board.members.map(function (item) {
-				if (item.id == req.user.id) {
+				if (item.id == req.user.id && item.role == 'admin') {
 					hasAccess = true;
 					return isUser && hasAccess;
 				}

@@ -71,12 +71,14 @@ var UserSchema = module.exports = new mongoose.Schema({
         type:    Date
     },
 
+
     /**
      * Boards user has access to
      */
-    boards: {
-        type: [mongoose.Schema.Types.ObjectId]
-    }
+
+    boards: [{
+        id: {type: mongoose.Schema.Types.ObjectId}
+    }]
 
 });
 
