@@ -1,5 +1,6 @@
 var middleware  = require('../middleware');
 var Router      = require('express').Router();
+var request     = require('superagent');
 
 const IMG_URL = process.env.IMG_URL || 'http://localhost:9003';
 
