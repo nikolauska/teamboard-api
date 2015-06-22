@@ -57,10 +57,11 @@ function generatePlainText(board, tickets) {
 	tickets.map(function(t) {
 		return '\n' +
 				'------------------------------------------\n' +
-			'Heading:    	' + contentEdit(undefCheck(t.heading, 'empty')) + '\n\n' +
-			'Content:    	' + contentEdit(undefCheck(t.content, 'empty')) + '\n\n' +
+			'Heading:    	' + contentEdit(undefCheck(t.heading, 'Empty')) + '\n\n' +
+			'Content:    	' + contentEdit(undefCheck(t.content, 'Empty')) + '\n\n' +
 				'Color: 	    	' + hexToColor(t.color) + '\n' + 
-				'------------------------------------------\n';
+				'------------------------------------------\n' +
+				'Comments: ' + '\n' + undefCheck(t.comments.map(function(c) {return c.user.username + ': ' + c.content + ' '}), 'None');
 	}).join('') + '\n' +
 	'=========================================';
 }
@@ -85,6 +86,7 @@ function generateCSV(board, tickets) {
 			'HEADING':    t.heading,
 			'CONTENT':    t.content,
 			'COLOR':      t.color,
+			'COMMENTS':   t.comments.map(function(c) {return c.user.username + ': ' + c.content;}) + '',
 			'POSITION_X': '' + t.position.x + '',
 			'POSITION_Y': '' + t.position.y + '',
 			'POSITION_Z': '' + t.position.z + '',
