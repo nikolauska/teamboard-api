@@ -524,36 +524,75 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
-	/**
-	 * Post a new comment on the specified ticket.
-	 */
+/**
+ * Post a new comment on the specified ticket.
+ */
 	.post(middleware.authenticate('user', 'guest'))
-	.post(middleware.relation('admin', 'user', 'guest'))
+	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
-		new Event({
-			'type': 'TICKET_COMMENT',
-			'board': req.resolved.board.id,
 
-			'user': {
-				'id':       req.user.id,
-				'type':     req.user.type,
-				'username': req.user.username,
-			},
+		var old             = req.resolved.ticket.toObject();
+		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
 
-			'data': {
-				'id':      req.resolved.ticket.id,
-				'comment': req.body.comment,
-			}
-		}).save(function(err, ev) {
+		var userId = null;
+
+		// Backwards compatibility for older clients for guest users
+		if(ObjectId.isValid(req.user.id)) {
+			userId = req.user.id
+		}
+
+		req.resolved.ticket.comments.unshift({ 'user': { 'id': userId,
+			'username': req.user.username},
+			'content': req.body.comment});
+
+		req.resolved.ticket.save(function (err, ticket) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
-			utils.emitter.to(ev.board)
-				.emit('board:event', ev.toObject());
-			return res.json(201, ev.toObject());
-		});
-	});
 
+			if (!ticket) {
+				return next(utils.error(404, 'Ticket not found'));
+			}
+			/*
+			 * TODO: TICKET_COMMENT edit?
+			 */
+			new Event({
+				'type': 'TICKET_EDIT',
+				'board': ticket.board,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'id': ticket._id,
+
+					'oldAttributes': {
+						'color':    old.color,
+						'content':  old.content,
+						'heading':  old.heading,
+						'position': old.position,
+						'comments': old.comments
+					},
+
+					'newAttributes': {
+						'color':    ticket.color,
+						'content':  ticket.content,
+						'heading':  ticket.heading,
+						'position': ticket.position,
+						'comments': ticket.comments
+					},
+				}
+			}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+					utils.emitter.to(ev.board)
+						.emit('board:event', ev.toObject());
+				});
+			return res.json(200, ticket);
+		})
+	});
 
 Router.route('/boards/:board_id/events')
 
