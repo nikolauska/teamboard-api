@@ -18,7 +18,11 @@ Router.route('/version/img')
         var version = {"version":"unknown"};
         request.get(IMG_URL+'/version')
             .end(function(err, response){
-                version = {"version":response.body.version};
+                try{
+                    version = {"version":response.body.version};
+                } catch(exception) {
+                    version = {"version":"error"};
+                }
                 return res.json(200, version);
             });
     });
