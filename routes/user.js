@@ -17,8 +17,7 @@ Router.route('/user/edit')
      * Change user name, with optional password and email for basic provider
      *
      * {
-     *   'name'        : 'new name',
-     *   'email'       : 'new email'
+     *   'name'        : 'new name'
      * }
      */
     .put(middleware.authenticate('user'))
@@ -35,8 +34,6 @@ Router.route('/user/edit')
             }
 
             user.name = payload.name;
-
-            if(payload.email) user.providers.basic.email = payload.email;
 
             user.save(function(err, user) {
                 if(err) {
@@ -76,28 +73,27 @@ Router.route('/user/changepw')
 
             if(payload.new_password && payload.old_password) {
                 user.comparePassword(payload.old_password, function(err, response) {
-                    if(err) {
+                    if(err)
                         return next(utils.error(500, err))
-                    }
 
-                    if(response === false) {
-                        return next(utils.error(401, 'Invalid old password!'))
-                    }
+                    if(response === false)
+                        return next(utils.error(500, 'Invalid old password!'))
 
-                    else {
-                        user.providers.basic.password = payload.new_password;
-                        user.save(function(err, user) {
-                            if(err) {
-                                if(err.name == 'ValidationError') {
-                                    console.log(err);
-                                    return next(utils.error(400, err));
-                                }
-                                return next(utils.error(500, err));
+                    
+                    user.providers.basic.password = payload.new_password;
+                    user.save(function(err, user) {
+                        if(err) {
+                            if(err.name == 'ValidationError') {
+                                console.log(err);
+                                return next(utils.error(400, err));
                             }
-                            return res.json(200, user);
-                        });
-                    }
+                            return next(utils.error(500, err));
+                        }
+                        return res.json(200, user);
+                    });
                 });
+            } else {
+                return next(utils.error(500, 'No new or old password defined in request'));
             }
         });
     });
