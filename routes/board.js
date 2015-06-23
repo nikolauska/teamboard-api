@@ -720,24 +720,35 @@ Router.route('/boards/:board_id/access/:code/grantaccess')
 	.put(function(req, res, next) {
 
 		var board = req.resolved.board;
-		var user  = req.user;
+		var user = req.user;
+		var isMember = false;
+		// User is already a member of this  baord.
+		board.members.map(function (member) {
+			if (member.id == user.id) {
+				isMember = true;
+			}
+		});
 
-		board.members.push( {id: user.id, role:'member'} );
+		if(!isMember) {
+			board.members.push({id: user.id, role: 'member'});
+			board.save(function (err, board) {
+				if (err) {
+					return next(utils.error(500, err));
+				}
 
-		board.save(function(err, board) {
-			if (err) {
-				 return next(utils.error(500, err));
-			 }
+				User.findOne({_id: user.id}, function (err, doc) {
+					doc.boards.push({id: board._id});
+					doc.save(function (err) {
+						if (err) return console.error(err);
 
-			User.findOne({ _id: user.id }, function(err, doc) {
-				doc.boards.push({id: board._id});
-				doc.save(function(err) {
-					if(err) return console.error(err);
-
-					return res.json(201, board);
+						return res.json(200, board);
+					});
 				});
 			});
-		});
+		}
+		else {
+			return res.json(200, board);
+		}
 	});
 
 
