@@ -14,12 +14,12 @@ Router.route('/version/api')
 
 Router.route('/version/img')
     .get(middleware.authenticate('user', 'guest'))
-    .get(function(req, ress) {
+    .get(function(req, res) {
         var version = {"version":"unknown"};
         request.get(IMG_URL+'/version')
-            .end(function(err, res){
-                version = {"version":res.body.version};
-                return ress.json(200, version);
+            .end(function(err, response){
+                version = {"version":response.body.version};
+                return res.json(200, version);
             });
     });
 
