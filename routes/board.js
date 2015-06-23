@@ -129,7 +129,7 @@ Router.route('/boards/:board_id')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
-		var boardQuery = Board.findOne({ id: req.resolved.board, 'members.id': req.user.id });
+		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.id': req.user.id });
 
 		boardQuery.exec(function(err, board) {
 				if(err) {
