@@ -77,7 +77,10 @@ var UserSchema = module.exports = new mongoose.Schema({
      */
 
     boards: [{
-        id: {type: mongoose.Schema.Types.ObjectId}
+        id: {
+            ref:  'board',
+            type: mongoose.Schema.Types.ObjectId
+        }
     }]
 
 });

@@ -70,9 +70,13 @@ var BoardSchema = module.exports = new mongoose.Schema({
      * }
      */
     members: [{
-        id:  {type: mongoose.Schema.Types.ObjectId},
+        id:  {
+            ref: 'user',
+            type: mongoose.Schema.Types.ObjectId
+        },
         role: {type: String}
     }]
+
 });
 
 if(!BoardSchema.options.toJSON) BoardSchema.options.toJSON     = { }

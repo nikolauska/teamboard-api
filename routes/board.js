@@ -129,7 +129,7 @@ Router.route('/boards/:board_id')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
-		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.id': req.user.id });
+		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.id': req.user.id }).populate('members.id');
 
 		boardQuery.exec(function(err, board) {
 				if(err) {
@@ -224,8 +224,6 @@ Router.route('/boards/:board_id')
 			if(err) {
 				return next(utils.error(500, err));
 			}
-
-			var userQuery = User.find
 
 			new Event({
 				'type':  'BOARD_REMOVE',
