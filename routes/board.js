@@ -671,6 +671,36 @@ Router.route('/boards/:board_id/access')
 		});
 	});
 
+Router.route('/boards/:board_id/access/:code/grantaccess')
+
+/**
+ * Gives a user access to a board
+ *
+ */
+	.put(middleware.authenticate('user'))
+	.put(function(req, res, next) {
+
+		var board = req.resolved.board;
+		var user  = req.user;
+
+		board.members.push( {id: user.id, role:'member'} );
+
+		board.save(function(err, board) {
+			if (err) {
+				 return next(utils.error(500, err));
+			 }
+
+			User.findOne({ _id: user.id }, function(err, doc) {
+				doc.boards.push({id: board._id});
+				doc.save(function(err) {
+					if(err) return console.error(err);
+
+					return res.json(201, board);
+				});
+			});
+		});
+	});
+
 
 Router.route('/boards/:board_id/access/:code')
 
