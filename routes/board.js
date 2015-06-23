@@ -13,6 +13,7 @@ var middleware = require('../middleware');
 var Event  = mongoose.model('event');
 var Board  = mongoose.model('board');
 var Ticket = mongoose.model('ticket');
+var User   = mongoose.model('user');
 
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
@@ -38,7 +39,7 @@ Router.route('/boards')
 	.get(function(req, res, next) {
 		var boardQuery = null;
 
-		if(req.user.type === 'guest') {
+		if(req.user.type === 'temporary') {
 			// Guests can only see the board they have access to...
 			boardQuery = Board.find({ _id: req.user.access });
 		}
@@ -732,7 +733,7 @@ Router.route('/boards/:board_id/access/:code')
 		// TODO Guest must have a valid 'username'.
 		var guestPayload = {
 			id:         require('crypto').randomBytes(4).toString('hex'),
-			type:       'guest',
+			type:       'temporary',
 			access:     board.id,
 			username:   req.body.username,
 			accessCode: board.accessCode
@@ -740,6 +741,29 @@ Router.route('/boards/:board_id/access/:code')
 
 		// Generate the 'guest-token' for access.
 		var guestToken = jwt.sign(guestPayload, config.token.secret);
+
+		var session = {
+			user_agent: req.headers['user-agent'],
+			token:      guestToken,
+			created_at: new Date()
+		};
+
+		new User({ name: req.body.username,
+			account_type: 'temporary',
+			created_at: new Date(),
+			sessions: [session] })
+			.save(function(err, user) {
+				if(err) {
+					if(err.name == 'ValidationError') {
+						return next(utils.error(400, err));
+					}
+					if(err.name == 'MongoError' && err.code == 11000) {
+						return next(utils.error(409, 'User already exists'));
+					}
+					return next(utils.error(500, err));
+				}
+			});
+
 
 		new Event({
 			'type': 'BOARD_GUEST_JOIN',

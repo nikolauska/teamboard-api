@@ -45,6 +45,7 @@ app.all('*', require('cors')({
 // Setup API Routes.
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/board'));
+app.use('/api', require('./routes/user'));
 
 /**
  * Error handling middleware. All errors passed to 'next' will eventually end
@@ -87,7 +88,7 @@ module.exports.listen = function(onListen) {
 	});
 
 	mongoose.connection.on('connected', function() {
-		console.error('Connected to MongoDB!');
+		console.log('Connected to MongoDB!');
 	});
 
 	connectWithRetry();

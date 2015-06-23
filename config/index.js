@@ -5,8 +5,11 @@ module.exports = {
         opts: {
             safe: true
         },
-        url:     process.env.MONGODB_URL     || 'mongodb://localhost/test',
-        timeout: process.env.MONGODB_TIMEOUT || 5000
+        url:             process.env.MONGODB_URL      || 'mongodb://localhost/test',
+        timeout:         process.env.MONGODB_TIMEOUT  || 5000,
+        purge_interval:  process.env.MONGODB_PURGE    || '* * * * * *',
+        guest_exp_time:  process.env.MONGODB_GUEST_EXP || 604800
+
     },
     redis: {
         opts: {
@@ -19,5 +22,5 @@ module.exports = {
         secret: process.env.TOKEN_SECRET || 'secret'
     },
     port: process.env.PORT || 9002,
-    img: process.env.IMG_URL || 'http://localhost:9003/img'
+    img:  process.env.IMG_URL || 'http://localhost:9003/img'
 }

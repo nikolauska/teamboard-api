@@ -14,7 +14,7 @@ var _roles = {
 			return false;
 		}
 
-		var isUser    = req.user.type == 'user';
+		var isUser    = req.user.type == 'standard';
 		var hasAccess = req.user.id   == req.resolved.board.createdBy;
 
 		return isUser && hasAccess;
@@ -29,9 +29,9 @@ var _roles = {
 			return false;
 		}
 
-		var isGuest   = req.user.type   == 'guest';
+		var isGuest   = req.user.type   == 'temporary';
 		var hasAccess = req.user.access == req.resolved.board.id;
-
+		
 		return isGuest && hasAccess;
 	}
 }
