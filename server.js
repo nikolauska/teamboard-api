@@ -39,9 +39,7 @@ app.use(passport.initialize());
 
 // Attach 'CORS' middleware to every route.
 app.all('*', require('cors')({
-	exposedHeaders: ['x-access-token', 'X-Requested-With'],
-	headers: ['Content-Type', 'Authorization', 'X-Requested-With'],
-	preflightContinue: 'localhost:8000/login/callback'
+	exposedHeaders: ['x-access-token', 'X-Requested-With', 'Access-Control-Max-Age', 'Access-Control-Allow-Credentials']
 }));
 
 // Setup API Routes.

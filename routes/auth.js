@@ -33,6 +33,12 @@ Router.route('/auth')
 		return res.json(200, req.user);
 	});
 
+function authorize(req, res, next) {
+        // note that we use the 'authorize' method, which attaches the resulting
+        // object into the 'req.account' instead of the 'req.user' as usual
+    return passport.authorize(req.params.provider)(req, res, next);
+}
+
 Router.route('/auth/:provider/login')
 
 	/**
@@ -45,7 +51,7 @@ Router.route('/auth/:provider/login')
 	 *   'password': user.password
 	 * }
 	 */
-
+	 //.get(authorize)
 	.get(function(req, res, next) {
 		return middleware.authenticate(req.params.provider)(req, res, next);	
 	})
@@ -109,11 +115,10 @@ Router.route('/auth/:provider/login')
 
 Router.route('/auth/:provider/callback')
 
- /*.get(function(req, res, next) {
-		return middleware.authenticate(req.params.provider)(req, res, next);
-	})*/
+	.get(authorize)
 
- .get(function(req, res, next) {
+
+	.get(function(req, res, next) {
        var user = null;
  
 	if(req.query.state) {
@@ -121,7 +126,7 @@ Router.route('/auth/:provider/callback')
 		// seen as attempting to link an account to an existing one, so we do
 		// just that...
 
-			User.findOne({ _email: req.account.email }, function(err, user) { 
+			User.findOne({ email: req.profile.email }, function(err, user) { 
 				if(err) {
 				return next(utils.error(500, err));
 				}
@@ -131,7 +136,7 @@ Router.route('/auth/:provider/callback')
         } else {
 			// we find the user based on the account somehow, probably 'email' or
 			// something similar is used to make sure we get the right guy
-			User.findOne({ _email: req.account.email }, function(err, user) {
+			User.findOne({ email: req.profile.email }, function(err, user) {
 				if(err) {
 				return next(utils.error(500, err));
 			}
@@ -143,28 +148,7 @@ Router.route('/auth/:provider/callback')
                 // the account to the user
                 // note that 'user.create' is just pseudo code meant to illustrate the
                 // flow of the authentication
-        if(!user) {      
-
-			var newUser = new User();
-				// set all of the relevant information
-				newUser.providers.google.id    = profile.id;
-				newUser.providers.google.token = token;
-				newUser.providers.google.name  = profile.displayName;
-				newUser.providers.google.email = profile.emails[0].value; // pull the first email
-
-            // save the user
-				newUser.save(function(err, user) {
-				if(err) {
-					if(err.name == 'ValidationError') {
-						return next(utils.error(400, err));
-					}
-					if(err.name == 'MongoError' && err.code == 11000) {
-						return next(utils.error(409, 'User already exists'));
-					}
-					return next(utils.error(500, err));
-				}
-				return res.json(201, user);
-			});
+        if(!User) {      
 
 			var newtoken = jwt.sign(payload, secret);
 
