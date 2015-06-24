@@ -46,6 +46,7 @@ app.all('*', require('cors')({
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/board'));
 app.use('/api', require('./routes/version'));
+app.use('/api', require('./routes/user'));
 
 /**
  * Error handling middleware. All errors passed to 'next' will eventually end
