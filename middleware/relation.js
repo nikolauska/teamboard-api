@@ -61,8 +61,17 @@ var _roles = {
 		}
 
 		var isGuest   = req.user.type   == 'temporary';
-		var hasAccess = req.user.access == req.resolved.board.id;
-		
+		var hasAccess = false
+
+		if (req.resolved.board.members) {
+			req.resolved.board.members.map(function (item) {
+				if (item.user == req.user.id) {
+					hasAccess = true;
+					return isGuest && hasAccess;
+				}
+			})
+		}
+
 		return isGuest && hasAccess;
 	}
 }

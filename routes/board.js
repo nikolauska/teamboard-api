@@ -791,10 +791,12 @@ Router.route('/boards/:board_id/access/:code')
 				}
 
 				var payload = {
-					id:       user.id,
-					type:     user.account_type,
-					username: user.name,
-					boards:   user.boards
+					id:         user.id,
+					type:       user.account_type,
+					access:     board.id,
+					accessCode: board.accessCode,
+					username:   user.name,
+					boards:     user.boards
 				}
 
 				var guestToken = jwt.sign(payload, secret);
