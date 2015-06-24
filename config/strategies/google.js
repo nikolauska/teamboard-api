@@ -9,7 +9,7 @@ var GoogleStrategy =	require('passport-google-oauth2').Strategy;
 var opts = {
 	clientID: '161571982407-o698t9ofu4nl56efcu3dkl2f2nftb5du.apps.googleusercontent.com',
 	clientSecret: 'Dd0Me0lL3HT4k8vCdMfvBXBa',
-    callbackURL: 'http://localhost:9002/api/auth/login/callback',
+    callbackURL: 'http://localhost:9002/api/auth/google/callback',
     scope: [ 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.profile.emails.read' ],
     passReqToCallback: true
 }
@@ -17,7 +17,7 @@ var opts = {
 /**
  * Authenticate the requestee as a 'user' based on the passed in credentials.
  */
-module.exports = new GoogleStrategy(opts, function(token, refreshToken, profile, done) {
+module.exports = new GoogleStrategy(opts, function(request, accessToken, refreshToken, profile, done) {
         // User.findOne won't fire until we have all our data back from Google
         process.nextTick(function() {
             // try to find the user based on their google id
@@ -35,9 +35,9 @@ module.exports = new GoogleStrategy(opts, function(token, refreshToken, profile,
 						providers: {
 							google: {
 									id: profile.id,
-									token: token,
+									token: accessToken,
 									name: profile.displayName,
-									email: profile.emails[0].value,
+									email: profile.emails.value,
 							       }
 					   },
 						created_at: new Date()})
