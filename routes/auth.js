@@ -51,11 +51,10 @@ Router.route('/auth/:provider/login')
 	 *   'password': user.password
 	 * }
 	 */
-	 //.get(authorize)
 	.get(function(req, res, next) {
 		return middleware.authenticate(req.params.provider)(req, res, next);	
 	})
-
+	
 	.get(function(req, res, next) {
 		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
@@ -101,12 +100,10 @@ Router.route('/auth/:provider/login')
 									return next(utils.error(500, err));
 								}
 							});
-						//return res.redirect(RedirectURL + '?access_token=' + newtoken);
 						return res.set('x-access-token', newtoken).json(200, payload);
 					});
 				}
 				// If the token was valid we reuse it.
-				//return res.redirect(RedirectURL + '?access_token=' + newtoken);
 				return res.set('x-access-token', session.token).json(200, payload);
 
 			});
@@ -118,33 +115,8 @@ Router.route('/auth/:provider/callback')
 	.get(authorize)
 
 	.get(function(req, res, next) {
-			/*User.findOne({ id: req.account.id }, function(err, user) { 
-				if(err) {
-				return next(utils.error(500, err));
-				}  
 
-				var newtoken = jwt.sign(payload, secret);
-
-				new Session({
-					user:       user.id,
-					user_agent: req.headers['user-agent'],
-					token:      newtoken,
-					created_at: new Date()
-						}).save(function(err, newsession) {
-							if(err) {
-								if(err.name == 'ValidationError') {
-									return next(utils.error(400, err));
-								}
-								if(err.name == 'MongoError' && err.code == 11000) {
-									return next(utils.error(409, 'Creating new session failed'));
-								}
-								return next(utils.error(500, err));
-							}
-				});
-				return res.redirect(RedirectURL + '?access_token=' + newtoken);
-			});*/
-
-	// The secret used to sign the 'jwt' tokens.
+		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
 
 		// Find the user specified in the 'req.user' payload. Note that
@@ -195,7 +167,6 @@ Router.route('/auth/:provider/callback')
 				// If the token was valid we reuse it.
 				return res.redirect(RedirectURL + '?access_token=' + newtoken);
 				//return res.set('x-access-token', session.token).json(200, payload);
-
 			});
 		});
 	});

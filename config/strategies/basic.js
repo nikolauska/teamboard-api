@@ -39,6 +39,5 @@ module.exports = new BasicStrategy(opts, function(email, password, done) {
 				username: user.name
 			});
 		});
-		//return res.redirect('/auth/:provider/callback');
 	});
 });
