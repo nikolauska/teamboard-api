@@ -773,28 +773,11 @@ Router.route('/boards/:board_id/access/:code')
 			return next(utils.error(401, ''));
 		}
 
-		// TODO Guest must have a valid 'username'.
-		/*var guestPayload = {
-			id:         require('crypto').randomBytes(4).toString('hex'),
-			type:       'temporary',
-			access:     board.id,
-			username:   req.body.username,
-			accessCode: board.accessCode
-		}
-
-		// Generate the 'guest-token' for access.
-		var guestToken = jwt.sign(guestPayload, config.token.secret);
-
-		var session = {
-			user_agent: req.headers['user-agent'],
-			token:      guestToken,
-			created_at: new Date()
-		};*/
 		new User({
 			name:          req.body.username,
 			account_type: 'temporary',
 			created_at: new Date(),
-			boards:[] })
+			boards:[{id: board._id}] })
 			.save(function(err, user) {
 				if(err) {
 					console.log(err);
@@ -815,6 +798,13 @@ Router.route('/boards/:board_id/access/:code')
 				}
 
 				var guestToken = jwt.sign(payload, secret);
+
+				board.members.push({user: user.id, role: 'member'});
+				board.save(function (err, board) {
+					if (err) {
+						return next(utils.error(500, err));
+					}
+
 
 				new Event({
 					'type': 'BOARD_GUEST_JOIN',
@@ -846,13 +836,12 @@ Router.route('/boards/:board_id/access/:code')
 									}
 									return next(utils.error(500, err));
 								}
-
 								return res.set('x-access-token', guestToken).json(200, payload);
-
 							});
 
 
 					});
+				});
 			});
 	});
 
