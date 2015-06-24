@@ -70,7 +70,7 @@ var BoardSchema = module.exports = new mongoose.Schema({
      * }
      */
     members: [{
-        id:  {
+        user:  {
             ref: 'user',
             type: mongoose.Schema.Types.ObjectId
         },

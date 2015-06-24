@@ -37,6 +37,7 @@ var UserSchema = module.exports = new mongoose.Schema({
             email: {
                 type:   String,
                 unique: true,
+                sparse: true,
                 match:  /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
             },
 
@@ -99,9 +100,11 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
     // delete ret.token;
     // delete ret.password;
 
-   /* if (doc.providers.basic) {
-        doc.providers.basic.password = '';
-    }*/
+    if (doc.providers) {
+        if (doc.providers.basic) {
+            doc.providers.basic.password = '';
+        }
+    }
 
 
     return {

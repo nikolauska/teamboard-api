@@ -17,7 +17,7 @@ var _roles = {
 
 		if (req.resolved.board.members) {
 			req.resolved.board.members.map(function (item) {
-				if (item.id == req.user.id && item.role == 'admin') {
+				if (item.user == req.user.id && item.role == 'admin') {
 					hasAccess = true;
 					return isUser && hasAccess;
 				}
@@ -41,7 +41,7 @@ var _roles = {
 
 		if (req.resolved.board.members) {
 			req.resolved.board.members.map(function (item) {
-				if (item.id == req.user.id) {
+				if (item.user == req.user.id) {
 					hasAccess = true;
 					return isUser && hasAccess;
 				}

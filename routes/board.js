@@ -10,11 +10,11 @@ var utils      = require('../utils');
 var config     = require('../config');
 var middleware = require('../middleware');
 
-var Event  = mongoose.model('event');
-var Board  = mongoose.model('board');
-var Ticket = mongoose.model('ticket');
-var User   = mongoose.model('user');
-
+var Event   = mongoose.model('event');
+var Board   = mongoose.model('board');
+var Ticket  = mongoose.model('ticket');
+var User    = mongoose.model('user');
+var Session = mongoose.model('session');
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
 
@@ -45,7 +45,7 @@ Router.route('/boards')
 		}
 		else {
 			// Normal users see the boards they are member or admin to.
-			boardQuery = Board.find({'members.id': req.user.id });
+			boardQuery = Board.find({'members.user': req.user.id });
 
 		}
 
@@ -78,7 +78,7 @@ Router.route('/boards')
 		var payload           			 = req.body;
 		payload.members                  = [];
 		    //payload.members[req.user.id] = 'admin';
-		payload.members.push({id: req.user.id, role: 'admin'});
+		payload.members.push({user: req.user.id, role: 'admin'});
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -129,7 +129,7 @@ Router.route('/boards/:board_id')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
-		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.id': req.user.id }).populate('members.id');
+		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.user': req.user.id }).populate('members.user');
 
 		boardQuery.exec(function(err, board) {
 				if(err) {
@@ -711,7 +711,7 @@ Router.route('/boards/:board_id/access')
 Router.route('/boards/:board_id/access/:code/grantaccess')
 
 /**
- * Gives a user access to a board
+ * Gives an already registered user access to a board
  *
  */
 	.put(middleware.authenticate('user'))
@@ -722,13 +722,13 @@ Router.route('/boards/:board_id/access/:code/grantaccess')
 		var isMember = false;
 		// User is already a member of this  baord.
 		board.members.map(function (member) {
-			if (member.id == user.id) {
+			if (member.user == user.id) {
 				isMember = true;
 			}
 		});
 
 		if(!isMember) {
-			board.members.push({id: user.id, role: 'member'});
+			board.members.push({user: user.id, role: 'member'});
 			board.save(function (err, board) {
 				if (err) {
 					return next(utils.error(500, err));
@@ -764,8 +764,9 @@ Router.route('/boards/:board_id/access/:code')
 	 *   'x-access-token' : 'guest-token'
 	 */
 	.post(function(req, res, next) {
-		var jwt   = require('jsonwebtoken');
-		var board = req.resolved.board;
+		var jwt    = require('jsonwebtoken');
+		var secret = config.token.secret;
+		var board  = req.resolved.board;
 
 		// Requested board must have a 'accessCode' set.
 		if(!board.accessCode || board.accessCode != req.params.code) {
@@ -773,7 +774,7 @@ Router.route('/boards/:board_id/access/:code')
 		}
 
 		// TODO Guest must have a valid 'username'.
-		var guestPayload = {
+		/*var guestPayload = {
 			id:         require('crypto').randomBytes(4).toString('hex'),
 			type:       'temporary',
 			access:     board.id,
@@ -788,14 +789,15 @@ Router.route('/boards/:board_id/access/:code')
 			user_agent: req.headers['user-agent'],
 			token:      guestToken,
 			created_at: new Date()
-		};
-
-		new User({ name: req.body.username,
+		};*/
+		new User({
+			name:          req.body.username,
 			account_type: 'temporary',
 			created_at: new Date(),
-			sessions: [session] })
+			boards:[] })
 			.save(function(err, user) {
 				if(err) {
+					console.log(err);
 					if(err.name == 'ValidationError') {
 						return next(utils.error(400, err));
 					}
@@ -804,27 +806,54 @@ Router.route('/boards/:board_id/access/:code')
 					}
 					return next(utils.error(500, err));
 				}
+
+				var payload = {
+					id:       user.id,
+					type:     user.account_type,
+					username: user.name,
+					boards:   user.boards
+				}
+
+				var guestToken = jwt.sign(payload, secret);
+
+				new Event({
+					'type': 'BOARD_GUEST_JOIN',
+					'board': req.resolved.board.id,
+					'user': {
+						'id':       user.id,
+						'type':     user.account_type,
+						'username': user.username,
+					},
+					}).save(function(err, ev) {
+						if(err) {
+							return console.error(err);
+						}
+						utils.emitter.to(ev.board)
+							.emit('board:event', ev.toObject());
+
+						new Session({
+							user:       user.id,
+							user_agent: req.headers['user-agent'],
+							token:      guestToken,
+							created_at: new Date()
+						}).save(function(err, newsession) {
+								if(err) {
+									if(err.name == 'ValidationError') {
+										return next(utils.error(400, err));
+									}
+									if(err.name == 'MongoError' && err.code == 11000) {
+										return next(utils.error(409, 'Creating new session failed'));
+									}
+									return next(utils.error(500, err));
+								}
+
+								return res.set('x-access-token', guestToken).json(200, payload);
+
+							});
+
+
+					});
 			});
-
-
-		new Event({
-			'type': 'BOARD_GUEST_JOIN',
-			'board': req.resolved.board.id,
-			'user': {
-				'id':       guestPayload.id,
-				'type':     guestPayload.type,
-				'username': guestPayload.username,
-			},
-		}).save(function(err, ev) {
-			if(err) {
-				return console.error(err);
-			}
-			utils.emitter.to(ev.board)
-				.emit('board:event', ev.toObject());
-		});
-
-		return res.set('x-access-token', guestToken)
-			.json(200, guestPayload);
 	});
 
 module.exports = Router;
