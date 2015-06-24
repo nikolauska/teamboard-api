@@ -14,7 +14,7 @@ var ObjectId = mongoose.Types.ObjectId;
 Router.route('/user/edit')
 
     /**
-     * Change user name, with optional password and email for basic provider
+     * Change user name
      *
      * {
      *   'name'        : 'new name'
