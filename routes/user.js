@@ -49,14 +49,14 @@ Router.route('/user/edit')
 
 Router.route('/user/changepw')
 
-/**
- * Change user basic provider password
- *
- * {
+    /**
+     * Change user basic provider password
+     *
+     * {
      *   'new_password': 'new password',
      *   'old_password': 'old password'
      * }
- */
+     */
     .put(middleware.authenticate('user'))
     .put(function(req, res, next) {
 
