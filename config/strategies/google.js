@@ -1,15 +1,15 @@
 'use strict';
 
 var utils = require('../../utils');
+var config = require('../index');
 
 var User           =    require('mongoose').model('user');
 var GoogleStrategy =	require('passport-google-oauth2').Strategy;
 
-// Defines the 'req.body' fields used to look for credentials.
 var opts = {
-	clientID: '161571982407-o698t9ofu4nl56efcu3dkl2f2nftb5du.apps.googleusercontent.com',
-	clientSecret: 'Dd0Me0lL3HT4k8vCdMfvBXBa',
-    callbackURL: 'http://localhost:9002/api/auth/google/callback',
+	clientID: config.providers.google.clientID,
+	clientSecret: config.providers.google.clientSecret,
+    callbackURL: config.providers.google.callbackURL,
     scope: [ 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.profile.emails.read' ]
 }
 

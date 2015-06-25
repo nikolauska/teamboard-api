@@ -1,14 +1,15 @@
 'use strict';
 
-var utils = require('../../utils');
+var utils  = require('../../utils');
+var config = require('../index');
 
 var User           =    require('mongoose').model('user');
 var GitHubStrategy = require('passport-github').Strategy;
 
 var options = {
-	clientID: '4091c94abf2d7db856c3',
-    clientSecret: '41d9babec7bab84964cdea6c7784f8434b14d1d8',
-    callbackURL: "http://localhost:9002/api/auth/github/callback",
+	clientID: config.providers.github.clientID,
+    clientSecret: config.providers.github.clientSecret,
+    callbackURL: config.providers.github.callbackURL,
     scope: 'user'
 }
 
@@ -27,7 +28,7 @@ module.exports = new GitHubStrategy(options, function(accessToken, refreshToken,
                     return done(null, user);
                 } else {
                     console.log(profile);
-                    // There is no email since it can only be accessed if user has made it public
+                    // Email isn't saved since it can only be accessed if user has made it public
                     new User({ 
                         name: profile.username,
                         account_type: 'standard',
