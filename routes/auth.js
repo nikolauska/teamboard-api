@@ -211,18 +211,19 @@ Router.route('/auth/register')
 			if(err) {
 				return next(utils.error(500, err));
 			}
-			if(user.lenght) {
+			if(user.length) {
 				return next(utils.error(500, "Email already exists"))
 			}
-				new User({ name:      username,
-			       account_type: 'standard',
-			       providers: {
-						basic: {
-								email:   req.body.email,
-								password:req.body.password
-						       }
-				   },
-					created_at: new Date()})
+			new User({ 
+				name:      username,
+				account_type: 'standard',
+				providers: {
+					basic: {
+						email:   req.body.email,
+						password:req.body.password
+					}
+				},
+				created_at: new Date()})
 			.save(function(err, user) {
 				if(err) {
 					if(err.name == 'ValidationError') {

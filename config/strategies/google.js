@@ -28,7 +28,6 @@ module.exports = new GoogleStrategy(opts, function(request, accessToken, refresh
                     // if a user is found, log them in
                     return done(null, user);
                 } else {
-                	console.log(profile.emails);
 	                new User({ 
 						name: profile.displayName,
 						account_type: 'standard',
@@ -37,7 +36,8 @@ module.exports = new GoogleStrategy(opts, function(request, accessToken, refresh
 									id: profile.id,
 									token: accessToken,
 									name: profile.displayName,
-									email: profile.emails[0].value
+									email: profile.emails[0].value,
+									avatar: profile.photos[0].value
 							       }
 					   },
 						created_at: new Date()})
