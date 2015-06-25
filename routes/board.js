@@ -870,7 +870,7 @@ Router.route('/boards/:board_id/setactivity')
 			'members.$.lastSeen': Date.now()
 		}}, function(err,board) {
 			if (err) return next(utils.error(500, err));
-			//utils.createEditBoardEvent(req, board, req.resolved.board);
+			utils.createEditBoardEvent(req, board, req.resolved.board);
 			return res.json(200, board);
 		});
 
