@@ -79,10 +79,11 @@ Router.route('/user/changepw')
                     if(response === false)
                         return next(utils.error(500, 'Invalid old password!'))
 
-                    if(user.providers)
+                    if(user.providers) {
                         user.providers.basic.password = payload.new_password;
-                    else
+                    } else {
                         user.password = payload.new_password;
+                    }
 
                     user.save(function(err, user) {
                         if(err) {
