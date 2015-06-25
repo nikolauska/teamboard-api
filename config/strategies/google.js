@@ -10,8 +10,7 @@ var opts = {
 	clientID: '161571982407-o698t9ofu4nl56efcu3dkl2f2nftb5du.apps.googleusercontent.com',
 	clientSecret: 'Dd0Me0lL3HT4k8vCdMfvBXBa',
     callbackURL: 'http://localhost:9002/api/auth/google/callback',
-    scope: [ 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.profile.emails.read' ],
-    passReqToCallback: true
+    scope: [ 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.profile.emails.read' ]
 }
 
 /**
@@ -45,9 +44,9 @@ module.exports = new GoogleStrategy(opts, function(request, accessToken, refresh
 							.save(function(err, user) {
 								if(err) {
 									if(err.name == 'ValidationError') {
-										return next(utils.error(400, err));
+										 throw err;
 									}
-									return next(utils.error(500, err));
+									throw err;
 								}
 								return done(null, user);
 							});

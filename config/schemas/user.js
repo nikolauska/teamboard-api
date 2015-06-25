@@ -36,7 +36,6 @@ var UserSchema = module.exports = new mongoose.Schema({
 		basic:  {
 			email: {
 				type:   String,
-				unique: true,
 				match:  /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
 			},
 
@@ -45,9 +44,9 @@ var UserSchema = module.exports = new mongoose.Schema({
 			}
 		},
 		github: {
-			name:     String,
-			email:    String,
-			avatar:   String
+			id:      String,
+			token:   String,
+			name:    String
 		},
 		google: {
 			id:      String,

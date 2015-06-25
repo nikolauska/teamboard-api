@@ -207,8 +207,14 @@ Router.route('/auth/register')
 		var username = '';
 		// If username is not set, we use the email instead.
 		req.body.username ? username = req.body.username : username = req.body.email;
-
-		new User({ name:      username,
+		User.find({ 'providers.basic.email': req.body.email }, function(err, user) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			if(user.lenght) {
+				return next(utils.error(500, "Email already exists"))
+			}
+				new User({ name:      username,
 			       account_type: 'standard',
 			       providers: {
 						basic: {
@@ -229,6 +235,8 @@ Router.route('/auth/register')
 				}
 				return res.json(201, user);
 			});
+		});
+	
 	});
 
 module.exports = Router;
