@@ -11,10 +11,9 @@ var BoardSchema = module.exports = new mongoose.Schema({
 	 * The board's display name.
 	 */
 	name: {
-		type:    String,
-		default: '',
+		type:     String,
+		default: ''
 	},
-
 	/**
 	 * Size of the board, in the unit of 'tickets'. Eg. a width of 8 would
 	 * imply the board is as wide as 8 tickets.

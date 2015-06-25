@@ -20,6 +20,14 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	},
 
 	/**
+	 * The ticket header.
+	 */
+	heading: {
+		type:    String,
+		default: ''
+	},
+
+	/**
 	 * The ticket contents.
 	 *
 	 * TODO Should we allow HTML content?
@@ -38,6 +46,30 @@ var TicketSchema = module.exports = new mongoose.Schema({
 		type:    String,
 		default: '#FFFFFF'
 	},
+
+	/**
+	 * Comments of the ticket
+	 */
+	comments: [{
+		user: { id: {
+                        ref: 'user',
+                        type: mongoose.Schema.Types.ObjectId
+                    },
+                username: {
+                        type:     String,
+                        required: true,
+                        default:  ''
+                   }
+		},
+		content:{
+            type:    String,
+            default: ''
+		},
+        created_at: {
+            type:    Date,
+            default: Date.now()
+		}
+		}],
 
 	/**
 	 * The ticket's position. The ticket moves in a 2D-plane (x, y) with z

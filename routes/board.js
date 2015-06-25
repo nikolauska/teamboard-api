@@ -77,6 +77,15 @@ Router.route('/boards')
 		var payload           = req.body;
 		    payload.createdBy = req.user.id;
 
+		if(payload.size.height <= 0 || payload.size.width <= 0) {
+			return next(utils.error(400, 'Board size must be larger than 0!'));
+		}
+
+		if(!(payload.size.height % 1 === 0) || !(payload.size.width % 1 === 0)) {
+			return next(utils.error(400, 'Board size must be whole numbers!'));
+		}
+
+		if (payload.size)
 		new Board(payload).save(function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
@@ -151,6 +160,18 @@ Router.route('/boards/:board_id')
 
 		var ticketWidth = 192;
 		var ticketHeight = 108;
+
+		if (!req.resolved.board) {
+			return next(utils.error(404, 'Board not found!'));
+		}
+
+		if(req.resolved.board.size.height <= 0 || req.resolved.board.size.width <= 0) {
+			return next(utils.error(400, 'Board size must be larger than 0!'));
+		}
+
+		if(!(req.resolved.board.size.height % 1 === 0) || !(req.resolved.board.size.width % 1 === 0)) {
+			return next(utils.error(400, 'Board size must be whole numbers!'));
+		}
 
 		return req.resolved.board.save(function(err, board) {
 			if(err) {
@@ -250,12 +271,18 @@ Router.route('/boards/:board_id/export')
 					return next(utils.error(500, err));
 				}
 
+				if(board.name == '')
+					board.name = 'board';
+				else
+					// Edit board name incase name is not valid filename
+					board.name = utils.sanitize(board.name,'');
+
 				if(format == 'csv') {
-					return res.attachment('board.csv').send(200, exportAs.generateCSV(board, tickets));
+					return res.attachment(board.name + '.csv').send(200, exportAs.generateCSV(board, tickets));
 				}
 
 				if(format == 'plaintext') {
-					return res.attachment('board.txt').send(200, exportAs.generatePlainText(board, tickets));
+					return res.attachment(board.name + '.txt').send(200, exportAs.generatePlainText(board, tickets));
 				}
 	
 				if(format == 'image') { 
@@ -267,38 +294,9 @@ Router.route('/boards/:board_id/export')
 				var boardObject     	= board;
 				    boardObject.tickets = tickets;
 
-				return res.attachment('board.json').json(200, boardObject);		
+				return res.attachment(board.name + '.json').json(200, boardObject);		
 			});
 		});
-	});
-
-Router.route('/boards/:board_id/export/image')
-	/**
-	 * Export board image
-	 */
-	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
-	.get(function(req, res, next) {
-		var imagepath = 'image/board.png';
-		var jadePath = 'image/app.jade';
-		var options = {
-			tickets: board.tickets 
-		};
-
-		// Replace app.jade and image folder to smarter name
-		var html = jade.renderFile(jadePath, options);
-
-		// Callback for webshot
-		function imageCallback(err) {
-			if(err) {
-				return next(utils.error(503, err))
-			}
-
-			return res.attachment(path);
-		}
-
-		// Handle errors and attacment returns on callback
-		return exportAs.generateImage(html, path, imageCallback);
 	});
 
 Router.route('/boards/:board_id/tickets')
@@ -364,7 +362,9 @@ Router.route('/boards/:board_id/tickets')
 					'id':       ticket._id,
 					'color':    ticket.color,
 					'content':  ticket.content,
+					'heading':  ticket.heading,
 					'position': ticket.position,
+					'comments': ticket.comments
 				}
 			}).save(function(err, ev) {
 				if(err) {
@@ -401,6 +401,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	 *     'color':    '#FFF'
 	 *     'heading':  'new-heading'
 	 *     'content':  'new-content'
+	 *     'heading':  'new-heading'
 	 *     'position': {
 	 *       'x', 'y', 'z'
 	 *     }
@@ -435,15 +436,15 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 					'oldAttributes': {
 						'color':    old.color,
-						'heading':  old.heading,
 						'content':  old.content,
+						'heading':  old.heading,
 						'position': old.position,
 					},
 
 					'newAttributes': {
 						'color':    ticket.color,
-						'heading':  ticket.heading,
 						'content':  ticket.content,
+						'heading':  ticket.heading,
 						'position': ticket.position,
 					},
 				}
@@ -520,58 +521,73 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
 	/**
-	 * Get a list of 'events' of the type of 'TICKET_COMMENT' for the board
-	 * specified by 'board_id'.
-	 *
-	 * returns:
-	 *   [ EventObject ]
-	 */
-	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
-	.get(function(req, res, next) {
-
-		var commentQuery = Event.find({
-			'type':    'TICKET_COMMENT',
-			'board':   req.resolved.board.id,
-			'data.id': req.resolved.ticket.id,
-		});
-
-		return commentQuery.exec(function(err, comments) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
-			return res.json(200, comments);
-		});
-	})
-
-	/**
 	 * Post a new comment on the specified ticket.
 	 */
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
-		new Event({
-			'type': 'TICKET_COMMENT',
-			'board': req.resolved.board.id,
 
-			'user': {
-				'id':       req.user.id,
-				'type':     req.user.type,
-				'username': req.user.username,
-			},
+		var old             = req.resolved.ticket.toObject();
+		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
 
-			'data': {
-				'id':      req.resolved.ticket.id,
-				'comment': req.body.comment,
+			var userId = null;
+
+			// Backwards compatibility for older clients for guest users
+			if(ObjectId.isValid(req.user.id)) {
+				userId = req.user.id
 			}
-		}).save(function(err, ev) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
-			utils.emitter.to(ev.board)
-				.emit('board:event', ev.toObject());
-			return res.json(201, ev.toObject());
-		});
+
+		req.resolved.ticket.comments.unshift({ 'user': { 'id': userId,
+											   'username': req.user.username},
+									           'content': req.body.comment});
+
+		req.resolved.ticket.save(function (err, ticket) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
+
+				if (!ticket) {
+					return next(utils.error(404, 'Ticket not found'));
+				}
+				/*
+				 * TODO: TICKET_COMMENT edit?
+				 */
+				new Event({
+					'type': 'TICKET_EDIT',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'id': ticket._id,
+
+						'oldAttributes': {
+							'color':    old.color,
+							'content':  old.content,
+							'heading':  old.heading,
+							'position': old.position,
+							'comments': old.comments
+						},
+
+						'newAttributes': {
+							'color':    ticket.color,
+							'content':  ticket.content,
+							'heading':  ticket.heading,
+							'position': ticket.position,
+							'comments': ticket.comments
+						},
+					}
+				}).save(function(err, ev) {
+						if(err) {
+							return console.error(err);
+						}
+						utils.emitter.to(ev.board)
+							.emit('board:event', ev.toObject());
+					});
+				return res.json(200, ticket);
+			})
 	});
 
 

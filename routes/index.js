@@ -1,4 +1,6 @@
 'use strict';
 
-module.exports.auth  = require('./auth');
-module.exports.board = require('./board');
+module.exports.auth     = require('./auth');
+module.exports.board    = require('./board');
+module.exports.version  = require('./version');
+module.exports.user     = require('./user');
