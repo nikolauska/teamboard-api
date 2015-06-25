@@ -41,11 +41,11 @@ Router.route('/boards')
 
 		if(req.user.type === 'temporary') {
 			// Guests can only see the board they have access to...
-			boardQuery = Board.find({ _id: req.user.access });
+			boardQuery = Board.find({ _id: req.user.access }).populate('members.user');
 		}
 		else {
 			// Normal users see the boards they are member or admin to.
-			boardQuery = Board.find({'members.user': req.user.id });
+			boardQuery = Board.find({'members.user': req.user.id }).populate('members.user');
 
 		}
 
@@ -78,7 +78,7 @@ Router.route('/boards')
 		var payload           			 = req.body;
 		payload.members                  = [];
 		    //payload.members[req.user.id] = 'admin';
-		payload.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
+		payload.members.push({user: req.user.id, role: 'admin', lastSeen: Date.now()});
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -870,8 +870,9 @@ Router.route('/boards/:board_id/setactivity')
 			'members.$.lastSeen': Date.now()
 		}}, function(err,board) {
 			if (err) return next(utils.error(500, err));
+
 			utils.createEditBoardEvent(req, board, req.resolved.board);
-			return res.json(200, board);
+			return res.send(200, board);
 		});
 
 
