@@ -847,4 +847,24 @@ Router.route('/boards/:board_id/access/:code')
 			});
 	});
 
+Router.route('/boards/:board_id/setactivity')
+
+/**
+ * Sets user active or unactive in a baord
+ *
+ * payload:
+ *   {
+ *     'activity': 'true'
+ *   }
+
+ */
+	.post(middleware.authenticate('user', 'guest'))
+	.post(middleware.relation('user', 'guest'))
+	.post(function(req, res, next) {
+		var board = req.resolved.board
+		console.log(req.body.isActive);
+		console.log(req.resolved.board.id);
+		return res.send(200, board);
+	});
+
 module.exports = Router;
