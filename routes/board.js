@@ -78,7 +78,7 @@ Router.route('/boards')
 		var payload           			 = req.body;
 		payload.members                  = [];
 		    //payload.members[req.user.id] = 'admin';
-		payload.members.push({user: req.user.id, role: 'admin'});
+		payload.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -90,6 +90,7 @@ Router.route('/boards')
 
 		if (payload.size)
 		new Board(payload).save(function(err, board) {
+			console.log(err);
 			if(err) {
 				return next(utils.error(400, err));
 			}
@@ -728,7 +729,7 @@ Router.route('/boards/:board_id/access/:code/grantaccess')
 		});
 
 		if(!isMember) {
-			board.members.push({user: user.id, role: 'member'});
+			board.members.push({user: user.id, role: 'member', isActive: true, lastSeen: Date.now()});
 			board.save(function (err, board) {
 				if (err) {
 					return next(utils.error(500, err));
@@ -801,7 +802,7 @@ Router.route('/boards/:board_id/access/:code')
 
 				var guestToken = jwt.sign(payload, secret);
 
-				board.members.push({user: user.id, role: 'member'});
+				board.members.push({user: user.id, role: 'member', isActive: true, lastSeen: Date.now()});
 				board.save(function (err, board) {
 					if (err) {
 						return next(utils.error(500, err));
@@ -861,10 +862,19 @@ Router.route('/boards/:board_id/setactivity')
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
-		var board = req.resolved.board
-		console.log(req.body.isActive);
-		console.log(req.resolved.board.id);
-		return res.send(200, board);
+
+		console.log(req.user.username + " " + req.body.isActive);
+
+		Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+			'members.$.isActive': req.body.isActive,
+			'members.$.lastSeen': Date.now()
+		}}, function(err,board) {
+			if (err) return next(utils.error(500, err));
+			//utils.createEditBoardEvent(req, board, req.resolved.board);
+			return res.json(200, board);
+		});
+
+
 	});
 
 module.exports = Router;

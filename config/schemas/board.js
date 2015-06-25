@@ -74,7 +74,16 @@ var BoardSchema = module.exports = new mongoose.Schema({
             ref: 'user',
             type: mongoose.Schema.Types.ObjectId
         },
-        role: {type: String}
+        role: {
+            type: String
+        },
+
+        isActive: {
+            type: Boolean
+        },
+        lastSeen: {
+            type: Date
+        }
     }]
 
 });

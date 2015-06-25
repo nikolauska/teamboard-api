@@ -22,7 +22,8 @@ module.exports = function(req, board, old) {
                 'size': {
                     'width':  old.size.width,
                     'height': old.size.height,
-                }
+                },
+                'members':         old.members
             },
             'newAttributes': {
                 'name':             board.name,
@@ -32,7 +33,8 @@ module.exports = function(req, board, old) {
                 'size': {
                     'width':  board.size.width,
                     'height': board.size.height,
-                }
+                },
+                'members':         board.members
             }
         }
     }).save(function(err, ev) {
