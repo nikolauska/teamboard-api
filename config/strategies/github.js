@@ -37,7 +37,7 @@ module.exports = new GitHubStrategy(options, function(accessToken, refreshToken,
                                 id: profile.id,
                                 token: accessToken,
                                 name: profile.username,
-                                avatar: profile.avatar_url
+                                avatar: profile._json.avatar_url
                             }
                         },
                         created_at: new Date()
@@ -51,7 +51,7 @@ module.exports = new GitHubStrategy(options, function(accessToken, refreshToken,
                         }
                         return done(null, user);
                     });
-            }
+                }
+            });
         });
     });
-});
