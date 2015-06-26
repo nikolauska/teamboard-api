@@ -9,8 +9,7 @@ var GitHubStrategy = require('passport-github').Strategy;
 var options = {
     clientID: config.providers.github.clientID,
     clientSecret: config.providers.github.clientSecret,
-    callbackURL: config.providers.github.callbackURL,
-    scope: 'user'
+    callbackURL: config.providers.github.callbackURL
 }
 
 module.exports = new GitHubStrategy(options, function(accessToken, refreshToken, profile, done) {

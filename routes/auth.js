@@ -161,12 +161,10 @@ Router.route('/auth/:provider/callback')
 								}
 							});
 						return res.redirect(RedirectURL + '?access_token=' + newtoken);
-						//return res.set('x-access-token', newtoken).json(200, payload);
 					});
 				}
 				// If the token was valid we reuse it.
 				return res.redirect(RedirectURL + '?access_token=' + newtoken);
-				//return res.set('x-access-token', session.token).json(200, payload);
 			});
 		});
 	});

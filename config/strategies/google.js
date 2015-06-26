@@ -44,7 +44,7 @@ module.exports = new GoogleStrategy(opts, function(request, accessToken, refresh
 							.save(function(err, user) {
 								if(err) {
 									if(err.name == 'ValidationError') {
-										 throw err;
+										throw err;
 									}
 									throw err;
 								}
