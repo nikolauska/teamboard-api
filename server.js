@@ -47,6 +47,7 @@ app.all('*', require('cors')({
 // Setup API Routes.
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/board'));
+app.use('/api', require('./routes/version'));
 app.use('/api', require('./routes/user'));
 
 /**

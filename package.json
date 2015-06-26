@@ -32,7 +32,8 @@
     "promise": "~6.0.0",
     "redis": "^0.12.1",
     "request": "^2.55.0",
-    "socket.io-emitter": "~0.2.0"
+    "socket.io-emitter": "~0.2.0",
+    "superagent": "^1.2.0"
   },
   "devDependencies": {
     "chalk": "^0.5.1",
