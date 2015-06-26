@@ -78,7 +78,6 @@ Router.route('/boards')
 		var payload           			 = req.body;
 		payload.members                  = [];
 		    //payload.members[req.user.id] = 'admin';
-		payload.members.push({user: req.user.id, role: 'admin', lastSeen: Date.now()});
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -89,6 +88,8 @@ Router.route('/boards')
 		}
 
 		if (payload.size)
+			payload.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
+
 		new Board(payload).save(function(err, board) {
 			console.log(err);
 			if(err) {
@@ -685,7 +686,11 @@ Router.route('/boards/:board_id/access')
 	.delete(middleware.authenticate('user'))
 	.delete(middleware.relation('admin'))
 	.delete(function(req, res, next) {
-		req.resolved.board.accessCode = null;
+		req.resolved.board.accessCode = null
+
+		req.resolved.board.members = [];
+		req.resolved.board.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
+
 		req.resolved.board.save(function(err) {
 			if(err) {
 				return next(utils.error(500, err));
@@ -804,7 +809,7 @@ Router.route('/boards/:board_id/access/:code')
 
 				var guestToken = jwt.sign(payload, secret);
 
-				board.members.push({user: user.id, role: 'member', isActive: true, lastSeen: Date.now()});
+				board.members.push({user: user.id, role: 'guest', isActive: true, lastSeen: Date.now()});
 				board.save(function (err, board) {
 					if (err) {
 						return next(utils.error(500, err));
@@ -866,6 +871,8 @@ Router.route('/boards/:board_id/setactivity')
 	.post(function(req, res, next) {
 		var old            = req.resolved.board.toObject();
 
+		console.log(req.user.username + " " + req.body.isActive);
+
 		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': req.body.isActive,
 			'members.$.lastSeen': Date.now()
@@ -911,8 +918,9 @@ Router.route('/boards/:board_id/setactivity')
 					}
 
 					utils.emitter.to(board.id).emit('board:event', ev.toObject());
-					return res.json(200, board);
 				});
+			return res.json(200, board);
+
 		});
 
 	});
