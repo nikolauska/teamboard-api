@@ -741,16 +741,9 @@ Router.route('/boards/:board_id/access/:code/grantaccess')
 				if (err) {
 					return next(utils.error(500, err));
 				}
+				return res.json(200, board);
 
-				User.findOne({_id: user.id}, function (err, doc) {
-					doc.boards.push({id: board._id});
-					doc.save(function (err) {
-						if (err) return console.error(err);
-
-						return res.json(200, board);
-					});
-				});
-			});
+			})
 		}
 		else {
 			return res.json(200, board);

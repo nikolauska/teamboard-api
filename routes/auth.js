@@ -71,8 +71,7 @@ Router.route('/auth/:provider/login')
 					var payload = {
 						id:       user.id, 
 						type:     user.account_type, 
-						username: user.name, 
-						boards:   user.boards
+						username: user.name
 					}
 
 					return user.save(function(err, user) {

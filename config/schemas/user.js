@@ -70,20 +70,7 @@ var UserSchema = module.exports = new mongoose.Schema({
      */
     edited_at: {
         type:    Date
-    },
-
-
-    /**
-     * Boards user has access to
-     */
-
-    boards: [{
-        id: {
-            ref:  'board',
-            type: mongoose.Schema.Types.ObjectId
-        }
-    }]
-
+    }
 });
 
 if(!UserSchema.options.toJSON) UserSchema.options.toJSON     = { }
