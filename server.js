@@ -1,9 +1,10 @@
 'use strict';
-
+var utils    = require('./utils');
 var config   = require('./config');
 var app      = require('./config/express');
 var mongoose = require('./config/mongoose');
 var passport = require('./config/passport');
+var Board = mongoose.model('board', require('./config/schemas/board'));
 
 process.env.INSTANCE_NAME =
 	process.env.INSTANCE_NAME || process.env.HOSTNAME || 'unknown';
@@ -99,6 +100,8 @@ module.exports.listen = function(onListen) {
 	this.server = app.listen(config.port, onListen || function() {
 		console.log('server listening at', config.port);
 	});
+
+	setInterval(utils.pollBoardActivity, 5000);
 }
 
 /**

@@ -96,10 +96,6 @@ Router.route('/boards')
 				return next(utils.error(400, err));
 			}
 
-			User.findOne({ _id: req.user.id }, function(err, doc) {
-				doc.boards.push({id: board._id});
-				doc.save(function(err) {
-					if(err) return console.error(err);
 
 					new Event({
 						'type': 'BOARD_CREATE',
@@ -114,8 +110,6 @@ Router.route('/boards')
 					});
 
 					return res.json(201, board);
-				});
-			});
 		});
 	});
 
@@ -912,8 +906,27 @@ Router.route('/boards/:board_id/setactivity')
 
 					utils.emitter.to(board.id).emit('board:event', ev.toObject());
 				});
-			return res.json(200, board);
+			return res.send(200);
 
+		});
+
+	})
+	/*
+	*
+	* Very simple helper function to poll from client, to update user activity and last seen
+	*
+	*/
+	.put(middleware.authenticate('user', 'guest'))
+	.put(middleware.relation('user', 'guest'))
+	.put(function(req, res, next) {
+		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+			'members.$.isActive': true,
+			'members.$.lastSeen': Date.now()
+		}})
+		boardQuery.exec(function(err, board) {
+			console.log(board);
+			if (err) return next(utils.error(500, err));
+			return res.send(200);
 		});
 
 	});
