@@ -184,7 +184,8 @@ Router.route('/boards/:board_id')
 				return next(utils.error(400, err));
 			}
 			Board.populate(board, 'createdBy', function(err, board) {
-				if(err) {
+				Board.populate(board, 'members.user', function(err, board) {
+					if(err) {
 					return next(utils.error(500, err));
 				}
 
@@ -198,16 +199,17 @@ Router.route('/boards/:board_id')
 						if(tickets.length > 0) {
 							Promise.all(tickets.map(utils.ticketClamper(req.resolved.board))).then(function(){
 
-								utils.createEditBoardEvent(req, req.resolved.board, old);
+								utils.createEditBoardEvent(req, board, old);
 							})
 						}
 					});
 				} else {
 
-					utils.createEditBoardEvent(req, req.resolved.board, old);
+					utils.createEditBoardEvent(req, board, old);
 				}
 
 				return res.json(200, board);
+				});
 			});
 		});
 	})
