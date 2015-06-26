@@ -79,7 +79,8 @@ var BoardSchema = module.exports = new mongoose.Schema({
         },
 
         isActive: {
-            type: Boolean
+            type:    Boolean,
+            default: false
         },
         lastSeen: {
             type: Date
