@@ -862,19 +862,56 @@ Router.route('/boards/:board_id/setactivity')
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
+		var old            = req.resolved.board.toObject();
 
-		console.log(req.user.username + " " + req.body.isActive);
-
-		Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': req.body.isActive,
 			'members.$.lastSeen': Date.now()
-		}}, function(err,board) {
+		}}).populate('members.user');
+
+		boardQuery.exec(function(err, board) {
 			if (err) return next(utils.error(500, err));
+			new Event({
+				'type': 'BOARD_EDIT',
+				'board': board.id,
+				'user':  {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'oldAttributes': {
+						'name':             old.name,
+						'description':      old.description,
+						'background':       old.background,
+						'customBackground': old.customBackground,
+						'size': {
+							'width':  old.size.width,
+							'height': old.size.height,
+						},
+						'members':         old.members
+					},
+					'newAttributes': {
+						'name':             board.name,
+						'description':      board.description,
+						'background':       board.background,
+						'customBackground': board.customBackground,
+						'size': {
+							'width':  board.size.width,
+							'height': board.size.height,
+						},
+						'members':    board.members
+					}
+				}
+			}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
 
-			utils.createEditBoardEvent(req, board, req.resolved.board);
-			return res.send(200, board);
+					utils.emitter.to(board.id).emit('board:event', ev.toObject());
+					return res.json(200, board);
+				});
 		});
-
 
 	});
 

@@ -24,7 +24,7 @@ module.exports = function(req, board, old) {
                     'width':  old.size.width,
                     'height': old.size.height,
                 },
-                'members':         resolveBoardMembers(old)
+                'members':         old.members
             },
             'newAttributes': {
                 'name':             board.name,
@@ -35,7 +35,7 @@ module.exports = function(req, board, old) {
                     'width':  board.size.width,
                     'height': board.size.height,
                 },
-                'members':         resolveBoardMembers(board)
+                'members':         board.members
             }
         }
     }).save(function(err, ev) {
