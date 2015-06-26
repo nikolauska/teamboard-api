@@ -924,7 +924,6 @@ Router.route('/boards/:board_id/setactivity')
 			'members.$.lastSeen': Date.now()
 		}})
 		boardQuery.exec(function(err, board) {
-			console.log(board);
 			if (err) return next(utils.error(500, err));
 			return res.send(200);
 		});
