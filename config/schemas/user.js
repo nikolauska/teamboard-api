@@ -82,8 +82,8 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
     // ret.type     = 'user';
     // ret.username = doc.email;
 
-    // delete ret._id;
-    // delete ret.__v;
+    //delete ret._id;
+    //delete ret.__v;
     // delete ret.token;
     // delete ret.password;
 
@@ -92,14 +92,11 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
             doc.providers.basic.password = '';
         }
     }
-
-
     return {
         'id':           doc.id,
         'username':     doc.name,
         'account_type': doc.account_type,
-        'providers':    doc.providers,
-        'boards':       doc.boards
+        'providers':    doc.providers
     }
 }
 

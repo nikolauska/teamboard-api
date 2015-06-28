@@ -809,7 +809,7 @@ Router.route('/boards/:board_id/access/:code')
 					'user': {
 						'id':       user.id,
 						'type':     user.account_type,
-						'username': user.username,
+						'username': user.name,
 					},
 					}).save(function(err, ev) {
 						if(err) {
