@@ -800,7 +800,6 @@ Router.route('/boards/:board_id/access/:code')
 						return next(utils.error(500, err));
 					}
 
-
 				new Event({
 					'type': 'BOARD_GUEST_JOIN',
 					'board': req.resolved.board.id,
@@ -908,10 +907,10 @@ Router.route('/boards/:board_id/setactivity')
 
 	})
 	/*
-	*
-	* Very simple helper function to poll from client, to update user activity and last seen
-	*
-	*/
+	 *
+	 * Very simple helper function to poll from client, to update user activity and last seen
+	 *
+	 */
 	.put(middleware.authenticate('user', 'guest'))
 	.put(middleware.relation('user', 'guest'))
 	.put(function(req, res, next) {
