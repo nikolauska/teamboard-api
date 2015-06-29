@@ -41,11 +41,11 @@ Router.route('/boards')
 
 		if(req.user.type === 'temporary') {
 			// Guests can only see the board they have access to...
-			boardQuery = Board.find({ _id: req.user.access }).populate('board.members.user');
+			boardQuery = Board.find({ _id: req.user.access }).populate('members.user');
 		}
 		else {
 			// Normal users see the boards they are member or admin to.
-			boardQuery = Board.find({'members.user': req.user.id }).populate('board.members.user');
+			boardQuery = Board.find({'members.user': req.user.id }).populate('members.user');
 
 		}
 
@@ -91,27 +91,25 @@ Router.route('/boards')
 			payload.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
 
 		new Board(payload).save(function(err, board) {
+			console.log(err);
+			if(err) {
+				return next(utils.error(400, err));
+			}
 
 
-			Board.populate(board, {path:'members.user'}, function(err, board) {
-				if(err) {
-					return next(utils.error(400, err));
-				}
-
-				new Event({
-					'type': 'BOARD_CREATE',
-					'board': board.id,
-					'user':  {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					}
-				}).save(function(err) {
+					new Event({
+						'type': 'BOARD_CREATE',
+						'board': board.id,
+						'user':  {
+							'id':       req.user.id,
+							'type':     req.user.type,
+							'username': req.user.username,
+						}
+					}).save(function(err) {
 						if(err) return console.error(err);
 					});
 
-				return res.json(201, board);
-			});
+					return res.json(201, board);
 		});
 	});
 
@@ -127,7 +125,7 @@ Router.route('/boards/:board_id')
 	.get(middleware.authenticate('user', 'guest'))
 	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
-		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.user': req.user.id }).populate('board.members.user');
+		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.user': req.user.id }).populate('members.user');
 
 		boardQuery.exec(function(err, board) {
 				if(err) {
@@ -847,7 +845,7 @@ Router.route('/boards/:board_id/access/:code')
 Router.route('/boards/:board_id/setactivity')
 
 /**
- * Sets user active or unactive in a board
+ * Sets user active or unactive in a baord
  *
  * payload:
  *   {
@@ -860,14 +858,14 @@ Router.route('/boards/:board_id/setactivity')
 	.post(function(req, res, next) {
 		var old            = req.resolved.board.toObject();
 
-		//console.log(req.user.username + " " + req.body.isActive);
+		console.log(req.user.username + " " + req.body.isActive);
 
 		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': req.body.isActive,
 			'members.$.lastSeen': Date.now()
-		}}, {new: true}).populate('board.members.user');
-		boardQuery.exec(function(err, board) {
+		}}).populate('members.user');
 
+		boardQuery.exec(function(err, board) {
 			if (err) return next(utils.error(500, err));
 			new Event({
 				'type': 'BOARD_EDIT',
@@ -921,19 +919,12 @@ Router.route('/boards/:board_id/setactivity')
 	.put(middleware.authenticate('user', 'guest'))
 	.put(middleware.relation('user', 'guest'))
 	.put(function(req, res, next) {
-
-		var oldBoard = req.resolved.board;
-
 		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': true,
 			'members.$.lastSeen': Date.now()
-		}}).populate('board.members.user');
-
+		}})
 		boardQuery.exec(function(err, board) {
 			if (err) return next(utils.error(500, err));
-
-			if (oldBoard.members.user)
-
 			return res.send(200);
 		});
 
