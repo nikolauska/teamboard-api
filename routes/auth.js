@@ -105,7 +105,6 @@ Router.route('/auth/:provider/login')
 				}
 				// If the token was valid we reuse it.
 				return res.set('x-access-token', session.token).json(200, payload);
-
 			});
 		});
 	});

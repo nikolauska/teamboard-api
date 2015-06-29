@@ -25,14 +25,14 @@ module.exports = {
     img:  process.env.IMG_URL || 'http://localhost:9003/img',
     providers: {
         google: {
-            clientID:     process.env.GOOGLE_CLIENT_ID || '161571982407-o698t9ofu4nl56efcu3dkl2f2nftb5du.apps.googleusercontent.com',
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'Dd0Me0lL3HT4k8vCdMfvBXBa',
-            callbackURL:  process.env.GOOGLE_CALLBACK_URL || 'http://localhost:9002/api/auth/google/callback'
+            clientID:     process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL:  process.env.GOOGLE_CALLBACK_URL
         },
         github: {
-            clientID:     process.env.GITHUB_CLIENT_ID || '4091c94abf2d7db856c3',
-            clientSecret: process.env.GITHUB_CLIENT_SECRET || '41d9babec7bab84964cdea6c7784f8434b14d1d8',
-            callbackURL:  process.env.GITHUB_CALLBACK_URL || 'http://localhost:9002/api/auth/github/callback'
+            clientID:     process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+            callbackURL:  process.env.GITHUB_CALLBACK_URL
         }
     }
 }

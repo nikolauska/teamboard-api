@@ -17,40 +17,40 @@ var opts = {
  * Authenticate the requestee as a 'user' based on the passed in credentials.
  */
 module.exports = new GoogleStrategy(opts, function(request, accessToken, refreshToken, profile, done) {
-        // User.findOne won't fire until we have all our data back from Google
-        process.nextTick(function() {
-            // try to find the user based on their google id
-            User.findOne({ 'providers.google.id' : profile.id }, function(err, user) {
-                if (err){
-                    return done(err);
+	// User.findOne won't fire until we have all our data back from Google
+	process.nextTick(function() {
+		// try to find the user based on their google id
+		User.findOne({ 'providers.google.id' : profile.id }, function(err, user) {
+			if (err){
+				return done(err);
                 }
-                if (user) {
-                    // if a user is found, log them in
-                    return done(null, user);
-                } else {
-	                new User({ 
-						name: profile.displayName,
-						account_type: 'standard',
-						providers: {
-							google: {
-									id: profile.id,
-									token: accessToken,
-									name: profile.displayName,
-									email: profile.emails[0].value,
-									avatar: profile.photos[0].value
-							       }
-					   },
-						created_at: new Date()})
-							.save(function(err, user) {
-								if(err) {
-									if(err.name == 'ValidationError') {
-										throw err;
-									}
+			if (user) {
+				// if a user is found, log them in
+				return done(null, user);
+			} else {
+				new User({ 
+					name: profile.displayName,
+					account_type: 'standard',
+					providers: {
+						google: {
+								id: profile.id,
+								token: accessToken,
+								name: profile.displayName,
+								email: profile.emails[0].value,
+								avatar: profile.photos[0].value
+						       }
+						},
+					created_at: new Date()
+				}).save(function(err, user) {
+							if(err) {
+								if(err.name == 'ValidationError') {
 									throw err;
 								}
-								return done(null, user);
-							});
-	                	}
-	            	});
-	        	});
-			});
+								throw err;
+							}
+							return done(null, user);
+						});
+	                }
+	            });
+	        });
+		});
