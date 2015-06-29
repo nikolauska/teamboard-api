@@ -101,7 +101,7 @@ module.exports.listen = function(onListen) {
 		console.log('server listening at', config.port);
 	});
 
-	setInterval(utils.pollBoardActivity, 5000);
+	setInterval(utils.pollBoardActivity, config.mongo.user_poll_time);
 }
 
 /**

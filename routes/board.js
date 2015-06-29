@@ -91,7 +91,6 @@ Router.route('/boards')
 			payload.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
 
 		new Board(payload).save(function(err, board) {
-			console.log(err);
 			if(err) {
 				return next(utils.error(400, err));
 			}
@@ -775,7 +774,6 @@ Router.route('/boards/:board_id/access/:code')
 			boards:[{id: board._id}] })
 			.save(function(err, user) {
 				if(err) {
-					console.log(err);
 					if(err.name == 'ValidationError') {
 						return next(utils.error(400, err));
 					}
@@ -858,8 +856,6 @@ Router.route('/boards/:board_id/setactivity')
 	.post(function(req, res, next) {
 		var old            = req.resolved.board.toObject();
 
-		console.log(req.user.username + " " + req.body.isActive);
-
 		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': req.body.isActive,
 			'members.$.lastSeen': Date.now()
@@ -900,7 +896,6 @@ Router.route('/boards/:board_id/setactivity')
 					}
 				}
 			}).save(function(err, ev) {
-					console.log(ev);
 					if(err) {
 						return console.error(err);
 					}
@@ -933,7 +928,6 @@ Router.route('/boards/:board_id/setactivity')
 			'members.$.lastSeen': Date.now()
 		}})
 		boardQuery.exec(function(err, board) {
-			console.log(board);
 			if (err) return next(utils.error(500, err));
 
 			if (oldActive === false) {
