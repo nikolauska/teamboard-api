@@ -73,14 +73,11 @@ Router.route('/auth/:provider/login')
 						type:     user.account_type, 
 						username: user.name
 					}
-
 					return user.save(function(err, user) {
 						if(err) {
 							return next(utils.error(500, err));
 						}
-
 						var newtoken = jwt.sign(payload, secret);
-
 						new Session({
 							user:       user.id,
 							user_agent: req.headers['user-agent'],
@@ -122,13 +119,10 @@ Router.route('/auth/:provider/callback')
 		// passing in 'state' here, from the OAuth request as seen above can be
 		// seen as attempting to link an account to an existing one, so we do
 		// just that...
-
 			User.findOne({ _email: req.account.email }, function(err, user) { 
 				if(err) {
 				return next(utils.error(500, err));
 				}
-
-
             });
         } else {
 			// we find the user based on the account somehow, probably 'email' or
@@ -139,21 +133,18 @@ Router.route('/auth/:provider/callback')
 			}
 
         });
-   
                 // if the user is not found, we create a new user, this is effectively
                 // like registering in the current application, this also should link
                 // the account to the user
                 // note that 'user.create' is just pseudo code meant to illustrate the
                 // flow of the authentication
-        if(!user) {      
-
+        if(!user) {
 			var newUser = new User();
 				// set all of the relevant information
 				newUser.providers.google.id    = profile.id;
 				newUser.providers.google.token = token;
 				newUser.providers.google.name  = profile.displayName;
 				newUser.providers.google.email = profile.emails[0].value; // pull the first email
-
             // save the user
 				newUser.save(function(err, user) {
 				if(err) {
@@ -167,9 +158,7 @@ Router.route('/auth/:provider/callback')
 				}
 				return res.json(201, user);
 			});
-
 			var newtoken = jwt.sign(payload, secret);
-
 				new Session({
 					user:       user.id,
 					user_agent: req.headers['user-agent'],

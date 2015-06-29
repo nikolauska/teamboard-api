@@ -1,6 +1,3 @@
-/**
- * Created by matti on 26.6.2015.
- */
 'use strict';
 
 var mongoose = require('mongoose');
@@ -15,5 +12,5 @@ module.exports = function resolveBoardMembers(boardId) {
         }
         return board.members
     });
-
 }
+

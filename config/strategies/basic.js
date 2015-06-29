@@ -9,7 +9,6 @@ var BasicStrategy =	require('passport-http').BasicStrategy;
 var opts = {
 	usernameField: 'email',
 	passwordField: 'password',
-
 }
 
 /**

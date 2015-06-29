@@ -46,7 +46,6 @@ Router.route('/boards')
 		else {
 			// Normal users see the boards they are member or admin to.
 			boardQuery = Board.find({'members.user': req.user.id }).populate('members.user');
-
 		}
 
 		boardQuery.exec(function(err, boards) {
@@ -75,9 +74,8 @@ Router.route('/boards')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
-		var payload           			 = req.body;
-		payload.members                  = [];
-		    //payload.members[req.user.id] = 'admin';
+		var payload     = req.body;
+		payload.members = [];
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -94,8 +92,6 @@ Router.route('/boards')
 			if(err) {
 				return next(utils.error(400, err));
 			}
-
-
 					new Event({
 						'type': 'BOARD_CREATE',
 						'board': board.id,
@@ -111,7 +107,6 @@ Router.route('/boards')
 					return res.json(201, board);
 		});
 	});
-
 
 Router.route('/boards/:board_id')
 
@@ -832,8 +827,6 @@ Router.route('/boards/:board_id/access/:code')
 								}
 								return res.set('x-access-token', guestToken).json(200, payload);
 							});
-
-
 					});
 				});
 			});
