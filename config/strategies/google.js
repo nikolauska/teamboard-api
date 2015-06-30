@@ -6,17 +6,17 @@ var config = require('../index');
 var User           = require('mongoose').model('user');
 var GoogleStrategy = require('passport-google-oauth2').Strategy;
 
-var opts = {
+var options = {
 	clientID: config.providers.google.clientID,
 	clientSecret: config.providers.google.clientSecret,
 	callbackURL: config.providers.google.callbackURL,
-	scope: [ 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.profile.emails.read' ]
+	scope: [ 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/plus.profile.emails.read' ]
 }
 
 /**
  * Authenticate the requestee as a 'user' based on the passed in credentials.
  */
-module.exports = new GoogleStrategy(opts, function(request, accessToken, refreshToken, profile, done) {
+module.exports = new GoogleStrategy(options, function(request, accessToken, refreshToken, profile, done) {
 	// User.findOne won't fire until we have all our data back from Google
 	process.nextTick(function() {
 		// try to find the user based on their google id

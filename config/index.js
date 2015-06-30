@@ -21,8 +21,8 @@ module.exports = {
     token: {
         secret: process.env.TOKEN_SECRET || 'secret'
     },
-    port: process.env.PORT || 9002,
-    img:  process.env.IMG_URL || 'http://localhost:9003/img',
+    port:        process.env.PORT || 9002,
+    img:         process.env.IMG_URL || 'http://localhost:9003/img',
     providers: {
         google: {
             clientID:     process.env.GOOGLE_CLIENT_ID,
@@ -30,9 +30,9 @@ module.exports = {
             callbackURL:  process.env.GOOGLE_CALLBACK_URL
         },
         github: {
-            clientID:     process.env.GITHUB_CLIENT_ID,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET,
-            callbackURL:  process.env.GITHUB_CALLBACK_URL
+            clientID:     process.env.GITHUB_CLIENT_ID || ' ',
+            clientSecret: process.env.GITHUB_CLIENT_SECRET || ' ',
+            callbackURL:  process.env.GITHUB_CALLBACK_URL || ' '
         }
     }
 }
