@@ -188,7 +188,6 @@ Router.route('/auth/:provider/callback')
 	}
 });
 
-
 Router.route('/auth/logout')
 
 	/**

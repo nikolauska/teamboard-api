@@ -236,7 +236,6 @@ Router.route('/boards/:board_id')
 		});
 	});
 
-
 Router.route('/boards/:board_id/export')
 
 	/**

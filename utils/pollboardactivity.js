@@ -21,7 +21,6 @@ module.exports = function(req) {
 						didChange = true;
 					}
 				})
-
 				if(didChange) {
 					board.save(function (err, savedboard) {
 					new Event({
@@ -44,7 +43,6 @@ module.exports = function(req) {
 					if(err) {
 						return console.error(err);
 					}
-
 					emitter.to(savedboard.id).emit('board:event', ev.toObject());
 						});
 					})
