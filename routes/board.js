@@ -10,11 +10,11 @@ var utils      = require('../utils');
 var config     = require('../config');
 var middleware = require('../middleware');
 
-var Event  = mongoose.model('event');
-var Board  = mongoose.model('board');
-var Ticket = mongoose.model('ticket');
-var User   = mongoose.model('user');
-
+var Event   = mongoose.model('event');
+var Board   = mongoose.model('board');
+var Ticket  = mongoose.model('ticket');
+var User    = mongoose.model('user');
+var Session = mongoose.model('session');
 var Router   = express.Router();
 var ObjectId = mongoose.Types.ObjectId;
 
@@ -41,11 +41,11 @@ Router.route('/boards')
 
 		if(req.user.type === 'temporary') {
 			// Guests can only see the board they have access to...
-			boardQuery = Board.find({ _id: req.user.access });
+			boardQuery = Board.find({ _id: req.user.access }).populate('members.user');
 		}
 		else {
-			// Normal users see the boards they have created.
-			boardQuery = Board.find({ createdBy: req.user.id });
+			// Normal users see the boards they are member or admin to.
+			boardQuery = Board.find({'members.user': req.user.id }).populate('members.user');
 		}
 
 		boardQuery.exec(function(err, boards) {
@@ -74,8 +74,8 @@ Router.route('/boards')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
-		var payload           = req.body;
-		    payload.createdBy = req.user.id;
+		var payload     = req.body;
+		payload.members = [];
 
 		if(payload.size.height <= 0 || payload.size.width <= 0) {
 			return next(utils.error(400, 'Board size must be larger than 0!'));
@@ -86,33 +86,27 @@ Router.route('/boards')
 		}
 
 		if (payload.size)
+			payload.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
+
 		new Board(payload).save(function(err, board) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
+					new Event({
+						'type': 'BOARD_CREATE',
+						'board': board.id,
+						'user':  {
+							'id':       req.user.id,
+							'type':     req.user.type,
+							'username': req.user.username,
+						}
+					}).save(function(err) {
+						if(err) return console.error(err);
+					});
 
-			Board.populate(board, 'createdBy', function(err, board) {
-				if(err) {
-					return next(utils.error(500, err));
-				}
-
-				new Event({
-					'type': 'BOARD_CREATE',
-					'board': board.id,
-					'user':  {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					}
-				}).save(function(err) {
-					if(err) return console.error(err);
-				});
-
-				return res.json(201, board);
-			});
+					return res.json(201, board);
 		});
 	});
-
 
 Router.route('/boards/:board_id')
 
@@ -123,10 +117,11 @@ Router.route('/boards/:board_id')
 	 *   The specified board object.
 	 */
 	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
-		Board.populate(req.resolved.board, 'createdBy',
-			function(err, board) {
+		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.user': req.user.id }).populate('members.user');
+
+		boardQuery.exec(function(err, board) {
 				if(err) {
 					return next(utils.error(500, err));
 				}
@@ -153,7 +148,7 @@ Router.route('/boards/:board_id')
 	 *   The updated board object.
 	 */
 	.put(middleware.authenticate('user'))
-	.put(middleware.relation('user'))
+	.put(middleware.relation('admin'))
 	.put(function(req, res, next) {
 		var old            = req.resolved.board.toObject();
 		req.resolved.board = _.merge(req.resolved.board, req.body);
@@ -178,7 +173,8 @@ Router.route('/boards/:board_id')
 				return next(utils.error(400, err));
 			}
 			Board.populate(board, 'createdBy', function(err, board) {
-				if(err) {
+				Board.populate(board, 'members.user', function(err, board) {
+					if(err) {
 					return next(utils.error(500, err));
 				}
 
@@ -192,16 +188,17 @@ Router.route('/boards/:board_id')
 						if(tickets.length > 0) {
 							Promise.all(tickets.map(utils.ticketClamper(req.resolved.board))).then(function(){
 
-								utils.createEditBoardEvent(req, req.resolved.board, old);
+								utils.createEditBoardEvent(req, board, old);
 							})
 						}
 					});
 				} else {
 
-					utils.createEditBoardEvent(req, req.resolved.board, old);
+					utils.createEditBoardEvent(req, board, old);
 				}
 
 				return res.json(200, board);
+				});
 			});
 		});
 	})
@@ -213,7 +210,7 @@ Router.route('/boards/:board_id')
 	 *   The removed board object.
 	 */
 	.delete(middleware.authenticate('user'))
-	.delete(middleware.relation('user'))
+	.delete(middleware.relation('admin'))
 	.delete(function(req, res, next) {
 		req.resolved.board.remove(function(err) {
 			if(err) {
@@ -239,14 +236,13 @@ Router.route('/boards/:board_id')
 		});
 	});
 
-
 Router.route('/boards/:board_id/export')
 
 	/**
 	 * Export board either json, csv, plaintext or image
 	 */
 	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
 		var format = req.query.format ? req.query.format : 'json';
 		
@@ -308,7 +304,7 @@ Router.route('/boards/:board_id/tickets')
 	 *   An array of ticket objects.
 	 */
 	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res) {
 		var board = req.resolved.board;
 		Ticket.find({ 'board': board.id }, function(err, tickets) {
@@ -339,7 +335,7 @@ Router.route('/boards/:board_id/tickets')
 	 *   The created ticket object.
 	 */
 	.post(middleware.authenticate('user', 'guest'))
-	.post(middleware.relation('user', 'guest'))
+	.post(middleware.relation('admin', 'user', 'guest'))
 	.post(function(req, res, next) {
 
 		var payload       = req.body;
@@ -362,9 +358,7 @@ Router.route('/boards/:board_id/tickets')
 					'id':       ticket._id,
 					'color':    ticket.color,
 					'content':  ticket.content,
-					'heading':  ticket.heading,
 					'position': ticket.position,
-					'comments': ticket.comments
 				}
 			}).save(function(err, ev) {
 				if(err) {
@@ -401,7 +395,6 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	 *     'color':    '#FFF'
 	 *     'heading':  'new-heading'
 	 *     'content':  'new-content'
-	 *     'heading':  'new-heading'
 	 *     'position': {
 	 *       'x', 'y', 'z'
 	 *     }
@@ -411,7 +404,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	 *   The updated ticket object.
 	 */
 	.put(middleware.authenticate('user', 'guest'))
-	.put(middleware.relation('user', 'guest'))
+	.put(middleware.relation('admin', 'user', 'guest'))
 	.put(function(req, res, next) {
 		var old             = req.resolved.ticket.toObject();
 		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
@@ -436,15 +429,15 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 					'oldAttributes': {
 						'color':    old.color,
-						'content':  old.content,
 						'heading':  old.heading,
+						'content':  old.content,
 						'position': old.position,
 					},
 
 					'newAttributes': {
 						'color':    ticket.color,
-						'content':  ticket.content,
 						'heading':  ticket.heading,
+						'content':  ticket.content,
 						'position': ticket.position,
 					},
 				}
@@ -477,7 +470,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	 *   The deleted ticket object.
 	 */
 	.delete(middleware.authenticate('user', 'guest'))
-	.delete(middleware.relation('user', 'guest'))
+	.delete(middleware.relation('admin', 'user', 'guest'))
 	.delete(function(req, res, next) {
 		req.resolved.ticket.remove(function(err) {
 			if(err) {
@@ -520,9 +513,9 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
-	/**
-	 * Post a new comment on the specified ticket.
-	 */
+/**
+ * Post a new comment on the specified ticket.
+ */
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('user', 'guest'))
 	.post(function(req, res, next) {
@@ -530,66 +523,65 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 		var old             = req.resolved.ticket.toObject();
 		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
 
-			var userId = null;
+		var userId = null;
 
-			// Backwards compatibility for older clients for guest users
-			if(ObjectId.isValid(req.user.id)) {
-				userId = req.user.id
-			}
+		// Backwards compatibility for older clients for guest users
+		if(ObjectId.isValid(req.user.id)) {
+			userId = req.user.id
+		}
 
 		req.resolved.ticket.comments.unshift({ 'user': { 'id': userId,
-											   'username': req.user.username},
-									           'content': req.body.comment});
+			'username': req.user.username},
+			'content': req.body.comment});
 
 		req.resolved.ticket.save(function (err, ticket) {
-				if(err) {
-					return next(utils.error(500, err));
-				}
+			if(err) {
+				return next(utils.error(500, err));
+			}
 
-				if (!ticket) {
-					return next(utils.error(404, 'Ticket not found'));
-				}
-				/*
-				 * TODO: TICKET_COMMENT edit?
-				 */
-				new Event({
-					'type': 'TICKET_EDIT',
-					'board': ticket.board,
-					'user': {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
+			if (!ticket) {
+				return next(utils.error(404, 'Ticket not found'));
+			}
+			/*
+			 * TODO: TICKET_COMMENT edit?
+			 */
+			new Event({
+				'type': 'TICKET_EDIT',
+				'board': ticket.board,
+				'user': {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'id': ticket._id,
+
+					'oldAttributes': {
+						'color':    old.color,
+						'content':  old.content,
+						'heading':  old.heading,
+						'position': old.position,
+						'comments': old.comments
 					},
-					'data': {
-						'id': ticket._id,
 
-						'oldAttributes': {
-							'color':    old.color,
-							'content':  old.content,
-							'heading':  old.heading,
-							'position': old.position,
-							'comments': old.comments
-						},
-
-						'newAttributes': {
-							'color':    ticket.color,
-							'content':  ticket.content,
-							'heading':  ticket.heading,
-							'position': ticket.position,
-							'comments': ticket.comments
-						},
+					'newAttributes': {
+						'color':    ticket.color,
+						'content':  ticket.content,
+						'heading':  ticket.heading,
+						'position': ticket.position,
+						'comments': ticket.comments
+					},
+				}
+			}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
 					}
-				}).save(function(err, ev) {
-						if(err) {
-							return console.error(err);
-						}
-						utils.emitter.to(ev.board)
-							.emit('board:event', ev.toObject());
-					});
-				return res.json(200, ticket);
-			})
+					utils.emitter.to(ev.board)
+						.emit('board:event', ev.toObject());
+				});
+			return res.json(200, ticket);
+		})
 	});
-
 
 Router.route('/boards/:board_id/events')
 
@@ -600,7 +592,7 @@ Router.route('/boards/:board_id/events')
 	 *   [ EventObject ]
 	 */
 	.get(middleware.authenticate('user', 'guest'))
-	.get(middleware.relation('user', 'guest'))
+	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
 		Event.find({ 'board': req.resolved.board.id }, function(err, evs) {
 			if(err) {
@@ -622,7 +614,7 @@ Router.route('/boards/:board_id/access')
 	 *   }
 	 */
 	.get(middleware.authenticate('user'))
-	.get(middleware.relation('user'))
+	.get(middleware.relation('admin'))
 	.get(function(req, res) {
 		return res.json(200, {
 			accessCode: req.resolved.board.accessCode || ''
@@ -639,7 +631,7 @@ Router.route('/boards/:board_id/access')
 	 *   }
 	 */
 	.post(middleware.authenticate('user'))
-	.post(middleware.relation('user'))
+	.post(middleware.relation('admin'))
 	.post(function(req, res, next) {
 		// Generate an 'access-code' for the specified board.
 		var accessCode = require('crypto').randomBytes(4).toString('hex');
@@ -679,9 +671,13 @@ Router.route('/boards/:board_id/access')
 	 * to it. This will essentially hide the board from outside eyes.
 	 */
 	.delete(middleware.authenticate('user'))
-	.delete(middleware.relation('user'))
+	.delete(middleware.relation('admin'))
 	.delete(function(req, res, next) {
-		req.resolved.board.accessCode = null;
+		req.resolved.board.accessCode = null
+
+		req.resolved.board.members = [];
+		req.resolved.board.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
+
 		req.resolved.board.save(function(err) {
 			if(err) {
 				return next(utils.error(500, err));
@@ -707,6 +703,40 @@ Router.route('/boards/:board_id/access')
 		});
 	});
 
+Router.route('/boards/:board_id/access/:code/grantaccess')
+
+/**
+ * Gives an already registered user access to a board
+ *
+ */
+	.put(middleware.authenticate('user'))
+	.put(function(req, res, next) {
+
+		var board = req.resolved.board;
+		var user = req.user;
+		var isMember = false;
+		// User is already a member of this  baord.
+		board.members.map(function (member) {
+			if (member.user == user.id) {
+				isMember = true;
+			}
+		});
+
+		if(!isMember) {
+			board.members.push({user: user.id, role: 'member', isActive: true, lastSeen: Date.now()});
+			board.save(function (err, board) {
+				if (err) {
+					return next(utils.error(500, err));
+				}
+				return res.json(200, board);
+
+			})
+		}
+		else {
+			return res.json(200, board);
+		}
+	});
+
 
 Router.route('/boards/:board_id/access/:code')
 
@@ -722,36 +752,20 @@ Router.route('/boards/:board_id/access/:code')
 	 *   'x-access-token' : 'guest-token'
 	 */
 	.post(function(req, res, next) {
-		var jwt   = require('jsonwebtoken');
-		var board = req.resolved.board;
+		var jwt    = require('jsonwebtoken');
+		var secret = config.token.secret;
+		var board  = req.resolved.board;
 
 		// Requested board must have a 'accessCode' set.
 		if(!board.accessCode || board.accessCode != req.params.code) {
 			return next(utils.error(401, ''));
 		}
 
-		// TODO Guest must have a valid 'username'.
-		var guestPayload = {
-			id:         require('crypto').randomBytes(4).toString('hex'),
-			type:       'temporary',
-			access:     board.id,
-			username:   req.body.username,
-			accessCode: board.accessCode
-		}
-
-		// Generate the 'guest-token' for access.
-		var guestToken = jwt.sign(guestPayload, config.token.secret);
-
-		var session = {
-			user_agent: req.headers['user-agent'],
-			token:      guestToken,
-			created_at: new Date()
-		};
-
-		new User({ name: req.body.username,
+		new User({
+			name:          req.body.username,
 			account_type: 'temporary',
 			created_at: new Date(),
-			sessions: [session] })
+			boards:[{id: board._id}] })
 			.save(function(err, user) {
 				if(err) {
 					if(err.name == 'ValidationError') {
@@ -762,27 +776,195 @@ Router.route('/boards/:board_id/access/:code')
 					}
 					return next(utils.error(500, err));
 				}
+
+				var payload = {
+					id:         user.id,
+					type:       user.account_type,
+					access:     board.id,
+					accessCode: board.accessCode,
+					username:   user.name,
+					boards:     user.boards
+				}
+
+				var guestToken = jwt.sign(payload, secret);
+
+				board.members.push({user: user.id, role: 'guest', isActive: true, lastSeen: Date.now()});
+				board.save(function (err, board) {
+					if (err) {
+						return next(utils.error(500, err));
+					}
+
+				new Event({
+					'type': 'BOARD_GUEST_JOIN',
+					'board': req.resolved.board.id,
+					'user': {
+						'id':       user.id,
+						'type':     user.account_type,
+						'username': user.name,
+					},
+					}).save(function(err, ev) {
+						if(err) {
+							return console.error(err);
+						}
+						utils.emitter.to(ev.board)
+							.emit('board:event', ev.toObject());
+
+						new Session({
+							user:       user.id,
+							user_agent: req.headers['user-agent'],
+							token:      guestToken,
+							created_at: new Date()
+						}).save(function(err, newsession) {
+								if(err) {
+									if(err.name == 'ValidationError') {
+										return next(utils.error(400, err));
+									}
+									if(err.name == 'MongoError' && err.code == 11000) {
+										return next(utils.error(409, 'Creating new session failed'));
+									}
+									return next(utils.error(500, err));
+								}
+								return res.set('x-access-token', guestToken).json(200, payload);
+							});
+					});
+				});
 			});
+	});
 
+Router.route('/boards/:board_id/setactivity')
 
-		new Event({
-			'type': 'BOARD_GUEST_JOIN',
-			'board': req.resolved.board.id,
-			'user': {
-				'id':       guestPayload.id,
-				'type':     guestPayload.type,
-				'username': guestPayload.username,
-			},
-		}).save(function(err, ev) {
-			if(err) {
-				return console.error(err);
-			}
-			utils.emitter.to(ev.board)
-				.emit('board:event', ev.toObject());
+/**
+ * Sets user active or unactive in a baord
+ *
+ * payload:
+ *   {
+ *     'activity': 'true'
+ *   }
+
+ */
+	.post(middleware.authenticate('user', 'guest'))
+	.post(middleware.relation('user', 'guest'))
+	.post(function(req, res, next) {
+		var old            = req.resolved.board.toObject();
+
+		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+			'members.$.isActive': req.body.isActive,
+			'members.$.lastSeen': Date.now()
+		}}).populate('members.user');
+
+		boardQuery.exec(function(err, board) {
+			if (err) return next(utils.error(500, err));
+			new Event({
+				'type': 'BOARD_EDIT',
+				'board': board.id,
+				'user':  {
+					'id':       req.user.id,
+					'type':     req.user.type,
+					'username': req.user.username,
+				},
+				'data': {
+					'oldAttributes': {
+						'name':             old.name,
+						'description':      old.description,
+						'background':       old.background,
+						'customBackground': old.customBackground,
+						'size': {
+							'width':  old.size.width,
+							'height': old.size.height,
+						},
+						'members':         old.members
+					},
+					'newAttributes': {
+						'name':             board.name,
+						'description':      board.description,
+						'background':       board.background,
+						'customBackground': board.customBackground,
+						'size': {
+							'width':  board.size.width,
+							'height': board.size.height,
+						},
+						'members':    board.members
+					}
+				}
+			}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+
+					utils.emitter.to(board.id).emit('board:event', ev.toObject());
+				});
+			return res.send(200);
+
 		});
 
-		return res.set('x-access-token', guestToken)
-			.json(200, guestPayload);
+	})
+	/*
+	 *
+	 * Very simple helper function to poll from client, to update user activity and last seen
+	 *
+	 */
+	.put(middleware.authenticate('user', 'guest'))
+	.put(middleware.relation('user', 'guest'))
+	.put(function(req, res, next) {
+		var old = req.resolved.board;
+		var oldActive = null;
+		_(old.members).forEach(function(member) {
+			if (member.user == req.user.id) {
+				oldActive = member.isActive;
+			}
+		});
+
+		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+			'members.$.isActive': true,
+			'members.$.lastSeen': Date.now()
+		}})
+		boardQuery.exec(function(err, board) {
+			if (err) return next(utils.error(500, err));
+
+			if (oldActive === false) {
+				new Event({
+					'type': 'BOARD_EDIT',
+					'board': board.id,
+					'user':  {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'oldAttributes': {
+							'name':             old.name,
+							'description':      old.description,
+							'background':       old.background,
+							'customBackground': old.customBackground,
+							'size': {
+								'width':  old.size.width,
+								'height': old.size.height,
+							},
+							'members':         old.members
+						},
+						'newAttributes': {
+							'name':             board.name,
+							'description':      board.description,
+							'background':       board.background,
+							'customBackground': board.customBackground,
+							'size': {
+								'width':  board.size.width,
+								'height': board.size.height,
+							},
+							'members':    board.members
+						}
+					}
+				}).save(function(err, ev) {
+						if(err) {
+							return console.error(err);
+						}
+						utils.emitter.to(board.id).emit('board:event', ev.toObject());
+					});
+			}
+
+			return res.send(200);
+		});
+
 	});
 
 module.exports = Router;

@@ -74,16 +74,15 @@ Router.route('/auth/:provider/login')
 				// generate a new one since correct credentials were provided.
 				if(err) {
 					var payload = {
-						id: user.id, type: user.account_type, username: user.name
+						id:       user.id, 
+						type:     user.account_type, 
+						username: user.name
 					}
-
 					return user.save(function(err, user) {
 						if(err) {
 							return next(utils.error(500, err));
 						}
-
 						var newtoken = jwt.sign(payload, secret);
-
 						new Session({
 							user:       user.id,
 							user_agent: req.headers['user-agent'],
@@ -111,7 +110,7 @@ Router.route('/auth/:provider/login')
 
 Router.route('/auth/:provider/callback')
 
-	.get(authorize)
+.get(authorize)
 
 	.get(function(req, res, next) {
 
@@ -168,7 +167,6 @@ Router.route('/auth/:provider/callback')
 		});
 	});
 
-
 Router.route('/auth/logout')
 
 	/**
@@ -176,6 +174,7 @@ Router.route('/auth/logout')
 	 */
 	.post(middleware.authenticate('user'))
 	.post(function(req, res, next) {
+
 		var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
 
 		Session.findOne({token: tokenToInvalidate}).remove(new function(err) {
@@ -211,16 +210,16 @@ Router.route('/auth/register')
 			if(user.length) {
 				return next(utils.error(500, "Email already exists"))
 			}
-			new User({ 
-				name:      username,
-				account_type: 'standard',
-				providers: {
-					basic: {
-						email:   req.body.email,
-						password:req.body.password
-					}
-				},
-				created_at: new Date()})
+			new User({ name:      username,
+			       account_type: 'standard',
+			       providers: {
+						basic: {
+							email:   req.body.email,
+							password:req.body.password
+						    }
+				   },
+					created_at: new Date(),
+					boards:[]})
 			.save(function(err, user) {
 				if(err) {
 					if(err.name == 'ValidationError') {

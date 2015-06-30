@@ -35,7 +35,8 @@ module.exports = new BasicStrategy(opts, function(email, password, done) {
 			return done(null, { 
 				id:       user.id,
 				type:     'user',
-				username: user.name
+				username: user.name,
+				boards:   user.boards
 			});
 		});
 	});

@@ -4,9 +4,31 @@ var _     = require('lodash');
 var utils = require('../utils');
 
 var _roles = {
+	/**
+	 * Check that the requestee is the 'user' that is admin of 'board'
+	 * specified in 'req.resolved'.
+	 */
+	admin: function(req) {
+		if(!req.user || !req.resolved.board) {
+			return false;
+		}
+		var isUser    = req.user.type == 'standard';
+		var hasAccess = false;
+
+		if (req.resolved.board.members) {
+			req.resolved.board.members.map(function (item) {
+				if (item.user == req.user.id && item.role == 'admin') {
+					hasAccess = true;
+					return isUser && hasAccess;
+				}
+			})
+		}
+
+		return isUser && hasAccess;
+	},
 
 	/**
-	 * Check that the requestee is the 'user' that created the 'board'
+	 * Check that the requestee is the 'user' that has acces to 'board'
 	 * specified in 'req.resolved'.
 	 */
 	user: function(req) {
@@ -15,7 +37,16 @@ var _roles = {
 		}
 
 		var isUser    = req.user.type == 'standard';
-		var hasAccess = req.user.id   == req.resolved.board.createdBy;
+		var hasAccess = false;
+
+		if (req.resolved.board.members) {
+			req.resolved.board.members.map(function (item) {
+				if (item.user == req.user.id) {
+					hasAccess = true;
+					return isUser && hasAccess;
+				}
+			})
+		}
 
 		return isUser && hasAccess;
 	},
@@ -30,8 +61,17 @@ var _roles = {
 		}
 
 		var isGuest   = req.user.type   == 'temporary';
-		var hasAccess = req.user.access == req.resolved.board.id;
-		
+		var hasAccess = false
+
+		if (req.resolved.board.members) {
+			req.resolved.board.members.map(function (item) {
+				if (item.user == req.user.id) {
+					hasAccess = true;
+					return isGuest && hasAccess;
+				}
+			})
+		}
+
 		return isGuest && hasAccess;
 	}
 }

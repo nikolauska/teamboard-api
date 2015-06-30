@@ -73,7 +73,6 @@ var UserSchema = module.exports = new mongoose.Schema({
 	edited_at: {
 		type:    Date
 	}
-
 });
 
 if(!UserSchema.options.toJSON) UserSchema.options.toJSON     = { }
@@ -81,20 +80,26 @@ if(!UserSchema.options.toObject) UserSchema.options.toObject = { }
 
 // Remove the sensitive stuff from 'user' when JSONized.
 UserSchema.options.toJSON.transform = function(doc, ret) {
-	// ret.id       = doc.id;
-	// ret.type     = 'user';
-	// ret.username = doc.email;
+    // ret.id       = doc.id;
+    // ret.type     = 'user';
+    // ret.username = doc.email;
 
-	// delete ret._id;
-	// delete ret.__v;
-	// delete ret.token;
-	// delete ret.password;
+    //delete ret._id;
+    //delete ret.__v;
+    // delete ret.token;
+    // delete ret.password;
 
-	return {
-		'id':           doc.id,
-		'username':     doc.name,
-		'account_type': doc.account_type
-	}
+    if (doc.providers) {
+        if (doc.providers.basic) {
+            doc.providers.basic.password = '';
+        }
+    }
+    return {
+        'id':           doc.id,
+        'username':     doc.name,
+        'account_type': doc.account_type,
+        'providers':    doc.providers
+    }
 }
 
 /**
@@ -107,48 +112,49 @@ UserSchema.options.toObject.transform = UserSchema.options.toJSON.transform;
  * Reference: https://kb.wisc.edu/page.php?id=4073
  */
 UserSchema.path('providers.basic.password').validate(function() {
-	var user = this;
+    var user = this;
 
-	if(!user.isModified('providers.basic.password')) {
-		return true;
-	}
+    if(!user.isModified('providers.basic.password')) {
+        return true;
+    }
 
-	return /^[a-zA-Z0-9!"#$%&'()*+,-.\/:;<=>?@\[\]^_`{|}~]{8,36}$/.test(user.providers.basic.password);
+    return /^[a-zA-Z0-9!"#$%&'()*+,-.\/:;<=>?@\[\]^_`{|}~]{8,36}$/.test(user.providers.basic.password);
 }, null);
 
 /**
  * Hash the users password using 'bcrypt' if modified.
  */
 UserSchema.pre('save', function hashPassword(next) {
-	var user = this;
+    var user = this;
 
-	user.edited_at = Date.now();
+    user.edited_at = Date.now();
 
-	if(!user.isModified('providers.basic.password')) {
-		return next();
-	}
+    if(!user.isModified('providers.basic.password')) {
+        return next();
+    }
 
-	var SALT_FACTOR = 10;
+    var SALT_FACTOR = 10;
 
-	bcrypt.genSalt(SALT_FACTOR, function(err, salt) {
-		if(err) {
-			return next(utils.error(500, err));
-		}
+    bcrypt.genSalt(SALT_FACTOR, function(err, salt) {
 
-		bcrypt.hash(user.providers.basic.password, salt, function(err, hash) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
+        if(err) {
+            return next(utils.error(500, err));
+        }
 
-			user.providers.basic.password = hash;
-			return next();
-		});
-	});
+        bcrypt.hash(user.providers.basic.password, salt, function(err, hash) {
+            if(err) {
+                return next(utils.error(500, err));
+            }
+
+            user.providers.basic.password = hash;
+            return next();
+        });
+    });
 });
 
 /**
  * Compare the given plaintext password with the stored (hashed) password.
  */
 UserSchema.methods.comparePassword = function(password, callback) {
-	bcrypt.compare(password, this.providers.basic.password, callback);
+    bcrypt.compare(password, this.providers.basic.password, callback);
 }
