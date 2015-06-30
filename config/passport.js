@@ -8,6 +8,4 @@ passport.use('basic', require('./strategies/basic'));
 passport.use('google', require('./strategies/google'));
 passport.use('github', require('./strategies/github'));
 
-
-
 module.exports = passport;
