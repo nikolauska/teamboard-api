@@ -92,6 +92,8 @@ Router.route('/boards')
 			if(err) {
 				return next(utils.error(400, err));
 			}
+
+			board.populate('members.user', function(err) {			
 					new Event({
 						'type': 'BOARD_CREATE',
 						'board': board.id,
@@ -100,11 +102,12 @@ Router.route('/boards')
 							'type':     req.user.type,
 							'username': req.user.username,
 						}
-					}).save(function(err) {
+					}).save(function(err, ev) {
 						if(err) return console.error(err);
+						utils.emitter.to(ev.board).emit('board:event', ev.toObject());
 					});
 
-					return res.json(201, board);
+					return res.json(201, board);})
 		});
 	});
 
