@@ -10,69 +10,65 @@ var utils = require('../../utils');
  */
 var UserSchema = module.exports = new mongoose.Schema({
 
-	/**
-	 * User type. Either temporary (guest) or standard (authenticated with a provider).
-	 */
-	account_type: {
-		type:     String,
-		enum:     ['temporary', 'standard'],
-		required: true,
-		default:  'temporary'
-	},
+    /**
+     * User type. Either temporary (guest) or standard (authenticated with a provider).
+     */
+    account_type: {
+        type:     String,
+        enum:     ['temporary', 'standard'],
+        required: true,
+        default:  'temporary'
+    },
 
-	/**
-	 * Nickname of the user.
-	 */
-	name: {
-		type:     String,
-		required: true
-	},
+    /**
+     * Nickname of the user.
+     */
+    name: {
+        type:     String,
+        required: true
+    },
 
+    /**
+     * User's different possible authentication providers
+     */
+    providers: {
+        basic:  {
+            email: {
+                type:   String,
+                match:  /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+            },
 
-	/**
-	 * User's different possible authentication providers
-	 */
-	providers: {
-		basic:  {
-			email: {
-				type:   String,
-				unique: true,
-				sparse: true,
-				match:  /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
-			},
-
-			password: {
-				type: String
-			}
-		},
-		github: {
+            password: {
+                type: String
+            }
+        },
+        github: {
 			id:      String,
 			token:   String,
 			name:    String,
 			avatar:  String
 		},
-		google: {
-			id:      String,
-			token:   String,
-			email:   String,
-			name:    String,
-			avatar:  String
-		}
-	},
+        google: {
+            id:      String,
+            token:   String,
+            email:   String,
+            name:    String
+        }
+    },
 
-	/**
-	 * Timestamp for the user creation date
-	 */
-	created_at: {
-		type:    Date
-	},
+    /**
+     * Timestamp for the user creation date
+     */
+    created_at: {
+        type:    Date
+    },
 
-	/**
-	 * Timestamp for the last time the user was edited
-	 */
-	edited_at: {
-		type:    Date
-	}
+    /**
+     * Timestamp for the last time the user was edited
+     */
+    edited_at: {
+        type:    Date
+    }
 });
 
 if(!UserSchema.options.toJSON) UserSchema.options.toJSON     = { }
