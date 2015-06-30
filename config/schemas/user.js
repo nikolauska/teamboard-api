@@ -28,7 +28,6 @@ var UserSchema = module.exports = new mongoose.Schema({
         required: true
     },
 
-
     /**
      * User's different possible authentication providers
      */
@@ -44,10 +43,11 @@ var UserSchema = module.exports = new mongoose.Schema({
             }
         },
         github: {
-            name:     String,
-            email:    String,
-            avatar:   String
-        },
+			id:      String,
+			token:   String,
+			name:    String,
+			avatar:  String
+		},
         google: {
             id:      String,
             token:   String,
