@@ -1,9 +1,10 @@
 'use strict';
-
+var utils    = require('./utils');
 var config   = require('./config');
 var app      = require('./config/express');
 var mongoose = require('./config/mongoose');
 var passport = require('./config/passport');
+var Board = mongoose.model('board', require('./config/schemas/board'));
 
 process.env.INSTANCE_NAME =
 	process.env.INSTANCE_NAME || process.env.HOSTNAME || 'unknown';
@@ -39,7 +40,9 @@ app.use(passport.initialize());
 
 // Attach 'CORS' middleware to every route.
 app.all('*', require('cors')({
-	exposedHeaders: ['x-access-token']
+	exposedHeaders: ['x-access-token', 'X-Requested-With'],
+	headers: ['Content-Type', 'Authorization', 'X-Requested-With'],
+	preflightContinue: 'localhost:8000/login/callback'
 }));
 
 // Setup API Routes.
@@ -89,7 +92,7 @@ module.exports.listen = function(onListen) {
 	});
 
 	mongoose.connection.on('connected', function() {
-		console.error('Connected to MongoDB!');
+		console.log('Connected to MongoDB!');
 	});
 
 	connectWithRetry();
@@ -97,6 +100,8 @@ module.exports.listen = function(onListen) {
 	this.server = app.listen(config.port, onListen || function() {
 		console.log('server listening at', config.port);
 	});
+
+	setInterval(utils.pollBoardActivity, config.mongo.user_poll_time);
 }
 
 /**

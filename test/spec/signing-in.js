@@ -6,7 +6,7 @@
 module.exports = function(ctx) {
 	return function() {
 		it('should reject an invalid email address', function(done) {
-			this.app.post('/api/auth/login')
+			this.app.get('/api/auth/basic/login')
 				.send({
 					'email':    'seppo@taalas.maa',
 					'password': ctx.credentials.password
@@ -15,7 +15,7 @@ module.exports = function(ctx) {
 		});
 
 		it('should reject an invalid password', function(done) {
-			this.app.post('/api/auth/login')
+			this.app.get('/api/auth/basic/login')
 				.send({
 					'email':    ctx.credentials.email,
 					'password': 'blaablablaa'
@@ -25,13 +25,13 @@ module.exports = function(ctx) {
 
 
 		it('should accept valid credentials', function(done) {
-			this.app.post('/api/auth/login')
+			this.app.get('/api/auth/basic/login')
 				.send(ctx.credentials)
 				.expect(200, done);
 		});
 
 		it('should generate an access token', function(done) {
-			this.app.post('/api/auth/login')
+			this.app.get('/api/auth/basic/login')
 				.send(ctx.credentials)
 				.expect(200, function(err, res) {
 					if(err) {

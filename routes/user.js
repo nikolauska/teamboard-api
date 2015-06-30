@@ -14,6 +14,7 @@ var ObjectId = mongoose.Types.ObjectId;
 Router.route('/user/edit')
 
     /**
+
      * Change user name
      *
      * {
@@ -48,7 +49,6 @@ Router.route('/user/edit')
     });
 
 Router.route('/user/changepw')
-
     /**
      * Change user basic provider password
      *
@@ -70,31 +70,28 @@ Router.route('/user/changepw')
             if(!user) {
                 return next(utils.error(500, 'User not found'));
             }
-
             if(payload.new_password && payload.old_password) {
                 user.comparePassword(payload.old_password, function(err, response) {
-                    if(err)
+                    if(err) {
                         return next(utils.error(500, err))
-
-                    if(response === false)
-                        return next(utils.error(500, 'Invalid old password!'))
-
-                    if(user.providers) {
-                        user.providers.basic.password = payload.new_password;
-                    } else {
-                        user.password = payload.new_password;
+                    }
+                    if(response === false) {
+                        return next(utils.error(401, 'Invalid old password!'))
                     }
 
-                    user.save(function(err, user) {
-                        if(err) {
-                            if(err.name == 'ValidationError') {
-                                console.log(err);
-                                return next(utils.error(400, err));
+                    else {
+                        user.providers.basic.password = payload.new_password;
+                        user.save(function(err, user) {
+                            if(err) {
+                                if(err.name == 'ValidationError') {
+                                    console.log(err);
+                                    return next(utils.error(400, err));
+                                }
+                                return next(utils.error(500, err));
                             }
-                            return next(utils.error(500, err));
-                        }
-                        return res.json(200, user);
-                    });
+                            return res.json(200, user);
+                        });
+                    }
                 });
             } else {
                 return next(utils.error(500, 'No new or old password defined in request'));

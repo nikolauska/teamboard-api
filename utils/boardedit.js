@@ -2,6 +2,7 @@
 var emitter  = require('./emitter');
 var mongoose = require('mongoose');
 var Event = mongoose.model('event', require('../config/schemas/event'));
+var Board = mongoose.model('board', require('../config/schemas/board'));
 
 module.exports = function(req, board, old) {
 
@@ -22,7 +23,8 @@ module.exports = function(req, board, old) {
                 'size': {
                     'width':  old.size.width,
                     'height': old.size.height,
-                }
+                },
+                'members':         old.members
             },
             'newAttributes': {
                 'name':             board.name,
@@ -32,7 +34,8 @@ module.exports = function(req, board, old) {
                 'size': {
                     'width':  board.size.width,
                     'height': board.size.height,
-                }
+                },
+                'members':         board.members
             }
         }
     }).save(function(err, ev) {
@@ -42,4 +45,10 @@ module.exports = function(req, board, old) {
             emitter.to(board.id).emit('board:event', ev.toObject());
         });
 
+}
+
+function resolveBoardMembers(board) {
+    Board.findById(board.id, function(err, board) {
+        return board.members;
+    })
 }
