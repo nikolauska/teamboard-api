@@ -208,7 +208,7 @@ Router.route('/auth/register')
 				return next(utils.error(500, err));
 			}
 			if(user.length) {
-				return next(utils.error(500, "Email already exists"))
+				return next(utils.error(409, "Email already exists"))
 			}
 			new User({ name:      username,
 			       account_type: 'standard',
