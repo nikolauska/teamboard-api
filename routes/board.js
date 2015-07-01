@@ -248,16 +248,16 @@ Router.route('/boards/:board_id/export')
 	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res, next) {
 		var format = req.query.format ? req.query.format : 'json';
-		
+
 		var boardQuery = Board.findById(req.resolved.board.id)
 			.populate({
-				'path':   'createdBy',
+				'path':   'members.user',
 				'select': '-_id -__v -password -token',
 			})
 			.select('-_id -__v -accessCode').lean();
 
 		boardQuery.exec(function(err, board) {
-			
+
 			if(err) {
 				return next(utils.error(500, err));
 			}
@@ -283,8 +283,8 @@ Router.route('/boards/:board_id/export')
 				if(format == 'plaintext') {
 					return res.attachment(board.name + '.txt').send(200, exportAs.generatePlainText(board, tickets));
 				}
-	
-				if(format == 'image') { 
+
+				if(format == 'image') {
 					return exportAs.postImage(req, board, tickets, function(options) {
 						request.post(options).pipe(res);
 					});
@@ -293,7 +293,7 @@ Router.route('/boards/:board_id/export')
 				var boardObject     	= board;
 				    boardObject.tickets = tickets;
 
-				return res.attachment(board.name + '.json').json(200, boardObject);		
+				return res.attachment(board.name + '.json').json(200, boardObject);
 			});
 		});
 	});
@@ -850,7 +850,7 @@ Router.route('/boards/:board_id/setactivity')
 	.post(function(req, res, next) {
 		var old            = req.resolved.board.toObject();
 
-		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+		var boardQuery = Board.findOneAndUpdate({_id:req.resolved.board, 'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': req.body.isActive,
 			'members.$.lastSeen': Date.now()
 		}}).populate('members.user');
@@ -917,10 +917,10 @@ Router.route('/boards/:board_id/setactivity')
 			}
 		});
 
-		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+		var boardQuery = Board.findOneAndUpdate({_id:req.resolved.board ,'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': true,
 			'members.$.lastSeen': Date.now()
-		}})
+		}}).populate('members.user');
 		boardQuery.exec(function(err, board) {
 			if (err) return next(utils.error(500, err));
 

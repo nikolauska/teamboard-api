@@ -1,12 +1,11 @@
 'use strict';
 
 var json2csv = require('nice-json2csv');
-var fs       = require('fs');
 var utils    = require('../utils');
 var config   = require('../config');
 
 /**
- * Checks if value is undefined and returns defValue. Othervise value is returned 
+ * Checks if value is undefined and returns defValue. Othervise value is returned
  * @param {*} value - Value to check.
  * @param {*} defValue - Default value to be returned in value is undefined.
  * @returns {*} defValue if value it undefined, otherwise return value
@@ -34,7 +33,7 @@ function hexToColor(hex) {
  * @returns {string} content edited
  */
 function contentEdit(content) {
-	content = content.replace(/\n/g, '\n 			');
+	content = content.replace(/\n/g, '\n          ');
 	// Replace markdown symbols with something a bit more sensible
 	content = content.replace(/[\)#_*~`\]\[]/g, '').replace(/\(/g, ':');
 	return content;
@@ -49,19 +48,22 @@ function contentEdit(content) {
 function generatePlainText(board, tickets) {
 	return 'Board information\n' +
 	'=========================================\n\n' +
-	'Board name: 		' + undefCheck(board.name, '') + '\n' +
-	'Board created by: 	' + undefCheck(board.createdBy.email, '') + '\n\n' +
+	'Board name: ' + undefCheck(board.name, '') + '\n\n' +
+	'Board members: \n' +
+	board.members.map(function(member){
+		return '    ' + member.user.name + ' - ' + member.role + '\n'
+	}).join('') + '\n' +
 	'=========================================\n\n\n\n' +
 	'Tickets information\n' +
 	'=========================================\n' +
 	tickets.map(function(t) {
 		return '\n' +
 				'------------------------------------------\n' +
-			'Heading:    	' + contentEdit(undefCheck(t.heading, 'Empty')) + '\n\n' +
-			'Content:    	' + contentEdit(undefCheck(t.content, 'Empty')) + '\n\n' +
-				'Color: 	    	' + hexToColor(t.color) + '\n' + 
-				'------------------------------------------\n' +
-				'Comments: ' + '\n' + undefCheck(t.comments.map(function(c) {return c.user.username + ': ' + c.content + ' '}), 'None');
+			    'Heading:  ' + contentEdit(undefCheck(t.heading, 'Empty')) + '\n\n' +
+			    'Content:  ' + contentEdit(undefCheck(t.content, 'Empty')) + '\n\n' +
+				'Color:    ' + hexToColor(t.color) + '\n\n' +
+				'Comments: ' + undefCheck(t.comments.map(function(c) {return c.user.username + ': ' + c.content + ' '}), 'None') + '\n' +
+				'------------------------------------------\n';
 	}).join('') + '\n' +
 	'=========================================';
 }
@@ -73,10 +75,16 @@ function generatePlainText(board, tickets) {
  * @returns {string} csv text
  */
 function generateCSV(board, tickets) {
+	var membersCSVData = board.members.map(function(member){
+		return {
+			'MEMBER': member.user.name,
+			'ROLE': member.role
+		};
+	});
+
 	var boardCSVData = {
 		'NAME':        board.name,
 		'DESCRIPTION': board.description,
-		'CREATED_BY':  board.createdBy.email,
 		'SIZE_WIDTH':  '' + board.size.width  + '',
 		'SIZE_HEIGHT': '' + board.size.height + '',
 	}
@@ -92,10 +100,10 @@ function generateCSV(board, tickets) {
 			'POSITION_Z': '' + t.position.z + '',
 		}
 	});
-
+	var csvMembers  = json2csv.convert(membersCSVData);
 	var csvBoard    = json2csv.convert(boardCSVData);
 	var csvTickets  = json2csv.convert(ticketCSVData);
-	return csvBoard + '\n\n' + csvTickets;
+	return csvBoard + '\n\n' + csvMembers + '\n\n' + csvTickets;
 }
 
 /**
@@ -109,7 +117,7 @@ function postImage(req, board, tickets, callback) {
 	if(tickets == null)
 		var tickets = [];
 
-	var postData = { 
+	var postData = {
 		'name': board.name,
 		'background': board.background,
 		'customBackground': board.customBackground,
@@ -119,7 +127,7 @@ function postImage(req, board, tickets, callback) {
 		},
 		'tickets': tickets
 	};
-	
+
 	var options = {
 		url: config.img + '/board',
 		method: 'POST',
