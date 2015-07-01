@@ -75,6 +75,13 @@ function generatePlainText(board, tickets) {
  * @returns {string} csv text
  */
 function generateCSV(board, tickets) {
+	var membersCSVData = board.members.map(function(member){
+		return {
+			'MEMBER': member.user.name,
+			'ROLE': member.role
+		};
+	});
+
 	var boardCSVData = {
 		'NAME':        board.name,
 		'DESCRIPTION': board.description,
@@ -93,10 +100,10 @@ function generateCSV(board, tickets) {
 			'POSITION_Z': '' + t.position.z + '',
 		}
 	});
-
+	var csvMembers  = json2csv.convert(membersCSVData);
 	var csvBoard    = json2csv.convert(boardCSVData);
 	var csvTickets  = json2csv.convert(ticketCSVData);
-	return csvBoard + '\n\n' + csvTickets;
+	return csvBoard + '\n\n' + csvMembers + '\n\n' + csvTickets;
 }
 
 /**
