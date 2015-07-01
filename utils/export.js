@@ -51,7 +51,7 @@ function generatePlainText(board, tickets) {
 	'Board name: ' + undefCheck(board.name, '') + '\n\n' +
 	'Board members: \n' +
 	board.members.map(function(member){
-		return '    ' + member.user.name + '\n'
+		return '    ' + member.user.name + ' - ' + member.role + '\n'
 	}).join('') + '\n' +
 	'=========================================\n\n\n\n' +
 	'Tickets information\n' +
