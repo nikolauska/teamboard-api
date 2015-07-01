@@ -29,6 +29,13 @@ var UserSchema = module.exports = new mongoose.Schema({
     },
 
     /**
+     * URL path to the user's image
+     */
+    avatar: {
+        type:     String,
+        default:  null
+    },
+    /**
      * User's different possible authentication providers
      */
     providers: {
