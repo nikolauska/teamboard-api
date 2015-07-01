@@ -850,7 +850,7 @@ Router.route('/boards/:board_id/setactivity')
 	.post(function(req, res, next) {
 		var old            = req.resolved.board.toObject();
 
-		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+		var boardQuery = Board.findOneAndUpdate({_id:req.resolved.board, 'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': req.body.isActive,
 			'members.$.lastSeen': Date.now()
 		}}).populate('members.user');
@@ -917,10 +917,10 @@ Router.route('/boards/:board_id/setactivity')
 			}
 		});
 
-		var boardQuery = Board.findOneAndUpdate({'members.user': req.user.id}, {'$set': {
+		var boardQuery = Board.findOneAndUpdate({_id:req.resolved.board ,'members.user': req.user.id}, {'$set': {
 			'members.$.isActive': true,
 			'members.$.lastSeen': Date.now()
-		}})
+		}}).populate('members.user');
 		boardQuery.exec(function(err, board) {
 			if (err) return next(utils.error(500, err));
 
