@@ -99,6 +99,7 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
     }
     return {
         'id':           doc.id,
+        'avatar':       doc.avatar,
         'username':     doc.name,
         'account_type': doc.account_type,
         'providers':    doc.providers

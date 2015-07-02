@@ -18,12 +18,15 @@ Router.route('/user/edit')
      * Change user name
      *
      * {
-     *   'name'        : 'new name'
+     *   'name'        : 'new name',
+     *   'avatar'      : 'avatar url'
      * }
      */
     .put(middleware.authenticate('user'))
     .put(function(req, res, next) {
         var payload = req.body;
+
+        console.log(payload)
 
         User.findOne({ '_id': req.user.id }, function(err, user) {
             if(err) {
@@ -33,8 +36,10 @@ Router.route('/user/edit')
             if(!user) {
                 return next(utils.error(500, 'User not found'));
             }
-
-            user.name = payload.name;
+            if (payload.name != "") {
+                user.name = payload.name;
+            }
+            user.avatar = payload.avatar;
 
             user.save(function(err, user) {
                 if(err) {
@@ -47,45 +52,6 @@ Router.route('/user/edit')
             });
         });     
     });
-
-Router.route('/user/avatar')
-
-/**
-
- * Change user avatar
- *
- * {
- *   'avatar'        : 'http://imgur.com/funnypic.png'
- * }
- */
-    .put(middleware.authenticate('user'))
-    .put(function(req, res, next) {
-        var payload = req.body;
-
-        User.findOne({ '_id': req.user.id }, function(err, user) {
-            if(err) {
-                return next(utils.error(500, err));
-            }
-
-            if(!user) {
-                return next(utils.error(500, 'User not found'));
-            }
-
-            user.avatar = payload.avatar;
-
-            user.save(function(err, user) {
-                if(err) {
-                    if(err.name == 'ValidationError') {
-                        return next(utils.error(400, err));
-                    }
-                    return next(utils.error(500, err));
-                }
-                return res.json(200, user);
-            });
-        });
-    });
-
-
 
 Router.route('/user/changepw')
     /**
