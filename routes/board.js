@@ -310,7 +310,12 @@ Router.route('/boards/:board_id/tickets')
 	.get(middleware.relation('admin', 'user', 'guest'))
 	.get(function(req, res) {
 		var board = req.resolved.board;
-		Ticket.find({ 'board': board.id }, function(err, tickets) {
+
+		var ticketQuery = Ticket.find({'board': board.id}).populate('comments.user');
+
+		ticketQuery.exec(function(err, tickets) {
+			console.log(err);
+			console.log(tickets);
 			if(err) {
 				return next(utils.error(500, err));
 			}
@@ -532,10 +537,8 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 		if(ObjectId.isValid(req.user.id)) {
 			userId = req.user.id
 		}
-
-		req.resolved.ticket.comments.unshift({ 'user': { 'id': userId,
-			'username': req.user.username},
-			'content': req.body.comment});
+		console.log(userId);
+		req.resolved.ticket.comments.unshift({ 'user':  userId, 'content': req.body.comment});
 
 		req.resolved.ticket.save(function (err, ticket) {
 			if(err) {
@@ -545,44 +548,47 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 			if (!ticket) {
 				return next(utils.error(404, 'Ticket not found'));
 			}
+
+			ticket.populate('comments.user', function(err) {
 			/*
-			 * TODO: TICKET_COMMENT edit?
+			 * TODO: TICKET_COMMENT event?
 			 */
-			new Event({
-				'type': 'TICKET_EDIT',
-				'board': ticket.board,
-				'user': {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				},
-				'data': {
-					'id': ticket._id,
-
-					'oldAttributes': {
-						'color':    old.color,
-						'content':  old.content,
-						'heading':  old.heading,
-						'position': old.position,
-						'comments': old.comments
+				new Event({
+					'type': 'TICKET_EDIT',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
 					},
+					'data': {
+						'id': ticket._id,
 
-					'newAttributes': {
-						'color':    ticket.color,
-						'content':  ticket.content,
-						'heading':  ticket.heading,
-						'position': ticket.position,
-						'comments': ticket.comments
-					},
-				}
-			}).save(function(err, ev) {
-					if(err) {
-						return console.error(err);
+						'oldAttributes': {
+							'color':    old.color,
+							'content':  old.content,
+							'heading':  old.heading,
+							'position': old.position,
+							'comments': old.comments
+						},
+
+						'newAttributes': {
+							'color':    ticket.color,
+							'content':  ticket.content,
+							'heading':  ticket.heading,
+							'position': ticket.position,
+							'comments': ticket.comments
+						},
 					}
-					utils.emitter.to(ev.board)
-						.emit('board:event', ev.toObject());
-				});
-			return res.json(200, ticket);
+				}).save(function(err, ev) {
+						if(err) {
+							return console.error(err);
+						}
+						utils.emitter.to(ev.board)
+							.emit('board:event', ev.toObject());
+					});
+				return res.json(200, ticket);})
+
 		})
 	});
 

@@ -51,24 +51,18 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	 * Comments of the ticket
 	 */
 	comments: [{
-		user: { id: {
-                        ref: 'user',
-                        type: mongoose.Schema.Types.ObjectId
-                    },
-                username: {
-                        type:     String,
-                        required: true,
-                        default:  ''
-                   }
-		},
-		content:{
-            type:    String,
-            default: ''
-		},
-        created_at: {
-            type:    Date,
-            default: Date.now()
-		}
+			user: {
+				ref: 'user',
+				type: mongoose.Schema.Types.ObjectId
+			},
+			content:{
+				type:    String,
+				default: ''
+			},
+			created_at: {
+				type:    Date,
+				default: Date.now()
+			}
 		}],
 
 	/**
