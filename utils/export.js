@@ -62,7 +62,7 @@ function generatePlainText(board, tickets) {
 			    'Heading:  ' + contentEdit(undefCheck(t.heading, 'Empty')) + '\n\n' +
 			    'Content:  ' + contentEdit(undefCheck(t.content, 'Empty')) + '\n\n' +
 				'Color:    ' + hexToColor(t.color) + '\n\n' +
-				'Comments: ' + undefCheck(t.comments.map(function(c) {return c.user.username + ': ' + c.content + ' '}), 'None') + '\n' +
+				'Comments: ' + undefCheck(t.comments.map(function(c) {return c.user.name + ': ' + c.content + ' '}), 'None') + '\n' +
 				'------------------------------------------\n';
 	}).join('') + '\n' +
 	'=========================================';
@@ -94,7 +94,9 @@ function generateCSV(board, tickets) {
 			'HEADING':    t.heading,
 			'CONTENT':    t.content,
 			'COLOR':      t.color,
-			'COMMENTS':   t.comments.map(function(c) {return c.user.username + ': ' + c.content;}) + '',
+			'COMMENTS':   t.comments.map(function(c) {
+				return c.user.name + ': ' + c.content;
+			}) + '',
 			'POSITION_X': '' + t.position.x + '',
 			'POSITION_Y': '' + t.position.y + '',
 			'POSITION_Z': '' + t.position.z + '',

@@ -263,9 +263,10 @@ Router.route('/boards/:board_id/export')
 			}
 
 			var ticketQuery = Ticket.find({ 'board': req.resolved.board.id })
-				.select('-_id -__v -board').lean();
+				.select('-_id -__v -board').populate('comments.user').lean();
 
 			ticketQuery.exec(function(err, tickets) {
+
 				if(err) {
 					return next(utils.error(500, err));
 				}
@@ -314,8 +315,6 @@ Router.route('/boards/:board_id/tickets')
 		var ticketQuery = Ticket.find({'board': board.id}).populate('comments.user');
 
 		ticketQuery.exec(function(err, tickets) {
-			console.log(err);
-			console.log(tickets);
 			if(err) {
 				return next(utils.error(500, err));
 			}

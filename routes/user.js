@@ -26,8 +26,6 @@ Router.route('/user/edit')
     .put(function(req, res, next) {
         var payload = req.body;
 
-        console.log(payload)
-
         User.findOne({ '_id': req.user.id }, function(err, user) {
             if(err) {
                 return next(utils.error(500, err));
