@@ -4,7 +4,7 @@ var utils = require('../../utils');
 var config = require('../index');
 
 var User           = require('mongoose').model('user');
-var GoogleStrategy = require('passport-google-oauth2').Strategy;
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 var options = {
 	clientID: config.providers.google.clientID,
@@ -16,7 +16,7 @@ var options = {
 /**
  * Authenticate the requestee as a 'user' based on the passed in credentials.
  */
-module.exports = new GoogleStrategy(options, function(request, accessToken, refreshToken, profile, done) {
+module.exports = new GoogleStrategy(options, function(accessToken, refreshToken, profile, done) {
 	// User.findOne won't fire until we have all our data back from Google
 	process.nextTick(function() {
 		// try to find the user based on their google id
@@ -31,13 +31,13 @@ module.exports = new GoogleStrategy(options, function(request, accessToken, refr
 				new User({ 
 					name: profile.displayName,
 					account_type: 'standard',
+					avatar: profile.photos[0].value,
 					providers: {
 						google: {
 							id: profile.id,
 							token: accessToken,
 							name: profile.displayName,
-							email: profile.emails[0].value,
-							avatar: profile.photos[0].value
+							email: profile.emails[0].value
 						}
 					},
 					created_at: new Date()

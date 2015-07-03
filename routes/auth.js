@@ -112,8 +112,7 @@ Router.route('/auth/:provider/callback')
 
 .get(authorize)
 
-	.get(function(req, res, next) {
-
+.get(function(req, res, next) {
 		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
 
