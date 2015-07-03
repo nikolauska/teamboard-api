@@ -177,7 +177,7 @@ Router.route('/auth/logout')
 
 		var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
 
-		Session.findOne({token: tokenToInvalidate}).remove(new function(err) {
+		Session.findOneAndRemove({token: tokenToInvalidate}, function(err) {
 
 			if (err) {
 				return next(utils.error(500, err));
