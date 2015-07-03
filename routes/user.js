@@ -18,7 +18,8 @@ Router.route('/user/edit')
      * Change user name
      *
      * {
-     *   'name'        : 'new name'
+     *   'name'        : 'new name',
+     *   'avatar'      : 'avatar url'
      * }
      */
     .put(middleware.authenticate('user'))
@@ -33,8 +34,10 @@ Router.route('/user/edit')
             if(!user) {
                 return next(utils.error(500, 'User not found'));
             }
-
-            user.name = payload.name;
+            if (payload.name != "") {
+                user.name = payload.name;
+            }
+            user.avatar = payload.avatar;
 
             user.save(function(err, user) {
                 if(err) {
