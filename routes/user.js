@@ -25,7 +25,7 @@ Router.route('/user/edit')
     .put(middleware.authenticate('user'))
     .put(function(req, res, next) {
         var payload = req.body;
-
+        console.log(payload);
         User.findOne({ '_id': req.user.id }, function(err, user) {
             if(err) {
                 return next(utils.error(500, err));
@@ -34,7 +34,7 @@ Router.route('/user/edit')
             if(!user) {
                 return next(utils.error(500, 'User not found'));
             }
-            if (payload.name != "") {
+            if(payload.name) {
                 user.name = payload.name;
             }
             user.avatar = payload.avatar;
