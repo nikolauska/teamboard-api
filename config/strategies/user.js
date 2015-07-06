@@ -44,7 +44,7 @@ module.exports = new BearerStrategy(function(token, done) {
 					provider:  user.providers,
 					boards:    user.boards,
 					edited_at: user.edited_at,
-					avatar: user.avatar
+					avatar:    user.avatar
 				});
 			});
 		});
