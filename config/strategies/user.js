@@ -41,7 +41,7 @@ module.exports = new BearerStrategy(function(token, done) {
 					id:        user.id,
 					type:      user.account_type,
 					username:  user.name,
-					providers: user.providers,
+					providers: Object.keys(user.providers),
 					boards:    user.boards,
 					edited_at: user.edited_at,
 					avatar:    user.avatar
