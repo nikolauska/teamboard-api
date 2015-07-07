@@ -16,6 +16,16 @@ module.exports = new BearerStrategy(function(token, done) {
 			return done(null, null, err);
 		}
 
+		/* Sometimes after clearing the database, User A creating a new board,
+		 * User B woulld see the unshared board from User A when fetching /boards.
+		 * We end up here if User B was logged in before database was cleared so his
+		 * credentials are incorrect. The accessCode of his /boards request is undefined
+		 * so Board.findOne will return him the first unshared board of the database. 
+		 */
+		if(!decoded.accessCode){
+			return done(null, null, 'Access denied.');
+		}
+
 		Board.findOne({ accessCode: decoded.accessCode }, function(err, board) {
 			if(err) {
 				return done(utils.error(500, err));
