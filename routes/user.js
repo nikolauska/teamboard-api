@@ -79,8 +79,8 @@ Router.route('/user/changepw')
                     if(err)
                         return next(utils.error(500, err))
 
-                    if(response === false)
-                        return next(utils.error(401, 'Invalid old password!'))
+                    if(response === false) {
+                        return next(utils.error(500, 'Invalid old password!'))
                     }
 
                     user.providers.basic.password = payload.new_password;
