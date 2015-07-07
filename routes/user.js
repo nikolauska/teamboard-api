@@ -14,10 +14,12 @@ var ObjectId = mongoose.Types.ObjectId;
 Router.route('/user/edit')
 
     /**
-     * Change user name, with optional password and email for basic provider
+
+     * Change user name
      *
      * {
-     *   'name'        : 'new name'
+     *   'name'        : 'new name',
+     *   'avatar'      : 'avatar url'
      * }
      */
     .put(middleware.authenticate('user'))
@@ -33,7 +35,10 @@ Router.route('/user/edit')
                 return next(utils.error(500, 'User not found'));
             }
 
-            user.name = payload.name;
+            if(payload.name) {
+                user.name = payload.name;
+            }
+            user.avatar = payload.avatar;
 
             user.save(function(err, user) {
                 if(err) {
@@ -44,19 +49,18 @@ Router.route('/user/edit')
                 }
                 return res.json(200, user);
             });
-        });     
+        });
     });
 
 Router.route('/user/changepw')
-
-/**
- * Change user basic provider password
- *
- * {
+    /**
+     * Change user basic provider password
+     *
+     * {
      *   'new_password': 'new password',
      *   'old_password': 'old password'
      * }
- */
+     */
     .put(middleware.authenticate('user'))
     .put(function(req, res, next) {
 
@@ -70,16 +74,15 @@ Router.route('/user/changepw')
             if(!user) {
                 return next(utils.error(500, 'User not found'));
             }
-
             if(payload.new_password && payload.old_password) {
                 user.comparePassword(payload.old_password, function(err, response) {
                     if(err)
                         return next(utils.error(500, err))
 
                     if(response === false)
-                        return next(utils.error(500, 'Invalid old password!'))
+                        return next(utils.error(401, 'Invalid old password!'))
+                    }
 
-                    
                     user.providers.basic.password = payload.new_password;
                     user.save(function(err, user) {
                         if(err) {
@@ -97,6 +100,5 @@ Router.route('/user/changepw')
             }
         });
     });
-
 
 module.exports = Router;

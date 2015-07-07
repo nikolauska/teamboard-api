@@ -12,24 +12,8 @@ var Session = require('mongoose').model('session');
 var Router  = require('express').Router();
 
 var Bearer = require('passport-http-bearer');
-var Github = require('passport-github');
 
-var TokenSecret = process.env.TOKEN_SECRET || 'narsuman';
-var RedirectURL = process.env.REDIRECT_URL || 'http://localhost:8000';
-
-function providers(req, res, next) {
-	var provider = req.params.providers;
-	return provider(req, res, next);
-}
-
-function authorize(req, res, next) {
-    var middleware = passport.authorize(req.params.provider, {
-            session: false
-    });
-    return middleware(req, res, next);
-}
-
-Router.param('provider', providers);
+var RedirectURL = process.env.REDIRECT_URL || 'http://localhost:8000/login/callback';
 
 Router.route('/auth')
 
@@ -49,7 +33,13 @@ Router.route('/auth')
 		return res.json(200, req.user);
 	});
 
-Router.route('/auth/login')
+function authorize(req, res, next) {
+        // note that we use the 'authorize' method, which attaches the resulting
+        // object into the 'req.account' instead of the 'req.user' as usual
+    return passport.authorize(req.params.provider)(req, res, next);
+}
+
+Router.route('/auth/:provider/login')
 
 	/**
 	 * Exchange an 'access-token' for valid credentials. If the user already
@@ -61,9 +51,11 @@ Router.route('/auth/login')
 	 *   'password': user.password
 	 * }
 	 */
-	.post(middleware.authenticate('local'))
-	.post(function(req, res, next) {
-
+	.get(function(req, res, next) {
+		return middleware.authenticate(req.params.provider)(req, res, next);	
+	})
+	
+	.get(function(req, res, next) {
 		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
 
@@ -73,7 +65,6 @@ Router.route('/auth/login')
 			if(err) {
 				return next(utils.error(500, err));
 			}
-			console.log(err);
 			// Make sure the token verified is not undefined. An empty string
 			// is not a valid token so this 'should' be ok.
 			var token = req.headers.authorization.replace('Bearer ', '') || '';
@@ -83,16 +74,16 @@ Router.route('/auth/login')
 				// generate a new one since correct credentials were provided.
 				if(err) {
 					var payload = {
-						id: user.id, type: user.account_type, username: user.name
+						id:       user.id,
+						type:     user.account_type,
+						username: user.name,
+						avatar:   user.avatar
 					}
-
 					return user.save(function(err, user) {
 						if(err) {
 							return next(utils.error(500, err));
 						}
-
 						var newtoken = jwt.sign(payload, secret);
-
 						new Session({
 							user:       user.id,
 							user_agent: req.headers['user-agent'],
@@ -109,43 +100,32 @@ Router.route('/auth/login')
 									return next(utils.error(500, err));
 								}
 							});
-						return res.set('x-access-token', newtoken)
-							.json(200, payload);
-							console.log(payload);
+						return res.set('x-access-token', newtoken).json(200, payload);
 					});
 				}
-
-
 				// If the token was valid we reuse it.
-				return res.set('x-access-token', session.token)
-					.json(200, payload);
-
+				return res.set('x-access-token', session.token).json(200, payload);
 			});
 		});
 	});
 
-Router.route('/auth/basic/login')
-.get(middleware.authenticate('local'))
-//.get(passport.authenticate('provider'));
+Router.route('/auth/:provider/callback')
 
-Router.route('/auth/basic/callback')
+.get(authorize)
 
-.get(middleware.authenticate('local'))
 .get(function(req, res, next) {
-
 		// The secret used to sign the 'jwt' tokens.
 		var secret = config.token.secret;
 
 		// Find the user specified in the 'req.user' payload. Note that
 		// 'req.user' is not the 'user' model.
-		User.findOne({ _id: req.user.id }, function(err, user) {
+		User.findOne({ _id: req.account.id }, function(err, user) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
-			console.log(err);
 			// Make sure the token verified is not undefined. An empty string
 			// is not a valid token so this 'should' be ok.
-			var token = req.headers.authorization.replace('Bearer ', '') || '';
+			var token = '';
 
 			jwt.verify(token, secret, function(err, payload) {
 				// If there was something wrong with the existing token, we
@@ -178,15 +158,11 @@ Router.route('/auth/basic/callback')
 									return next(utils.error(500, err));
 								}
 							});
-						return res.set('x-access-token', newtoken)
-							.json(200, payload);
+						return res.redirect(RedirectURL + '?access_token=' + newtoken);
 					});
 				}
-
 				// If the token was valid we reuse it.
-				return res.set('x-access-token', session.token)
-					.json(200, payload);
-
+				return res.redirect(RedirectURL + '?access_token=' + newtoken);
 			});
 		});
 	});
@@ -201,7 +177,7 @@ Router.route('/auth/logout')
 
 		var tokenToInvalidate = req.headers.authorization.replace('Bearer ', '');
 
-		Session.findOne({token: tokenToInvalidate}).remove(new function(err) {
+		Session.findOneAndRemove({token: tokenToInvalidate}, function(err) {
 
 			if (err) {
 				return next(utils.error(500, err));
@@ -227,16 +203,23 @@ Router.route('/auth/register')
 		var username = '';
 		// If username is not set, we use the email instead.
 		req.body.username ? username = req.body.username : username = req.body.email;
-
-		new User({ name:      username,
+		User.find({ 'providers.basic.email': req.body.email }, function(err, user) {
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			if(user.length) {
+				return next(utils.error(409, "Email already exists"))
+			}
+			new User({ name:      username,
 			       account_type: 'standard',
 			       providers: {
 						basic: {
-								email:   req.body.email,
-								password:req.body.password
-						       }
+							email:   req.body.email,
+							password:req.body.password
+						    }
 				   },
-					created_at: new Date()})
+					created_at: new Date(),
+					boards:[]})
 			.save(function(err, user) {
 				if(err) {
 					if(err.name == 'ValidationError') {
@@ -249,6 +232,8 @@ Router.route('/auth/register')
 				}
 				return res.json(201, user);
 			});
+		});
+	
 	});
 
 module.exports = Router;
