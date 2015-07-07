@@ -13,7 +13,7 @@ var Router  = require('express').Router();
 
 var Bearer = require('passport-http-bearer');
 
-var RedirectURL = process.env.REDIRECT_URL || 'http://localhost:8000/login/callback';
+var RedirectURL = process.env.REDIRECT_URL || 'http://localhost:8000/login';
 
 Router.route('/auth')
 
@@ -36,7 +36,8 @@ Router.route('/auth')
 function authorize(req, res, next) {
         // note that we use the 'authorize' method, which attaches the resulting
         // object into the 'req.account' instead of the 'req.user' as usual
-    return passport.authorize(req.params.provider)(req, res, next);
+    return passport.authorize(req.params.provider, 
+    	{ failureRedirect: RedirectURL })(req, res, next);
 }
 
 Router.route('/auth/:provider/login')
@@ -158,11 +159,11 @@ Router.route('/auth/:provider/callback')
 									return next(utils.error(500, err));
 								}
 							});
-						return res.redirect(RedirectURL + '?access_token=' + newtoken);
+						return res.redirect(RedirectURL + '/callback' + '?access_token=' + newtoken);
 					});
 				}
 				// If the token was valid we reuse it.
-				return res.redirect(RedirectURL + '?access_token=' + newtoken);
+				return res.redirect(RedirectURL + '/callback' + '?access_token=' + newtoken);
 			});
 		});
 	});

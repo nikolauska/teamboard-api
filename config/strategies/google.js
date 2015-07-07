@@ -41,12 +41,12 @@ module.exports = new GoogleStrategy(options, function(accessToken, refreshToken,
 						}
 					},
 					created_at: new Date()
-				}).save(function(err, user) {
+				}).save(function(err, user, next) {
 							if(err) {
 								if(err.name == 'ValidationError') {
-									throw err;
+									return next(utils.error(500, err));
 								}
-								throw err;
+								return next(utils.error(500, err));
 							}
 							return done(null, user);
 						});
