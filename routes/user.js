@@ -74,10 +74,12 @@ Router.route('/user/changepw')
             if(!user) {
                 return next(utils.error(500, 'User not found'));
             }
+            
             if(payload.new_password && payload.old_password) {
                 user.comparePassword(payload.old_password, function(err, response) {
-                    if(err)
+                    if(err) {
                         return next(utils.error(500, err))
+                    }
 
                     if(response === false) {
                         return next(utils.error(500, 'Invalid old password!'))
