@@ -536,7 +536,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 		if(ObjectId.isValid(req.user.id)) {
 			userId = req.user.id
 		}
-		req.resolved.ticket.comments.unshift({ 'user':  userId, 'content': req.body.comment});
+		req.resolved.ticket.comments.unshift({ 'user':  userId, 'content': req.body.comment, 'created_at': Date.now()});
 
 		req.resolved.ticket.save(function (err, ticket) {
 			if(err) {
