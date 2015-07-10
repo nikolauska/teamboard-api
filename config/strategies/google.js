@@ -10,7 +10,7 @@ var options = {
 	clientID: config.providers.google.clientID,
 	clientSecret: config.providers.google.clientSecret,
 	callbackURL: config.providers.google.callbackURL,
-	scope: [ 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.profile.emails.read' ]
+	scope: [ 'profile', 'https://www.googleapis.com/auth/plus.profile.emails.read' ]
 }
 
 /**
