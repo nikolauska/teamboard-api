@@ -1,5 +1,6 @@
 'use strict';
 
+var _        = require('lodash');
 var bcrypt   = require('bcrypt');
 var mongoose = require('mongoose');
 
@@ -83,26 +84,40 @@ if(!UserSchema.options.toObject) UserSchema.options.toObject = { }
 
 // Remove the sensitive stuff from 'user' when JSONized.
 UserSchema.options.toJSON.transform = function(doc, ret) {
-    // ret.id       = doc.id;
-    // ret.type     = 'user';
-    // ret.username = doc.email;
 
-    //delete ret._id;
-    //delete ret.__v;
-    // delete ret.token;
-    // delete ret.password;
+    /**
+     * Reducer function for provider objects.
+     */
+    function reducer(providers, object, name) {
+        var transforms = {
+            basic: function basicTransform(basicProvider) {
+                delete basicProvider.password;
 
-    if (doc.providers) {
-        if (doc.providers.basic) {
-            doc.providers.basic.password = '';
+
+                return basicProvider;
+            },
+            google: function googleTransform(googleProvider) {
+                delete googleProvider.id;
+                delete googleProvider.token;
+                return googleProvider;
+            }
         }
+
+        // empty providers are excluded from the returned set
+        if(_.isEmpty(object)) return providers;
+
+        // provider object is run through transform function if it has one, and
+        // then added to the set of providers
+        providers[name] = transforms[name] ? transforms[name](object) : object;
+        return providers;
     }
+
     return {
         'id':           doc.id,
         'avatar':       doc.avatar,
         'username':     doc.name,
         'account_type': doc.account_type,
-        'providers':    doc.providers
+        'providers':    _.reduce(doc.providers.toObject(), reducer, { })
     }
 }
 

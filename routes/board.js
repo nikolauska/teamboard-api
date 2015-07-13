@@ -85,7 +85,7 @@ Router.route('/boards')
 			return next(utils.error(400, 'Board size must be whole numbers!'));
 		}
 
-		if (payload.size)
+		if(payload.size)
 			payload.members.push({user: req.user.id, role: 'admin', isActive: true, lastSeen: Date.now()});
 
 		new Board(payload).save(function(err, board) {
@@ -93,21 +93,22 @@ Router.route('/boards')
 				return next(utils.error(400, err));
 			}
 
-			board.populate('members.user', function(err) {			
-					new Event({
-						'type': 'BOARD_CREATE',
-						'board': board.id,
-						'user':  {
-							'id':       req.user.id,
-							'type':     req.user.type,
-							'username': req.user.username,
-						}
-					}).save(function(err, ev) {
-						if(err) return console.error(err);
-						utils.emitter.to(ev.board).emit('board:event', ev.toObject());
-					});
+			board.populate('members.user', function(err, board) {
+				new Event({
+					'type': 'BOARD_CREATE',
+					'board': board.id,
+					'user':  {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					}
+				}).save(function(err, ev) {
+					if(err) return console.error(err);
+					utils.emitter.to(ev.board).emit('board:event', ev.toObject());
+				});
 
-					return res.json(201, board);})
+				return res.json(201, board);
+			})
 		});
 	});
 
@@ -125,11 +126,11 @@ Router.route('/boards/:board_id')
 		var boardQuery = Board.findOne({ '_id': req.resolved.board.id, 'members.user': req.user.id }).populate('members.user');
 
 		boardQuery.exec(function(err, board) {
-				if(err) {
-					return next(utils.error(500, err));
-				}
-				return res.json(200, board);
-			});
+			if(err) {
+				return next(utils.error(500, err));
+			}
+			return res.json(200, board);
+		});
 	})
 
 	/**
@@ -178,29 +179,30 @@ Router.route('/boards/:board_id')
 			Board.populate(board, 'createdBy', function(err, board) {
 				Board.populate(board, 'members.user', function(err, board) {
 					if(err) {
-					return next(utils.error(500, err));
-				}
+						return next(utils.error(500, err));
+					}
 
-				if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
-					Ticket.find({ 'board': req.resolved.board.id,
-						$or: [
+					if(req.resolved.board.size.width < old.size.width || req.resolved.board.size.height < old.size.height){
+						Ticket.find({ 'board': req.resolved.board.id,
+							$or: [
 								{'position.x': {$gt: (req.resolved.board.size.width * ticketWidth) - ticketWidth / 2}},
 								{'position.y': {$gt: (req.resolved.board.size.height * ticketHeight) - ticketHeight / 2}}
-						     ]}, function (err, tickets) {
+							]},
+							function (err, tickets) {
 
-						if(tickets.length > 0) {
-							Promise.all(tickets.map(utils.ticketClamper(req.resolved.board))).then(function(){
+							if(tickets.length > 0) {
+								Promise.all(tickets.map(utils.ticketClamper(req.resolved.board))).then(function(){
 
-								utils.createEditBoardEvent(req, board, old);
-							})
-						}
-					});
-				} else {
+									utils.createEditBoardEvent(req, board, old);
+								})
+							}
+						});
+					}
+					else {
+						utils.createEditBoardEvent(req, board, old);
+					}
 
-					utils.createEditBoardEvent(req, board, old);
-				}
-
-				return res.json(200, board);
+					return res.json(200, board);
 				});
 			});
 		});
