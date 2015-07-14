@@ -20,6 +20,14 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	},
 
 	/**
+	 * Who created the ticket.
+	 */
+	createdBy: {
+		ref: 'user',
+		type: mongoose.Schema.Types.ObjectId
+	},
+
+	/**
 	 * The ticket header.
 	 */
 	heading: {
