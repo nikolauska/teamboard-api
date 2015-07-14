@@ -366,10 +366,11 @@ Router.route('/boards/:board_id/tickets')
 						'username': req.user.username,
 					},
 					'data': {
-						'id':       ticket._id,
-						'color':    ticket.color,
-						'content':  ticket.content,
-						'position': ticket.position,
+						'id':        ticket._id,
+						'color':     ticket.color,
+						'content':   ticket.content,
+						'position':  ticket.position,
+						'createdBy': ticket.createdBy
 					}
 				}).save(function(err, ev) {
 					if(err) {
@@ -428,50 +429,54 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 			if(!ticket) return next(utils.error(404, 'Ticket not found'));
 
-			new Event({
-				'type': 'TICKET_EDIT',
-				'board': ticket.board,
-				'user': {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				},
-				'data': {
-					'id': ticket._id,
-
-					'oldAttributes': {
-						'color':    old.color,
-						'heading':  old.heading,
-						'content':  old.content,
-						'position': old.position,
+			ticket.populate('createdBy', function(err, ticket) {
+				new Event({
+					'type': 'TICKET_EDIT',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
 					},
+					'data': {
+						'id': ticket._id,
 
-					'newAttributes': {
-						'color':    ticket.color,
-						'heading':  ticket.heading,
-						'content':  ticket.content,
-						'position': ticket.position,
-					},
-				}
-			}).save(function(err, ev) {
-				if(err) {
-					return console.error(err);
-				}
-				utils.emitter.to(ev.board)
-					.emit('board:event', ev.toObject());
-			});
+						'oldAttributes': {
+							'color':     old.color,
+							'heading':   old.heading,
+							'content':   old.content,
+							'position':  old.position,
+							'createdBy': ticket.createdBy,
+						},
 
-			/**
-			 * Deprecated.
-			 */
-			utils.emitter.to(req.resolved.board.id)
-				.emit('ticket:update', {
-					user:   req.user,
-					board:  req.resolved.board.id,
-					ticket: ticket.toObject()
+						'newAttributes': {
+							'color':     ticket.color,
+							'heading':   ticket.heading,
+							'content':   ticket.content,
+							'position':  ticket.position,
+							'createdBy': ticket.createdBy,
+						},
+					}
+				}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+					utils.emitter.to(ev.board)
+						.emit('board:event', ev.toObject());
 				});
 
-			return res.json(200, ticket);
+				/**
+				 * Deprecated.
+				 */
+				utils.emitter.to(req.resolved.board.id)
+					.emit('ticket:update', {
+						user:   req.user,
+						board:  req.resolved.board.id,
+						ticket: ticket.toObject()
+					});
+
+				return res.json(200, ticket);
+			});
 		});
 	})
 
