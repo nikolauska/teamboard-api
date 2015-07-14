@@ -314,7 +314,8 @@ Router.route('/boards/:board_id/tickets')
 	.get(function(req, res) {
 		var board = req.resolved.board;
 
-		var ticketQuery = Ticket.find({'board': board.id}).populate('comments.user');
+		var ticketQuery = Ticket.find({'board': board.id})
+			.populate('createdBy').populate('comments.user');
 
 		ticketQuery.exec(function(err, tickets) {
 			if(err) {
@@ -346,48 +347,50 @@ Router.route('/boards/:board_id/tickets')
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('admin', 'user', 'guest'))
 	.post(function(req, res, next) {
-
-		var payload       = req.body;
-		    payload.board = req.resolved.board.id;
+		var payload           = req.body;
+		    payload.board     = req.resolved.board.id;
+		    payload.createdBy = req.user.id;
 
 		new Ticket(payload).save(function(err, ticket) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
 
-			new Event({
-				'type': 'TICKET_CREATE',
-				'board': ticket.board,
-				'user': {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				},
-				'data': {
-					'id':       ticket._id,
-					'color':    ticket.color,
-					'content':  ticket.content,
-					'position': ticket.position,
-				}
-			}).save(function(err, ev) {
-				if(err) {
-					return console.error(err);
-				}
-				utils.emitter.to(ticket.board)
-					.emit('board:event', ev.toObject());
-			});
-
-			/**
-			 * Deprecated.
-			 */
-			utils.emitter.to(req.resolved.board.id)
-				.emit('ticket:create', {
-					user:   req.user,
-					board:  req.resolved.board.id,
-					ticket: ticket.toObject()
+			ticket.populate('createdBy', function(err, ticket) {
+				new Event({
+					'type': 'TICKET_CREATE',
+					'board': ticket.board,
+					'user': {
+						'id':       req.user.id,
+						'type':     req.user.type,
+						'username': req.user.username,
+					},
+					'data': {
+						'id':       ticket._id,
+						'color':    ticket.color,
+						'content':  ticket.content,
+						'position': ticket.position,
+					}
+				}).save(function(err, ev) {
+					if(err) {
+						return console.error(err);
+					}
+					utils.emitter.to(ticket.board)
+						.emit('board:event', ev.toObject());
 				});
 
-			return res.json(201, ticket);
+				/**
+				 * Deprecated.
+				 */
+				utils.emitter.to(req.resolved.board.id)
+					.emit('ticket:create', {
+						user:   req.user,
+						board:  req.resolved.board.id,
+						ticket: ticket.toObject()
+					});
+
+				return res.json(201, ticket);
+			});
 		});
 	});
 
