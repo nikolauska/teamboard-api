@@ -394,7 +394,6 @@ Router.route('/boards/:board_id/tickets')
 		});
 	});
 
-
 Router.route('/boards/:board_id/tickets/:ticket_id')
 
 	/**
@@ -525,74 +524,56 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
-/**
- * Post a new comment on the specified ticket.
- */
-	.post(middleware.authenticate('user', 'guest'))
-	.post(middleware.relation('user', 'guest'))
-	.post(function(req, res, next) {
-
-		var old             = req.resolved.ticket.toObject();
-		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
-
-		var userId = null;
-
-		// Backwards compatibility for older clients for guest users
-		if(ObjectId.isValid(req.user.id)) {
-			userId = req.user.id
+	/**
+	 * Get comments belonging to the specified ticket.
+	 */
+	.get(middleware.authenticate('user', 'guest'))
+	.get(middleware.relation('user', 'guest'))
+	.get(function getTicketComments(req, res, next) {
+		var query = {
+			'type': 'TICKET_COMMENT',
+			'board': req.resolved.board.id,
+			'data.ticket_id': req.resolved.ticket.id
 		}
-		req.resolved.ticket.comments.unshift({ 'user':  userId, 'content': req.body.comment, 'created_at': Date.now()});
-
-		req.resolved.ticket.save(function (err, ticket) {
+		return Event.find(query, function(err, comments) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
+			return res.json(200, comments);
+		});
+	})
 
-			if (!ticket) {
-				return next(utils.error(404, 'Ticket not found'));
+	/**
+	 * Post a new comment on the specified ticket.
+	 */
+	.post(middleware.authenticate('user', 'guest'))
+	.post(middleware.relation('user', 'guest'))
+	.post(function(req, res, next) {
+		// comments are actually just 'events', that are of the specified type
+		var comment = new Event({
+			user: {
+				id:       req.user.id,
+				type:     req.user.type,
+				username: req.user.username
+			},
+			data: {
+				ticket_id: req.resolved.ticket.id,
+				message:   req.body.comment
+			},
+			type: 'TICKET_COMMENT',
+			board: req.resolved.board.id
+		});
+		return comment.save(function(err, event) {
+			if(err) {
+				return next(utils.error(500, err));
 			}
-
-			ticket.populate('comments.user', function(err) {
-			/*
-			 * TODO: TICKET_COMMENT event?
-			 */
-				new Event({
-					'type': 'TICKET_EDIT',
-					'board': ticket.board,
-					'user': {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					},
-					'data': {
-						'id': ticket._id,
-
-						'oldAttributes': {
-							'color':    old.color,
-							'content':  old.content,
-							'heading':  old.heading,
-							'position': old.position,
-							'comments': old.comments
-						},
-
-						'newAttributes': {
-							'color':    ticket.color,
-							'content':  ticket.content,
-							'heading':  ticket.heading,
-							'position': ticket.position,
-							'comments': ticket.comments
-						},
-					}
-				}).save(function(err, ev) {
-						if(err) {
-							return console.error(err);
-						}
-						utils.emitter.to(ev.board)
-							.emit('board:event', ev.toObject());
-					});
-				return res.json(200, ticket);})
-
-		})
+			// for reasons, we can't send mongoose models over socket.io and
+			// have them be serialized as plain JS objects automagically, so we
+			// have to explicitly make them into plain objects
+			utils.emitter.to(event.board)
+				.emit('board:event', event.toObject());
+			return res.json(201, event);
+		});
 	});
 
 Router.route('/boards/:board_id/events')
