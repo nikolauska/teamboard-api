@@ -315,7 +315,7 @@ Router.route('/boards/:board_id/tickets')
 		var board = req.resolved.board;
 
 		var ticketQuery = Ticket.find({'board': board.id})
-			.populate('createdBy').populate('comments.user');
+			.populate('createdBy').populate('lastEditedBy').populate('comments.user');
 
 		ticketQuery.exec(function(err, tickets) {
 			if(err) {
@@ -347,30 +347,32 @@ Router.route('/boards/:board_id/tickets')
 	.post(middleware.authenticate('user', 'guest'))
 	.post(middleware.relation('admin', 'user', 'guest'))
 	.post(function(req, res, next) {
-		var payload           = req.body;
-		    payload.board     = req.resolved.board.id;
-		    payload.createdBy = req.user.id;
+		var payload              = req.body;
+		    payload.board        = req.resolved.board.id;
+		    payload.createdBy    = req.user.id;
+		    payload.lastEditedBy = req.user.id;
 
 		new Ticket(payload).save(function(err, ticket) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
 
-			ticket.populate('createdBy', function(err, ticket) {
+			ticket.populate('createdBy lastEditedBy', function(err, ticket) {
 				new Event({
 					'type': 'TICKET_CREATE',
 					'board': ticket.board,
 					'user': {
 						'id':       req.user.id,
 						'type':     req.user.type,
-						'username': req.user.username,
+						'username': req.user.username
 					},
 					'data': {
-						'id':        ticket._id,
-						'color':     ticket.color,
-						'content':   ticket.content,
-						'position':  ticket.position,
-						'createdBy': ticket.createdBy
+						'id':           ticket._id,
+						'color':        ticket.color,
+						'content':      ticket.content,
+						'position':     ticket.position,
+						'createdBy':    ticket.createdBy,
+						'lastEditedBy': ticket.lastEditedBy
 					}
 				}).save(function(err, ev) {
 					if(err) {
@@ -419,8 +421,9 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	.put(middleware.authenticate('user', 'guest'))
 	.put(middleware.relation('admin', 'user', 'guest'))
 	.put(function(req, res, next) {
-		var old             = req.resolved.ticket.toObject();
-		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
+		var old               = req.resolved.ticket.toObject();
+		req.body.lastEditedBy = req.user.id;
+		req.resolved.ticket   = _.merge(req.resolved.ticket, req.body);
 
 		return req.resolved.ticket.save(function(err, ticket) {
 			if(err) {
@@ -429,7 +432,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 			if(!ticket) return next(utils.error(404, 'Ticket not found'));
 
-			ticket.populate('createdBy', function(err, ticket) {
+			ticket.populate('createdBy lastEditedBy', function(err, ticket) {
 				new Event({
 					'type': 'TICKET_EDIT',
 					'board': ticket.board,
@@ -442,19 +445,21 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 						'id': ticket._id,
 
 						'oldAttributes': {
-							'color':     old.color,
-							'heading':   old.heading,
-							'content':   old.content,
-							'position':  old.position,
-							'createdBy': ticket.createdBy,
+							'color':        old.color,
+							'heading':      old.heading,
+							'content':      old.content,
+							'position':     old.position,
+							'createdBy':    ticket.createdBy,
+							'lastEditedBy': old.lastEditedBy
 						},
 
 						'newAttributes': {
-							'color':     ticket.color,
-							'heading':   ticket.heading,
-							'content':   ticket.content,
-							'position':  ticket.position,
-							'createdBy': ticket.createdBy,
+							'color':        ticket.color,
+							'heading':      ticket.heading,
+							'content':      ticket.content,
+							'position':     ticket.position,
+							'createdBy':    ticket.createdBy,
+							'lastEditedBy': ticket.lastEditedBy
 						},
 					}
 				}).save(function(err, ev) {

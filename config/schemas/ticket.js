@@ -28,6 +28,14 @@ var TicketSchema = module.exports = new mongoose.Schema({
 	},
 
 	/**
+	 * Who last edited the ticket.
+	 */
+	lastEditedBy: {
+		ref: 'user',
+		type: mongoose.Schema.Types.ObjectId
+	},
+
+	/**
 	 * The ticket header.
 	 */
 	heading: {
