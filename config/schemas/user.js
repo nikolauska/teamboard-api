@@ -106,6 +106,11 @@ UserSchema.options.toJSON.transform = function(doc, ret) {
                 delete googleProvider.id;
                 delete googleProvider.token;
                 return googleProvider;
+            },
+            facebook: function facebookTransform(facebookProvider) {
+                delete facebookProvider.id;
+                delete facebookProvider.token;
+                return facebookProvider;
             }
         }
 
