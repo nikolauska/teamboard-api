@@ -375,10 +375,11 @@ Router.route('/boards/:board_id/tickets')
 					'board': ticket.board,
 					'user': req.user.id,
 					'data': {
-						'id':       ticket._id,
-						'color':    ticket.color,
-						'content':  ticket.content,
-						'position': ticket.position,
+						'id':        ticket._id,
+						'color':     ticket.color,
+						'content':   ticket.content,
+						'position':  ticket.position,
+						'createdBy': ticket.createdBy
 					}
 				}, function(err, ev) {
 					if(err) {
@@ -438,8 +439,8 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 						'heading':  old.heading,
 						'content':  old.content,
 						'position': old.position,
-					},
 
+					},
 					'newAttributes': {
 						'color':    ticket.color,
 						'heading':  ticket.heading,
