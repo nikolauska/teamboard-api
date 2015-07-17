@@ -22,24 +22,8 @@ var EventSchema = module.exports = new mongoose.Schema({
 	 * Describes the 'user' or 'guest' responsible for this 'event'.
 	 */
 	user: {
-
-		/**
-		 * Can be either a generated 'guest.id' or an actual 'user.id'.
-		 */
-		id: mongoose.Schema.Types.Mixed,
-
-		/**
-		 * Type of the user, 'guest' or a regular 'user'.
-		 */
-		type: {
-			type: String,
-			enum: [ 'standard', 'temporary' ]
-		},
-
-		/**
-		 * 'username' or 'email' of the 'user'.
-		 */
-		username: String
+		ref:  'user',
+		type: mongoose.Schema.Types.ObjectId
 	},
 
 	/**
@@ -87,6 +71,8 @@ if(!EventSchema.options.toJSON) EventSchema.options.toJSON     = { }
 if(!EventSchema.options.toObject) EventSchema.options.toObject = { }
 
 EventSchema.options.toJSON.transform = function(doc, ret) {
+	ret.id = doc.id;
+
 	delete ret._id;
 	delete ret.__v;
 }

@@ -20,6 +20,18 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var exportAs = require('../utils/export');
 
+/**
+ * Fuck this existence
+ */
+function createEvent(data, callback) {
+	return new Event(data).save(function(err, event) {
+		if(err) {
+			return callback(err);
+		}
+		return event.populate('user', callback);
+	});
+}
+
 
 // automagically resolve 'id' attributes to their respective documents
 Router.param('board_id',  middleware.resolve.board);
@@ -94,17 +106,22 @@ Router.route('/boards')
 			}
 
 			board.populate('members.user', function(err, board) {
-				new Event({
+				if(err) {
+					return next(utils.error(500, err));
+				}
+
+				var eventData = {
 					'type': 'BOARD_CREATE',
 					'board': board.id,
-					'user':  {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
+					'user':  req.user.id
+				}
+
+				createEvent(eventData, function(err, event) {
+					if(err) {
+						return console.error(err);
 					}
-				}).save(function(err, ev) {
-					if(err) return console.error(err);
-					utils.emitter.to(ev.board).emit('board:event', ev.toObject());
+					return utils.emitter.to(event.board)
+						.emit('board:event', event.toObject());
 				});
 
 				return res.json(201, board);
@@ -222,15 +239,11 @@ Router.route('/boards/:board_id')
 				return next(utils.error(500, err));
 			}
 
-			new Event({
+			createEvent({
 				'type':  'BOARD_REMOVE',
 				'board': req.resolved.board.id,
-				'user': {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				}
-			}).save(function(err, ev) {
+				'user': req.user.id
+			}, function(err, ev) {
 				if(err) {
 					return console.error(err);
 				}
@@ -357,14 +370,10 @@ Router.route('/boards/:board_id/tickets')
 			}
 
 			ticket.populate('createdBy', function(err, ticket) {
-				new Event({
+				createEvent({
 					'type': 'TICKET_CREATE',
 					'board': ticket.board,
-					'user': {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					},
+					'user': req.user.id,
 					'data': {
 						'id':        ticket._id,
 						'color':     ticket.color,
@@ -372,7 +381,7 @@ Router.route('/boards/:board_id/tickets')
 						'position':  ticket.position,
 						'createdBy': ticket.createdBy
 					}
-				}).save(function(err, ev) {
+				}, function(err, ev) {
 					if(err) {
 						return console.error(err);
 					}
@@ -380,21 +389,10 @@ Router.route('/boards/:board_id/tickets')
 						.emit('board:event', ev.toObject());
 				});
 
-				/**
-				 * Deprecated.
-				 */
-				utils.emitter.to(req.resolved.board.id)
-					.emit('ticket:create', {
-						user:   req.user,
-						board:  req.resolved.board.id,
-						ticket: ticket.toObject()
-					});
-
 				return res.json(201, ticket);
 			});
 		});
 	});
-
 
 Router.route('/boards/:board_id/tickets/:ticket_id')
 
@@ -429,54 +427,36 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 			if(!ticket) return next(utils.error(404, 'Ticket not found'));
 
-			ticket.populate('createdBy', function(err, ticket) {
-				new Event({
-					'type': 'TICKET_EDIT',
-					'board': ticket.board,
-					'user': {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
+			createEvent({
+				'type': 'TICKET_EDIT',
+				'board': ticket.board,
+				'user': req.user.id,
+				'data': {
+					'id': ticket._id,
+
+					'oldAttributes': {
+						'color':    old.color,
+						'heading':  old.heading,
+						'content':  old.content,
+						'position': old.position,
+
 					},
-					'data': {
-						'id': ticket._id,
-
-						'oldAttributes': {
-							'color':     old.color,
-							'heading':   old.heading,
-							'content':   old.content,
-							'position':  old.position,
-							'createdBy': ticket.createdBy,
-						},
-
-						'newAttributes': {
-							'color':     ticket.color,
-							'heading':   ticket.heading,
-							'content':   ticket.content,
-							'position':  ticket.position,
-							'createdBy': ticket.createdBy,
-						},
-					}
-				}).save(function(err, ev) {
-					if(err) {
-						return console.error(err);
-					}
-					utils.emitter.to(ev.board)
-						.emit('board:event', ev.toObject());
-				});
-
-				/**
-				 * Deprecated.
-				 */
-				utils.emitter.to(req.resolved.board.id)
-					.emit('ticket:update', {
-						user:   req.user,
-						board:  req.resolved.board.id,
-						ticket: ticket.toObject()
-					});
-
-				return res.json(200, ticket);
+					'newAttributes': {
+						'color':    ticket.color,
+						'heading':  ticket.heading,
+						'content':  ticket.content,
+						'position': ticket.position,
+					},
+				}
+			}, function(err, ev) {
+				if(err) {
+					return console.error(err);
+				}
+				utils.emitter.to(ev.board)
+					.emit('board:event', ev.toObject());
 			});
+
+			return res.json(200, ticket);
 		});
 	})
 
@@ -494,34 +474,20 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 				return next(utils.error(500, err));
 			}
 
-			new Event({
+			createEvent({
 				'type': 'TICKET_REMOVE',
 				'board': req.resolved.ticket.board,
-				'user': {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				},
+				'user': req.user.id,
 				'data': {
 					'id': req.resolved.ticket._id,
 				}
-			}).save(function(err, ev) {
+			}, function(err, ev) {
 				if(err) {
 					return console.error(err);
 				}
 				utils.emitter.to(ev.board)
 					.emit('board:event', ev.toObject());
 			});
-
-			/**
-			 * Deprecated.
-			 */
-			utils.emitter.to(req.resolved.board.id)
-				.emit('ticket:remove', {
-					user:   req.user,
-					board:  req.resolved.board.id,
-					ticket: req.resolved.ticket.toObject()
-				});
 
 			return res.json(200, req.resolved.ticket);
 		});
@@ -530,74 +496,51 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 
 Router.route('/boards/:board_id/tickets/:ticket_id/comments')
 
-/**
- * Post a new comment on the specified ticket.
- */
-	.post(middleware.authenticate('user', 'guest'))
-	.post(middleware.relation('user', 'guest'))
-	.post(function(req, res, next) {
-
-		var old             = req.resolved.ticket.toObject();
-		req.resolved.ticket = _.merge(req.resolved.ticket, req.body);
-
-		var userId = null;
-
-		// Backwards compatibility for older clients for guest users
-		if(ObjectId.isValid(req.user.id)) {
-			userId = req.user.id
+	/**
+	 * Get comments belonging to the specified ticket.
+	 */
+	.get(middleware.authenticate('user', 'guest'))
+	.get(middleware.relation('user', 'guest'))
+	.get(function getTicketComments(req, res, next) {
+		var query = {
+			'type': 'TICKET_COMMENT',
+			'board': req.resolved.board.id,
+			'data.ticket_id': req.resolved.ticket.id
 		}
-		req.resolved.ticket.comments.unshift({ 'user':  userId, 'content': req.body.comment, 'created_at': Date.now()});
-
-		req.resolved.ticket.save(function (err, ticket) {
+		return Event.find(query).populate('user').exec(function(err, comments) {
 			if(err) {
 				return next(utils.error(500, err));
 			}
+			return res.json(200, comments);
+		});
+	})
 
-			if (!ticket) {
-				return next(utils.error(404, 'Ticket not found'));
+	/**
+	 * Post a new comment on the specified ticket.
+	 */
+	.post(middleware.authenticate('user', 'guest'))
+	.post(middleware.relation('user', 'guest'))
+	.post(function(req, res, next) {
+		// comments are actually just 'events', that are of the specified type
+		var comment = createEvent({
+			user: req.user.id,
+			data: {
+				ticket_id: req.resolved.ticket.id,
+				message:   req.body.message
+			},
+			type: 'TICKET_COMMENT',
+			board: req.resolved.board.id
+		}, function(err, event) {
+			if(err) {
+				return next(utils.error(500, err));
 			}
-
-			ticket.populate('comments.user', function(err) {
-			/*
-			 * TODO: TICKET_COMMENT event?
-			 */
-				new Event({
-					'type': 'TICKET_EDIT',
-					'board': ticket.board,
-					'user': {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					},
-					'data': {
-						'id': ticket._id,
-
-						'oldAttributes': {
-							'color':    old.color,
-							'content':  old.content,
-							'heading':  old.heading,
-							'position': old.position,
-							'comments': old.comments
-						},
-
-						'newAttributes': {
-							'color':    ticket.color,
-							'content':  ticket.content,
-							'heading':  ticket.heading,
-							'position': ticket.position,
-							'comments': ticket.comments
-						},
-					}
-				}).save(function(err, ev) {
-						if(err) {
-							return console.error(err);
-						}
-						utils.emitter.to(ev.board)
-							.emit('board:event', ev.toObject());
-					});
-				return res.json(200, ticket);})
-
-		})
+			// for reasons, we can't send mongoose models over socket.io and
+			// have them be serialized as plain JS objects automagically, so we
+			// have to explicitly make them into plain objects
+			utils.emitter.to(event.board)
+				.emit('board:event', event.toObject());
+			return res.json(201, event);
+		});
 	});
 
 Router.route('/boards/:board_id/events')
@@ -660,18 +603,14 @@ Router.route('/boards/:board_id/access')
 				return next(utils.error(500, err));
 			}
 
-			new Event({
+			createEvent({
 				'type': 'BOARD_PUBLISH',
 				'board': req.resolved.board.id,
-				'user': {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				},
+				'user': req.user.id,
 				'data': {
 					'accessCode': accessCode,
 				}
-			}).save(function(err, ev) {
+			}, function(err, ev) {
 				if(err) {
 					return console.error(err);
 				}
@@ -700,15 +639,11 @@ Router.route('/boards/:board_id/access')
 				return next(utils.error(500, err));
 			}
 
-			new Event({
+			createEvent({
 				'type': 'BOARD_UNPUBLISH',
 				'board': req.resolved.board.id,
-				'user': {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				},
-			}).save(function(err, ev) {
+				'user': req.user.id,
+			}, function(err, ev) {
 				if(err) {
 					return console.error(err);
 				}
@@ -811,15 +746,11 @@ Router.route('/boards/:board_id/access/:code')
 						return next(utils.error(500, err));
 					}
 
-				new Event({
+				createEvent({
 					'type': 'BOARD_GUEST_JOIN',
 					'board': req.resolved.board.id,
-					'user': {
-						'id':       user.id,
-						'type':     user.account_type,
-						'username': user.name,
-					},
-					}).save(function(err, ev) {
+					'user':  user.id,
+					}, function(err, ev) {
 						if(err) {
 							return console.error(err);
 						}
@@ -871,14 +802,10 @@ Router.route('/boards/:board_id/setactivity')
 
 		boardQuery.exec(function(err, board) {
 			if (err) return next(utils.error(500, err));
-			new Event({
+			createEvent({
 				'type': 'BOARD_EDIT',
 				'board': board.id,
-				'user':  {
-					'id':       req.user.id,
-					'type':     req.user.type,
-					'username': req.user.username,
-				},
+				'user':  req.user.id,
 				'data': {
 					'oldAttributes': {
 						'name':             old.name,
@@ -903,7 +830,7 @@ Router.route('/boards/:board_id/setactivity')
 						'members':    board.members
 					}
 				}
-			}).save(function(err, ev) {
+			}, function(err, ev) {
 					if(err) {
 						return console.error(err);
 					}
@@ -939,14 +866,10 @@ Router.route('/boards/:board_id/setactivity')
 			if (err) return next(utils.error(500, err));
 
 			if (oldActive === false) {
-				new Event({
+				createEvent({
 					'type': 'BOARD_EDIT',
 					'board': board.id,
-					'user':  {
-						'id':       req.user.id,
-						'type':     req.user.type,
-						'username': req.user.username,
-					},
+					'user':  req.user.id,
 					'data': {
 						'oldAttributes': {
 							'name':             old.name,
@@ -971,7 +894,7 @@ Router.route('/boards/:board_id/setactivity')
 							'members':    board.members
 						}
 					}
-				}).save(function(err, ev) {
+				}, function(err, ev) {
 						if(err) {
 							return console.error(err);
 						}
