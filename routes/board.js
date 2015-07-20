@@ -671,7 +671,13 @@ Router.route('/boards/:board_id/access/:code/grantaccess')
 		var board = req.resolved.board;
 		var user = req.user;
 		var isMember = false;
-		// User is already a member of this  baord.
+
+		// Requested board must have a 'accessCode' set.
+		if(!board.accessCode || board.accessCode != req.params.code) {
+			return next(utils.error(401, ''));
+		}
+
+		// User is already a member of this  board.
 		board.members.map(function (member) {
 			if (member.user == user.id) {
 				isMember = true;
