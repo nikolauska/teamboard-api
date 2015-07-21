@@ -790,131 +790,18 @@ Router.route('/boards/:board_id/access/:code')
 	});
 
 Router.route('/boards/:board_id/setactivity')
-
-/**
- * Sets user active or unactive in a baord
- *
- * payload:
- *   {
- *     'activity': 'true'
- *   }
-
- */
-	.post(middleware.authenticate('user', 'guest'))
-	.post(middleware.relation('user', 'guest'))
+	//POST ROUTE IS DEPRECATED
+	.post(middleware.authenticate('user', 'quest'))
+	.post(middleware.relation('user', 'quest'))
 	.post(function(req, res, next) {
-		var old            = req.resolved.board.toObject();
-
-		var boardQuery = Board.findOneAndUpdate({_id:req.resolved.board, 'members.user': req.user.id}, {'$set': {
-			'members.$.isActive': req.body.isActive,
-			'members.$.lastSeen': Date.now()
-		}}).populate('members.user');
-
-		boardQuery.exec(function(err, board) {
-			if (err) return next(utils.error(500, err));
-			createEvent({
-				'type': 'BOARD_EDIT',
-				'board': board.id,
-				'user':  req.user.id,
-				'data': {
-					'oldAttributes': {
-						'name':             old.name,
-						'description':      old.description,
-						'background':       old.background,
-						'customBackground': old.customBackground,
-						'size': {
-							'width':  old.size.width,
-							'height': old.size.height,
-						},
-						'members':         old.members
-					},
-					'newAttributes': {
-						'name':             board.name,
-						'description':      board.description,
-						'background':       board.background,
-						'customBackground': board.customBackground,
-						'size': {
-							'width':  board.size.width,
-							'height': board.size.height,
-						},
-						'members':    board.members
-					}
-				}
-			}, function(err, ev) {
-					if(err) {
-						return console.error(err);
-					}
-
-					utils.emitter.to(board.id).emit('board:event', ev.toObject());
-				});
-			return res.send(200);
-
-		});
-
+		return res.send(418);
 	})
-	/*
-	 *
-	 * Very simple helper function to poll from client, to update user activity and last seen
-	 *
-	 */
-	.put(middleware.authenticate('user', 'guest'))
-	.put(middleware.relation('user', 'guest'))
+	
+	//PUT ROUTE IS DEPRECATED
+	.put(middleware.authenticate('user', 'quest'))
+	.put(middleware.relation('user', 'quest'))
 	.put(function(req, res, next) {
-		var old = req.resolved.board;
-		var oldActive = null;
-		_(old.members).forEach(function(member) {
-			if (member.user == req.user.id) {
-				oldActive = member.isActive;
-			}
-		});
-
-		var boardQuery = Board.findOneAndUpdate({_id:req.resolved.board ,'members.user': req.user.id}, {'$set': {
-			'members.$.isActive': true,
-			'members.$.lastSeen': Date.now()
-		}}).populate('members.user');
-		boardQuery.exec(function(err, board) {
-			if (err) return next(utils.error(500, err));
-
-			if (oldActive === false) {
-				createEvent({
-					'type': 'BOARD_EDIT',
-					'board': board.id,
-					'user':  req.user.id,
-					'data': {
-						'oldAttributes': {
-							'name':             old.name,
-							'description':      old.description,
-							'background':       old.background,
-							'customBackground': old.customBackground,
-							'size': {
-								'width':  old.size.width,
-								'height': old.size.height,
-							},
-							'members':         old.members
-						},
-						'newAttributes': {
-							'name':             board.name,
-							'description':      board.description,
-							'background':       board.background,
-							'customBackground': board.customBackground,
-							'size': {
-								'width':  board.size.width,
-								'height': board.size.height,
-							},
-							'members':    board.members
-						}
-					}
-				}, function(err, ev) {
-						if(err) {
-							return console.error(err);
-						}
-						utils.emitter.to(board.id).emit('board:event', ev.toObject());
-					});
-			}
-
-			return res.send(200);
-		});
-
+		return res.send(418);
 	});
 
 module.exports = Router;
