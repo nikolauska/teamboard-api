@@ -8,27 +8,27 @@ var mongoose = require('mongoose');
 var BoardSchema = module.exports = new mongoose.Schema({
 
 
-	/**
-	 * The board's display name.
-	 */
-	name: {
-		type:     String,
-		default: ''
-	},
-	/**
-	 * Size of the board, in the unit of 'tickets'. Eg. a width of 8 would
-	 * imply the board is as wide as 8 tickets.
-	 */
-	size: {
-		width: {
-			type:    Number,
-			default: 8
-		},
-		height: {
-			type:    Number,
-			default: 8
-		}
-	},
+    /**
+     * The board's display name.
+     */
+    name: {
+        type:     String,
+        default: ''
+    },
+    /**
+     * Size of the board, in the unit of 'tickets'. Eg. a width of 8 would
+     * imply the board is as wide as 8 tickets.
+     */
+    size: {
+        width: {
+            type:    Number,
+            default: 8
+        },
+        height: {
+            type:    Number,
+            default: 8
+        }
+    },
 
     /**
      * Background image used on the board.
@@ -38,7 +38,7 @@ var BoardSchema = module.exports = new mongoose.Schema({
      */
     background: {
         type:    String,
-        default: 'none'
+        default: 'DEFAULT'
     },
 
     /**
@@ -64,7 +64,7 @@ var BoardSchema = module.exports = new mongoose.Schema({
 
     /**
      * Members map of this board
-     * { 
+     * {
      *      user1._id: 'admin',
      *      user2._id: 'member'
      * }
