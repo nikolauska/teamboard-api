@@ -8,8 +8,7 @@ module.exports = {
         url:             process.env.MONGODB_URL      || 'mongodb://localhost/test',
         timeout:         process.env.MONGODB_TIMEOUT  || 5000,
         purge_interval:  process.env.MONGODB_PURGE    || '* * * * * *',
-        guest_exp_time:  process.env.MONGODB_GUEST_EXP || 604800,
-        user_poll_time:  process.env.MONGODB_USER_POLL || 10000
+        guest_exp_time:  process.env.MONGODB_GUEST_EXP || 604800
     },
     redis: {
         opts: {

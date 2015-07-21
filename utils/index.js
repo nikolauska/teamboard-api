@@ -7,4 +7,3 @@ module.exports.ticketClamper        = require('./clamper');
 module.exports.sanitize             = require('./sanitize');
 module.exports.export               = require('./export');
 module.exports.resolveBoardMembers  = require('./boardmembers');
-module.exports.pollBoardActivity    = require('./pollboardactivity');
