@@ -8,84 +8,84 @@ var mongoose = require('mongoose');
 var BoardSchema = module.exports = new mongoose.Schema({
 
 
-	/**
-	 * The board's display name.
-	 */
-	name: {
-		type:     String,
-		default: ''
-	},
-	/**
-	 * Size of the board, in the unit of 'tickets'. Eg. a width of 8 would
-	 * imply the board is as wide as 8 tickets.
-	 */
-	size: {
-		width: {
-			type:    Number,
-			default: 8
-		},
-		height: {
-			type:    Number,
-			default: 8
-		}
-	},
+    /**
+     * The board's display name.
+     */
+    name: {
+        type:     String,
+        default: ''
+    },
+    /**
+     * Size of the board, in the unit of 'tickets'. Eg. a width of 8 would
+     * imply the board is as wide as 8 tickets.
+     */
+    size: {
+        width: {
+            type:    Number,
+            default: 8
+        },
+        height: {
+            type:    Number,
+            default: 8
+        }
+    },
 
-	/**
-	 * Background image used on the board.
-	 *
-	 * TODO Enumerate this property. Should we store the background image in
-	 *      database in base64 format?
-	 */
-	background: {
-		type:    String,
-		default: 'DEFAULT'
-	},
+    /**
+     * Background image used on the board.
+     *
+     * TODO Enumerate this property. Should we store the background image in
+     *      database in base64 format?
+     */
+    background: {
+        type:    String,
+        default: 'DEFAULT'
+    },
 
-	/**
-	 * Custom background URL.
-	 *
-	 * TODO Validate to be an URL.
-	 */
-	customBackground: {
-		type:    String,
-		default: null
-	},
+    /**
+     * Custom background URL.
+     *
+     * TODO Validate to be an URL.
+     */
+    customBackground: {
+        type:    String,
+        default: null
+    },
 
-	/**
-	 * The 'access-code' that can be used by 'guests' to generate an
-	 * 'access-token' to this board. The generated 'access-tokens' are tied to
-	 * the 'access-code', so refreshing or emptying this will render the
-	 * generated 'access-tokens' invalid.
-	 */
-	accessCode: {
-		type:    String,
-		default: null
-	},
+    /**
+     * The 'access-code' that can be used by 'guests' to generate an
+     * 'access-token' to this board. The generated 'access-tokens' are tied to
+     * the 'access-code', so refreshing or emptying this will render the
+     * generated 'access-tokens' invalid.
+     */
+    accessCode: {
+        type:    String,
+        default: null
+    },
 
-	/**
-	 * Members map of this board
-	 * {
-	 *      user1._id: 'admin',
-	 *      user2._id: 'member'
-	 * }
-	 */
-	members: [{
-		user:  {
-			ref: 'user',
-			type: mongoose.Schema.Types.ObjectId
-		},
-		role: {
-			type: String
-		},
+    /**
+     * Members map of this board
+     * {
+     *      user1._id: 'admin',
+     *      user2._id: 'member'
+     * }
+     */
+    members: [{
+        user:  {
+            ref: 'user',
+            type: mongoose.Schema.Types.ObjectId
+        },
+        role: {
+            type: String
+        },
 
-		isActive: {
-			type:    Boolean,
-			default: false
-		},
-		lastSeen: {
-			type: Date
-		}
-	}]
+        isActive: {
+            type:    Boolean,
+            default: false
+        },
+        lastSeen: {
+            type: Date
+        }
+    }]
 
 });
 
@@ -93,10 +93,10 @@ if(!BoardSchema.options.toJSON) BoardSchema.options.toJSON     = { }
 if(!BoardSchema.options.toObject) BoardSchema.options.toObject = { }
 
 BoardSchema.options.toJSON.transform = function(doc, ret) {
-	ret.id = doc.id;
+    ret.id = doc.id;
 
-	delete ret._id;
-	delete ret.__v;
+    delete ret._id;
+    delete ret.__v;
 }
 
 /**
