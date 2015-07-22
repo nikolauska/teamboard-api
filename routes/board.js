@@ -363,14 +363,13 @@ Router.route('/boards/:board_id/tickets')
 		var payload              = req.body;
 		    payload.board        = req.resolved.board.id;
 		    payload.createdBy    = req.user.id;
-		    payload.lastEditedBy = req.user.id;
 
 		new Ticket(payload).save(function(err, ticket) {
 			if(err) {
 				return next(utils.error(400, err));
 			}
 
-			ticket.populate('createdBy lastEditedBy', function(err, ticket) {
+			ticket.populate('createdBy', function(err, ticket) {
 				createEvent({
 					'type': 'TICKET_CREATE',
 					'board': ticket.board,
@@ -381,7 +380,7 @@ Router.route('/boards/:board_id/tickets')
 						'content':      ticket.content,
 						'position':     ticket.position,
 						'createdBy':    ticket.createdBy,
-						'lastEditedBy': ticket.lastEditedBy
+						'lastEditedBy': null
 					}
 				}, function(err, ev) {
 					if(err) {
@@ -442,6 +441,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 							'heading':  old.heading,
 							'content':  old.content,
 							'position': old.position,
+							'lastEditedBy': old.lastEditedBy
 
 						},
 						'newAttributes': {
@@ -449,6 +449,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 							'heading':  ticket.heading,
 							'content':  ticket.content,
 							'position': ticket.position,
+							'lastEditedBy': ticket.lastEditedBy
 						},
 					}
 				}, function(err, ev) {
