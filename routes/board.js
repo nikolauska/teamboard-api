@@ -366,7 +366,7 @@ Router.route('/boards/:board_id/tickets')
 			});
 		})
 
-		
+
 	})
 
 	/**
@@ -451,6 +451,7 @@ Router.route('/boards/:board_id/tickets/:ticket_id')
 	.put(function(req, res, next) {
 		var old               = req.resolved.ticket.toObject();
 		req.body.lastEditedBy = req.user.id;
+		req.body.comments     = null;
 		req.resolved.ticket   = _.merge(req.resolved.ticket, req.body);
 
 		return req.resolved.ticket.save(function(err, ticket) {
@@ -828,7 +829,7 @@ Router.route('/boards/:board_id/setactivity')
 	.post(function(req, res, next) {
 		return res.send(418);
 	})
-	
+
 	//PUT ROUTE IS DEPRECATED
 	.put(middleware.authenticate('user', 'quest'))
 	.put(middleware.relation('user', 'quest'))
