@@ -327,15 +327,46 @@ Router.route('/boards/:board_id/tickets')
 	.get(function(req, res) {
 		var board = req.resolved.board;
 
-		var ticketQuery = Ticket.find({'board': board.id})
-			.populate('createdBy').populate('lastEditedBy').populate('comments.user');
+		var comments = Event.aggregate([
+		{
+        	$match : {
+        		board : new ObjectId(req.resolved.board.id),
+        		type : 'TICKET_COMMENT'
+        	}
+        },
+        { $group: {
+            _id: "$data.ticket_id",
+            sum: { $sum: 1 }
+        }}
+    	], function (err, comments) {
+        	if (err) {
+         	  return next(utils.error(500, err));
+       		}
+        	return comments;
+    	});
 
-		ticketQuery.exec(function(err, tickets) {
-			if(err) {
-				return next(utils.error(500, err));
-			}
-			return res.json(200, tickets);
-		});
+    	comments.then(function(comment){
+
+    		var ticketQuery = Ticket.find({'board': board.id})
+			.populate('createdBy').populate('lastEditedBy');
+			ticketQuery.exec(function(err, tickets) {
+				if(err) {
+					return next(utils.error(500, err));
+				}
+
+				tickets = tickets.map(function(ticket) {
+					var tcomm = _.find(comment, function(c) {
+						return c._id === ticket.id
+					});
+					ticket.comments = tcomm ? tcomm.sum : 0
+					return ticket
+				});
+
+				return res.json(200, tickets);
+			});
+		})
+
+		
 	})
 
 	/**
