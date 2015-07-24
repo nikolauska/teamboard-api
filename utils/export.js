@@ -1,8 +1,5 @@
 'use strict';
 
-var mongoose = require('mongoose');
-var Event   = mongoose.model('event');
-
 var json2csv = require('nice-json2csv');
 var utils    = require('../utils');
 var config   = require('../config');
@@ -110,7 +107,7 @@ function generateCSV(board, tickets) {
 			'CONTENT':    t.content,
 			'COLOR':      t.color,
 			'COMMENTS':   t.comments.map(function(c) {
-				return c.user.username + ': ' + c.data.message;
+				return c.user + ': ' + c.message;
 			}) + '',
 			'POSITION_X': '' + t.position.x + '',
 			'POSITION_Y': '' + t.position.y + '',
